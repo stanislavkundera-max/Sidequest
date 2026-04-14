@@ -1,0 +1,23 @@
+appId: ${APP_ID}
+name: Tabs, memories, and progress journey
+---
+- launchApp
+- assertVisible:
+    text: "Home|Welcome back"
+
+- runFlow:
+    when:
+      visible: "Home"
+    commands:
+      - tapOn: "Memories"
+      - assertVisible: "Memories"
+      - tapOn: "Progress"
+      - assertVisible: "Progress"
+
+- runFlow:
+    when:
+      visible: "Home"
+    commands:
+      - tapOn: "Memories"
+      - tapOn: "+ New"
+      - assertVisible: "What stayed with you?"

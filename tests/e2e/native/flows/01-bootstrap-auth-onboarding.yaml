@@ -1,0 +1,26 @@
+appId: ${APP_ID}
+name: Bootstrap auth and onboarding journey
+---
+- launchApp
+- assertVisible:
+    text: "Welcome back|Side Quest Life|Home"
+
+# When auth is visible, this validates required-field behavior.
+- runFlow:
+    when:
+      visible: "Welcome back"
+    commands:
+      - tapOn: "Sign in"
+      - assertVisible: "Enter email and password."
+      - tapOn: "Need an account? Sign up"
+      - assertVisible: "Create account"
+
+# Onboarding walkthrough when available.
+- runFlow:
+    when:
+      visible: "Side Quest Life"
+    commands:
+      - tapOn: "Next"
+      - assertVisible: "Pick your preferred categories."
+      - tapOn: "Next"
+      - assertVisible: "Choose intensity."

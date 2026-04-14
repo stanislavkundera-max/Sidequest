@@ -1,0 +1,25 @@
+appId: ${APP_ID}
+name: Quest selection and memory creation journey
+---
+- launchApp
+- assertVisible:
+    text: "Home|Welcome back"
+
+- runFlow:
+    when:
+      visible: "Home"
+    commands:
+      - tapOn: "Browse quests"
+      - assertVisible: "Pick your quests"
+      - assertVisible:
+          text: "Activate|At limit|Active"
+      - runFlow:
+          when:
+            visible: "Activate"
+          commands:
+            - tapOn: "Activate"
+      - tapOn: "Memories"
+      - tapOn: "+ New"
+      - assertVisible: "Save memory"
+      - inputText: "E2E native memory entry"
+      - tapOn: "Save memory"

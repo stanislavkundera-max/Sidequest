@@ -1,0 +1,23 @@
+appId: ${APP_ID}
+name: Empty and fallback state entry points
+---
+- launchApp
+- assertVisible:
+    text: "Home|Welcome back"
+
+# Validate at least one empty/fallback entry point is reachable.
+- runFlow:
+    when:
+      visible: "Home"
+    commands:
+      - tapOn: "Memories"
+      - assertVisible:
+          text: "No memories yet|Your reflections in reverse chronological order."
+
+- runFlow:
+    when:
+      visible: "Home"
+    commands:
+      - tapOn: "Browse quests"
+      - assertVisible:
+          text: "Pick your quests|No weekly quests available|No monthly quests available|No yearly quests available"
