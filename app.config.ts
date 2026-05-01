@@ -53,5 +53,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   extra: {
     supabaseUrl: envTrim('EXPO_PUBLIC_SUPABASE_URL'),
     supabaseAnonKey: envTrim('EXPO_PUBLIC_SUPABASE_ANON_KEY'),
+    devLoginEmail: envTrim('EXPO_PUBLIC_DEV_LOGIN_EMAIL'),
+    devLoginPassword: envTrim('EXPO_PUBLIC_DEV_LOGIN_PASSWORD'),
   },
 });

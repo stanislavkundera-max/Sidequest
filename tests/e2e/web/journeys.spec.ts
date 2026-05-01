@@ -23,8 +23,15 @@ async function clickVisibleText(page: Page, text: string) {
 async function detectSurface(page: Page): Promise<'auth' | 'onboarding' | 'home' | 'unknown'> {
   if (await textVisible(page, 'Welcome back')) return 'auth';
   if (await textVisible(page, 'Side Quest Life')) return 'onboarding';
-  if (await textVisible(page, 'Home')) return 'home';
+  // After auth + onboarding, the tab bar should show Journey.
+  if (await textVisible(page, 'Journey')) return 'home';
   return 'unknown';
+}
+
+async function clickByAccessibilityLabel(page: Page, label: string) {
+  const target = page.getByRole('button', { name: label, exact: false }).first();
+  await expect(target).toBeVisible();
+  await target.click();
 }
 
 async function signInFromAuthSurface(page: Page, email: string, password: string) {
@@ -81,7 +88,7 @@ test.describe('User journeys on web', () => {
         async () =>
           (await textVisible(page, 'Welcome back')) ||
           (await textVisible(page, 'Side Quest Life')) ||
-          (await textVisible(page, 'Home')),
+          (await textVisible(page, 'Choose a quest')),
         { timeout: 30_000 }
       )
       .toBeTruthy();
@@ -111,7 +118,7 @@ test.describe('User journeys on web', () => {
       }
       await signInFromAuthSurface(page, email as string, password as string);
     }
-    if (await textVisible(page, 'Home')) {
+    if (await textVisible(page, 'Choose a quest')) {
       test.skip(
         true,
         'Onboarding already completed for this account. Use dedicated E2E_ONBOARDING_* user.'
@@ -129,12 +136,12 @@ test.describe('User journeys on web', () => {
     await landOnApp(page);
     await ensureAuthenticatedOrSkip(page);
 
-    if (!(await textVisible(page, 'Home'))) {
-      await expect(page.getByText('Home')).toBeVisible({ timeout: 30_000 });
-    }
+    // Journey -> choose a quest
+    await clickByAccessibilityLabel(page, 'Open quest chooser');
+    await expect(page.getByText('Choose a quest')).toBeVisible({ timeout: 30_000 });
 
-    // Home -> quest selection
-    await clickVisibleText(page, 'Browse quests');
+    // Choose a quest -> quest selection
+    await clickVisibleText(page, 'Nature');
     await expect(page.getByText('Pick your quests')).toBeVisible();
 
     const activateButton = page.getByText('Activate', { exact: true }).first();
@@ -175,9 +182,9 @@ test.describe('User journeys on web', () => {
     await landOnApp(page);
     await ensureAuthenticatedOrSkip(page);
 
-    if (!(await textVisible(page, 'Home'))) {
-      test.skip(true, 'Needs authenticated home state.');
-    }
+    // Journey -> choose a quest (should be reachable)
+    await clickByAccessibilityLabel(page, 'Open quest chooser');
+    await expect(page.getByText('Choose a quest')).toBeVisible({ timeout: 30_000 });
 
     await clickVisibleText(page, 'Memories');
     await expect(page.getByText('Memories')).toBeVisible();

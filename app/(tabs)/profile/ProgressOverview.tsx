@@ -202,15 +202,33 @@ export function ProgressOverview({ focusedTimeframe }: ProgressOverviewProps) {
                   <Text style={styles.statLabel}>Completed</Text>
                 </Pressable>
                 <View style={styles.statDivider} />
-                <View style={styles.statCell}>
+                <Pressable
+                  accessibilityRole="button"
+                  accessibilityLabel={`Active quests: ${stats.active}. Opens active quests list.`}
+                  accessibilityHint="Opens all quests you are working on"
+                  onPress={() => router.push('/quest/active' as never)}
+                  style={({ pressed }) => [
+                    styles.statCell,
+                    styles.statCellTappable,
+                    pressed && styles.statCellPressed,
+                  ]}>
                   <Text style={styles.statValue}>{stats.active}</Text>
                   <Text style={styles.statLabel}>Active</Text>
-                </View>
+                </Pressable>
                 <View style={styles.statDivider} />
-                <View style={styles.statCell}>
+                <Pressable
+                  accessibilityRole="button"
+                  accessibilityLabel={`Memories: ${stats.memories}. Opens memories.`}
+                  accessibilityHint="Opens your memories timeline"
+                  onPress={() => router.push('/(tabs)/memories')}
+                  style={({ pressed }) => [
+                    styles.statCell,
+                    styles.statCellTappable,
+                    pressed && styles.statCellPressed,
+                  ]}>
                   <Text style={styles.statValue}>{stats.memories}</Text>
                   <Text style={styles.statLabel}>Memories</Text>
-                </View>
+                </Pressable>
               </View>
             </View>
 
@@ -247,10 +265,6 @@ export function ProgressOverview({ focusedTimeframe }: ProgressOverviewProps) {
                   const stepTotal = q.actionSteps.length;
                   const stepDone =
                     stepTotal > 0 ? countCompletedJourneySteps(uq, q) : 0;
-                  const percent =
-                    stepTotal > 0
-                      ? Math.round((stepDone / stepTotal) * 100)
-                      : null;
                   const accent = categoryAccentForCategoryId(q.categoryId);
                   const nextStepLabel = getNextActionableStepLabel(uq, q);
                   return (
@@ -259,7 +273,8 @@ export function ProgressOverview({ focusedTimeframe }: ProgressOverviewProps) {
                       title={q.title}
                       categoryId={q.categoryId}
                       nextStepLabel={nextStepLabel}
-                      percent={percent}
+                      stepDone={stepDone}
+                      stepTotal={stepTotal}
                       accentColor={accent}
                       onPress={() => router.push(`/quest/${q.id}`)}
                     />

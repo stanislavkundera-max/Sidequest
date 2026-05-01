@@ -63,7 +63,8 @@ type CompactActiveQuestRowProps = {
   categoryId: string;
   /** First unchecked journey step (or wrap-up hint). Shown under the title. */
   nextStepLabel: string;
-  percent: number | null;
+  stepDone: number;
+  stepTotal: number;
   accentColor: string;
   onPress: () => void;
 };
@@ -87,18 +88,18 @@ export function CompactActiveQuestRow({
   title,
   categoryId,
   nextStepLabel,
-  percent,
+  stepDone,
+  stepTotal,
   accentColor,
   onPress,
 }: CompactActiveQuestRowProps) {
-  const pctLabel = percent === null ? '—' : `${percent}%`;
-  const fill = percent === null ? 0 : Math.min(100, Math.max(0, percent)) / 100;
   const iconName = categoryIconNameForCategoryId(categoryId);
   const catLabel = categoryShortLabel(categoryId);
+  const stepLabel = stepTotal > 0 ? `${stepDone}/${stepTotal} steps` : 'Steps';
   return (
     <Pressable
       accessibilityRole="button"
-      accessibilityLabel={`${title}. Category ${catLabel}. Next step: ${nextStepLabel}. ${pctLabel} journey progress.`}
+      accessibilityLabel={`${title}. Category ${catLabel}. Next step: ${nextStepLabel}. ${stepLabel}.`}
       onPress={onPress}
       style={({ pressed }) => [styles.compactRow, pressed && styles.compactRowPressed]}>
       <View style={[styles.compactAccent, { backgroundColor: accentColor }]} />
@@ -107,7 +108,9 @@ export function CompactActiveQuestRow({
           <Text style={styles.compactTitle} numberOfLines={2}>
             {title}
           </Text>
-          <Text style={[styles.compactPct, { color: accentColor }]}>{pctLabel}</Text>
+          <View style={[styles.stepPill, { borderColor: accentColor }]}>
+            <Text style={[styles.stepPillText, { color: accentColor }]}>{stepLabel}</Text>
+          </View>
         </View>
         <View style={[styles.nextStepHighlight, { borderLeftColor: accentColor }]}>
           <Text style={[styles.nextStepPrefix, { color: accentColor }]}>Next actionable</Text>
@@ -115,15 +118,8 @@ export function CompactActiveQuestRow({
             {nextStepLabel}
           </Text>
         </View>
-        <View style={styles.trackRow}>
-          <View style={styles.compactTrack}>
-            <View
-              style={[
-                styles.compactFill,
-                { width: `${Math.round(fill * 100)}%`, backgroundColor: accentColor },
-              ]}
-            />
-          </View>
+        <View style={styles.footerRow}>
+          <Text style={styles.footerMeta}>{catLabel}</Text>
           <View
             style={[styles.categoryIconBadge, { borderColor: accentColor }]}
             accessibilityElementsHidden
@@ -278,7 +274,14 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   compactTitle: { flex: 1, fontSize: 16, fontWeight: '700', color: Theme.text },
-  compactPct: { fontSize: 14, fontWeight: '700', paddingTop: 1 },
+  stepPill: {
+    borderWidth: 1,
+    backgroundColor: Theme.bg,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 999,
+  },
+  stepPillText: { fontSize: 12, fontWeight: '800' },
   nextStepHighlight: {
     marginBottom: 12,
     paddingVertical: 12,
@@ -303,18 +306,13 @@ const styles = StyleSheet.create({
     color: Theme.text,
     fontWeight: '700',
   },
-  trackRow: {
+  footerRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 10,
+    justifyContent: 'space-between',
   },
-  compactTrack: {
-    flex: 1,
-    height: 4,
-    borderRadius: 3,
-    backgroundColor: Theme.border,
-    overflow: 'hidden',
-  },
+  footerMeta: { fontSize: 13, color: Theme.textMuted, fontWeight: '600' },
   categoryIconBadge: {
     width: 30,
     height: 30,
@@ -324,7 +322,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  compactFill: { height: '100%', borderRadius: 3 },
   callout: {
     backgroundColor: Theme.surface,
     borderRadius: 14,

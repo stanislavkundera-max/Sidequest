@@ -85,28 +85,30 @@ function RootLayoutNav() {
 
   useEffect(() => {
     let mounted = true;
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (!mounted) return;
-      setSession(session);
-      if (session?.user) {
-        identifyUser(session.user.id).catch(() => undefined);
-        trackAppOpened('root_layout_authenticated').catch(() => undefined);
-        ensureProfileForUser({
-          id: session.user.id,
-          email: session.user.email,
-        }).catch((error) =>
-          logError('root_layout.ensureProfileForUser.initial', error, {
-            userId: session.user?.id,
-          })
-        );
-      }
-      setInitialized(true);
-    });
-
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
+    } = supabase.auth.onAuthStateChange((event, session) => {
+      if (!mounted) return;
       setSession(session);
+
+      // One startup path only — avoids racing getSession() with INITIAL_SESSION (Web Locks / process lock timeouts).
+      if (event === 'INITIAL_SESSION') {
+        setInitialized(true);
+        if (session?.user) {
+          identifyUser(session.user.id).catch(() => undefined);
+          trackAppOpened('root_layout_authenticated').catch(() => undefined);
+          ensureProfileForUser({
+            id: session.user.id,
+            email: session.user.email,
+          }).catch((error) =>
+            logError('root_layout.ensureProfileForUser.initial', error, {
+              userId: session.user?.id,
+            })
+          );
+        }
+        return;
+      }
+
       if (session?.user) {
         identifyUser(session.user.id).catch(() => undefined);
         trackAppOpened('auth_state_change').catch(() => undefined);

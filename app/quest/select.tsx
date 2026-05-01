@@ -236,14 +236,14 @@ export default function QuestSelectionScreen() {
               title="Recommended"
               message="Personalized suggestions will appear here soon. Pick Nature, Adventure, Relax, or Social to browse the catalog."
               actionLabel="Back to home"
-              onAction={() => router.replace('/(tabs)')}
+              onAction={() => router.replace('/(tabs)/journey')}
             />
           ) : questsInCategory.length === 0 ? (
             <EmptyState
               title="No quests in this category"
               message="Try another category or check back later."
               actionLabel="Back to home"
-              onAction={() => router.replace('/(tabs)')}
+              onAction={() => router.replace('/(tabs)/journey')}
             />
           ) : (
             TIMEFRAME_ORDER.map((tf) => (

@@ -52,7 +52,7 @@ export default function OnboardingScreen() {
           trackEvent('onboarding_skipped', { sourceScreen: 'onboarding' }).catch(
             () => undefined
           );
-          router.replace('/(tabs)');
+          router.replace('/(tabs)/journey');
           return;
         }
         setChecking(false);
@@ -90,7 +90,7 @@ export default function OnboardingScreen() {
         preferredCategories: categories,
         intensityPreference: intensity,
       }).catch(() => undefined);
-      router.replace('/(tabs)');
+      router.replace('/(tabs)/journey');
     } catch (e: unknown) {
       const message = e instanceof Error ? e.message : 'Try again.';
       logError('onboarding.finishOnboarding', e, {

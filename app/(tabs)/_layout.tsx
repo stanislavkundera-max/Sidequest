@@ -46,6 +46,7 @@ export default function TabLayout() {
 
   return (
     <Tabs
+      initialRouteName="journey"
       screenOptions={{
         tabBarActiveTintColor: Theme.accent,
         tabBarInactiveTintColor: Theme.textMuted,
@@ -59,12 +60,19 @@ export default function TabLayout() {
         headerShown: useClientOnlyValue(false, true),
       }}>
       <Tabs.Screen
+        name="journey"
+        options={{
+          title: 'Journey',
+          tabBarIcon: ({ color }) => (
+            <TabBarIcon name="map-o" color={color} />
+          ),
+        }}
+      />
+      <Tabs.Screen
         name="index"
         options={{
-          title: 'Home',
-          tabBarIcon: ({ color }) => (
-            <TabBarIcon name="sun-o" color={color} />
-          ),
+          title: '',
+          href: null,
         }}
       />
       <Tabs.Screen

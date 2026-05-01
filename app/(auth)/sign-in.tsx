@@ -22,6 +22,27 @@ import {
 import { logError } from '@/src/lib/monitoring/errorLogger';
 import { useSessionStore } from '@/stores/session';
 
+function formatAuthErrorForUi(e: unknown): string {
+  if (e instanceof TypeError) {
+    return (
+      'Could not reach Supabase (network). Copy Project URL from Supabase → Settings → API into EXPO_PUBLIC_SUPABASE_URL ' +
+      '(a typo in the hostname looks like this). Restart Expo after changing .env. If the URL is correct, check VPN/firewall and that the project is not paused.'
+    );
+  }
+  if (e instanceof Error) {
+    const m = e.message;
+    if (
+      m === 'Failed to fetch' ||
+      m.includes('NetworkError') ||
+      m.includes('Load failed')
+    ) {
+      return formatAuthErrorForUi(new TypeError(m));
+    }
+    return m;
+  }
+  return 'Something went wrong';
+}
+
 export default function SignInScreen() {
   const router = useRouter();
   const setSession = useSessionStore((s) => s.setSession);
@@ -84,7 +105,7 @@ export default function SignInScreen() {
         router.replace('/');
       }
     } catch (e: unknown) {
-      const message = e instanceof Error ? e.message : 'Something went wrong';
+      const message = formatAuthErrorForUi(e);
       logError('auth.submit', e, { mode, emailProvided: Boolean(email.trim()) });
       setFormError(message);
       alertCompat('Auth error', message);

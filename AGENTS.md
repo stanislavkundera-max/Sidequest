@@ -30,6 +30,7 @@ Repository language is **English** unless the user explicitly asks for another l
 - **Memory logging is core:** Treat journaling (text + optional photo) as a first-class flow, not an afterthought.
 - **Quests must be concrete and short:** Real-world executable, no vague “be mindful” filler.
 - **Calm, grounded UI:** Earth/neutral palette and restrained typography—see `constants/Theme.ts` before changing colors or adding loud UI patterns.
+- **Journey tab visuals & motion:** Follow **`docs/journey-visual-style.md`** (path spine, markers, artifacts, taps, Reanimated tone). Do not drift Journey toward generic gamified UI without updating that doc intentionally.
 - **No aggressive reward loops:** Avoid streak pressure, endless notifications, or instant-reward psychology dressed as “wellness.”
 
 ---

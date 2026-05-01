@@ -4,6 +4,7 @@ import { StyleSheet, View } from 'react-native';
 
 import { LoadingState } from '@/components/ui/LoadingState';
 import { Theme } from '@/constants/Theme';
+import { getDevAutoLoginCredentials } from '@/lib/devAuth';
 import { getOnboardingComplete } from '@/lib/onboarding';
 import { isSupabaseConfigured, supabase } from '@/lib/supabase';
 import { trackAppOpened } from '@/src/lib/analytics';
@@ -38,9 +39,25 @@ export default function Index() {
     let cancelled = false;
     (async () => {
       try {
-        const { data } = await supabase.auth.signInAnonymously();
-        if (!cancelled && data.session) {
-          setSession(data.session);
+        let sessionEstablished = false;
+        const devCreds = getDevAutoLoginCredentials();
+        if (devCreds) {
+          const { data, error } = await supabase.auth.signInWithPassword({
+            email: devCreds.email,
+            password: devCreds.password,
+          });
+          if (!cancelled && !error && data.session) {
+            setSession(data.session);
+            sessionEstablished = true;
+          } else if (error && __DEV__) {
+            logError('index.devAutoLogin', error);
+          }
+        }
+        if (!cancelled && !sessionEstablished) {
+          const { data } = await supabase.auth.signInAnonymously();
+          if (!cancelled && data.session) {
+            setSession(data.session);
+          }
         }
       } catch (error: unknown) {
         logError('index.signInAnonymously', error);
@@ -81,7 +98,7 @@ export default function Index() {
     return <Redirect href="/onboarding" />;
   }
 
-  return <Redirect href="/(tabs)" />;
+  return <Redirect href="/(tabs)/journey" />;
 }
 
 const styles = StyleSheet.create({

@@ -25,8 +25,8 @@ export function ActiveQuestProgressCard({
   stepTotal,
   onPress,
 }: ActiveQuestProgressCardProps) {
-  const progressRatio = stepTotal > 0 ? Math.min(1, stepDone / stepTotal) : 0;
   const iconName = categoryIconNameForCategoryId(categoryId);
+  const stepLabel = stepTotal > 0 ? `${stepDone}/${stepTotal} steps` : 'Open quest';
   return (
     <Pressable
       accessibilityLabel={
@@ -38,28 +38,12 @@ export function ActiveQuestProgressCard({
       style={({ pressed }) => [styles.card, pressed && styles.cardPressed]}>
       <View style={[styles.accentBar, { backgroundColor: accentColor }]} />
       <View style={styles.cardBody}>
-        <Text style={styles.cardTitle}>{title}</Text>
-        {stepTotal > 0 ? (
-          <View style={styles.progressBlock}>
-            <View style={styles.progressRow}>
-              <Text style={styles.progressCaption}>Journey progress</Text>
-              <Text style={[styles.progressFraction, { color: accentColor }]}>
-                {stepDone}/{stepTotal}
-              </Text>
-            </View>
-            <View style={styles.progressTrack}>
-              <View
-                style={[
-                  styles.progressFill,
-                  {
-                    width: `${Math.round(progressRatio * 100)}%`,
-                    backgroundColor: accentColor,
-                  },
-                ]}
-              />
-            </View>
+        <View style={styles.titleRow}>
+          <Text style={styles.cardTitle}>{title}</Text>
+          <View style={[styles.stepPill, { borderColor: accentColor }]}>
+            <Text style={[styles.stepPillText, { color: accentColor }]}>{stepLabel}</Text>
           </View>
-        ) : null}
+        </View>
         <Text style={styles.cardMeta} numberOfLines={2}>
           {shortDescription}
         </Text>
@@ -90,33 +74,27 @@ const styles = StyleSheet.create({
   cardPressed: { opacity: 0.92 },
   accentBar: { width: 5 },
   cardBody: { flex: 1, padding: 16, paddingBottom: 14 },
+  titleRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    justifyContent: 'space-between',
+    gap: 10,
+    marginBottom: 8,
+  },
   cardTitle: {
+    flex: 1,
     fontSize: 18,
     fontWeight: '600',
     color: Theme.text,
-    marginBottom: 8,
   },
-  progressBlock: { marginBottom: 10 },
-  progressRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: 6,
+  stepPill: {
+    borderWidth: 1,
+    backgroundColor: Theme.bg,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 999,
   },
-  progressCaption: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: Theme.text,
-    letterSpacing: 0.2,
-  },
-  progressFraction: { fontSize: 15, fontWeight: '700' },
-  progressTrack: {
-    height: 6,
-    borderRadius: 4,
-    backgroundColor: Theme.border,
-    overflow: 'hidden',
-  },
-  progressFill: { height: '100%', borderRadius: 4 },
+  stepPillText: { fontSize: 12, fontWeight: '800' },
   cardMeta: { fontSize: 15, color: Theme.textMuted, lineHeight: 22 },
   cardFooter: {
     marginTop: 10,
