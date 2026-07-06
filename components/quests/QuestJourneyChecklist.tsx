@@ -1,4 +1,4 @@
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 
 import { Theme } from '@/constants/Theme';
 import type { Quest, QuestActionStep, UserQuest } from '@/src/types/quest';
@@ -20,9 +20,8 @@ export function QuestJourneyChecklist(props: {
   mode: JourneyMode;
   userQuest?: UserQuest;
   accentColor: string;
-  onToggleStep?: (stepId: string) => void;
 }) {
-  const { quest, mode, userQuest, accentColor, onToggleStep } = props;
+  const { quest, mode, userQuest, accentColor } = props;
   const steps = quest.actionSteps;
   if (steps.length === 0) return null;
 
@@ -34,13 +33,16 @@ export function QuestJourneyChecklist(props: {
       {intro ? <Text style={styles.intro}>{intro}</Text> : null}
       {mode === 'browse' ? (
         <Text style={styles.browseHint}>
-          Add this quest to check off steps as you go.
+          Add this quest, then use the runner to advance steps when you're ready.
+        </Text>
+      ) : mode === 'active' ? (
+        <Text style={styles.browseHint}>
+          Steps update from the guided runner as you confirm each part.
         </Text>
       ) : null}
       <View style={styles.list}>
         {steps.map((step, index) => {
           const done = isStepDone(step, mode, userQuest);
-          const interactive = mode === 'active' && onToggleStep;
           const checkBox = (
             <View
               style={[
@@ -61,22 +63,6 @@ export function QuestJourneyChecklist(props: {
               ) : null}
             </View>
           );
-          if (interactive) {
-            return (
-              <Pressable
-                key={step.id}
-                accessibilityRole="checkbox"
-                accessibilityState={{ checked: done }}
-                onPress={() => onToggleStep(step.id)}
-                style={({ pressed }) => [
-                  styles.row,
-                  pressed && styles.rowPressed,
-                ]}>
-                {checkBox}
-                {body}
-              </Pressable>
-            );
-          }
           return (
             <View key={step.id} style={styles.row}>
               {checkBox}
@@ -120,7 +106,6 @@ const styles = StyleSheet.create({
   },
   list: { gap: 12 },
   row: { flexDirection: 'row', alignItems: 'flex-start', gap: 12 },
-  rowPressed: { opacity: 0.85 },
   check: {
     width: 24,
     height: 24,

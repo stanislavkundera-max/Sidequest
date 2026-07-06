@@ -1,6 +1,8 @@
 export type {
   OnboardingCategory,
   OnboardingIntensity,
+  OnboardingPace,
+  OnboardingFocus,
   OnboardingPreferences,
   OnboardingState,
 } from '@/src/features/onboarding/types';

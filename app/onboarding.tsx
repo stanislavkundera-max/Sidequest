@@ -1,8 +1,9 @@
 import { useRouter } from 'expo-router';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
+  ImageBackground,
   Platform,
   Pressable,
   ScrollView,
@@ -10,26 +11,143 @@ import {
   Text,
   View,
 } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+import FontAwesome from '@expo/vector-icons/FontAwesome';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { Theme } from '@/constants/Theme';
+import { categoryAccentForCategoryId } from '@/lib/categoryAccent';
+import { categoryIconNameForCategoryId } from '@/lib/categoryIcons';
 import { getOnboardingComplete } from '@/lib/onboarding';
 import { saveOnboardingState } from '@/src/features/onboarding';
+import { recommendQuestsForPreferences } from '@/src/features/quests/suggestedQuests';
+import { useQuestDomainStore } from '@/src/features/quests/questStore';
 import { trackEvent } from '@/src/lib/analytics';
 import { logError } from '@/src/lib/monitoring/errorLogger';
+import { useSessionStore } from '@/stores/session';
 import type {
   OnboardingCategory,
-  OnboardingIntensity,
+  OnboardingFocus,
+  OnboardingPace,
 } from '@/src/features/onboarding';
+
+const MAP_BACKGROUND = require('@/assets/images/explore-map-background.png');
+
+const TOTAL_STEPS = 6;
+
+type CategoryOption = {
+  slug: OnboardingCategory;
+  label: string;
+  description: string;
+};
+
+const CATEGORY_OPTIONS: CategoryOption[] = [
+  { slug: 'nature', label: 'Nature', description: 'Outdoors, plants, and light' },
+  { slug: 'adventure', label: 'Adventure', description: 'New routes and small trips' },
+  { slug: 'social', label: 'Social', description: 'Real conversations and connection' },
+  { slug: 'relax', label: 'Relax', description: 'Slow, restorative moments' },
+];
+
+type PaceOption = {
+  value: OnboardingPace;
+  label: string;
+  description: string;
+  icon: keyof typeof Ionicons.glyphMap;
+};
+
+const PACE_OPTIONS: PaceOption[] = [
+  {
+    value: 'quick',
+    label: 'A few minutes',
+    description: 'Short quests I can finish this week',
+    icon: 'flash-outline',
+  },
+  {
+    value: 'steady',
+    label: 'A steady rhythm',
+    description: 'A practical mix across the month',
+    icon: 'walk-outline',
+  },
+  {
+    value: 'deep',
+    label: 'Bigger journeys',
+    description: 'Longer quests that unfold over time',
+    icon: 'trail-sign-outline',
+  },
+];
+
+type FocusOption = {
+  value: OnboardingFocus;
+  label: string;
+  description: string;
+  icon: keyof typeof Ionicons.glyphMap;
+};
+
+const FOCUS_OPTIONS: FocusOption[] = [
+  {
+    value: 'comfort_zone',
+    label: 'Push my comfort zone',
+    description: 'Bolder, braver little dares',
+    icon: 'rocket-outline',
+  },
+  {
+    value: 'calm',
+    label: 'More calm',
+    description: 'Slow down and restore',
+    icon: 'leaf-outline',
+  },
+  {
+    value: 'connection',
+    label: 'More people',
+    description: 'Connect and share moments',
+    icon: 'people-outline',
+  },
+  {
+    value: 'wonder',
+    label: 'More wonder',
+    description: 'Notice and explore the everyday',
+    icon: 'sparkles-outline',
+  },
+];
+
+type FeatureRow = {
+  icon: keyof typeof Ionicons.glyphMap;
+  title: string;
+  body: string;
+};
+
+const FEATURE_ROWS: FeatureRow[] = [
+  {
+    icon: 'map-outline',
+    title: 'Explore your map',
+    body: 'Pick quests by mood from an illustrated world map.',
+  },
+  {
+    icon: 'footsteps-outline',
+    title: 'Do small sidequests',
+    body: 'Real-world actions you can finish today — no points, no streaks.',
+  },
+  {
+    icon: 'book-outline',
+    title: 'Collect memories',
+    body: 'Log a short reflection and a photo, and watch your journey grow.',
+  },
+];
 
 export default function OnboardingScreen() {
   const router = useRouter();
+  const user = useSessionStore((s) => s.user);
+  const quests = useQuestDomainStore((s) => s.quests);
+  const categories = useQuestDomainStore((s) => s.categories);
+  const bootstrap = useQuestDomainStore((s) => s.bootstrap);
+
   const [step, setStep] = useState(0);
-  const [categories, setCategories] = useState<OnboardingCategory[]>([
+  const [selectedCategories, setSelectedCategories] = useState<OnboardingCategory[]>([
     'nature',
     'adventure',
   ]);
-  const [intensity, setIntensity] = useState<OnboardingIntensity>('balanced');
+  const [pace, setPace] = useState<OnboardingPace>('steady');
+  const [focus, setFocus] = useState<OnboardingFocus>('comfort_zone');
   const [checking, setChecking] = useState(true);
   const [saving, setSaving] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
@@ -52,7 +170,7 @@ export default function OnboardingScreen() {
           trackEvent('onboarding_skipped', { sourceScreen: 'onboarding' }).catch(
             () => undefined
           );
-          router.replace('/(tabs)/journey');
+          router.replace('/(tabs)/explore');
           return;
         }
         setChecking(false);
@@ -66,6 +184,11 @@ export default function OnboardingScreen() {
     };
   }, [router]);
 
+  // Warm the quest catalog so the summary can show tailored picks.
+  useEffect(() => {
+    if (user?.id) bootstrap(user.id).catch(() => undefined);
+  }, [user?.id, bootstrap]);
+
   useEffect(() => {
     if (checking || startedTracked.current) return;
     startedTracked.current = true;
@@ -74,28 +197,60 @@ export default function OnboardingScreen() {
     );
   }, [checking]);
 
+  const toggleCategory = useCallback((slug: OnboardingCategory) => {
+    setSelectedCategories((current) => {
+      const next = current.includes(slug)
+        ? current.filter((c) => c !== slug)
+        : [...current, slug];
+      trackEvent('category_preferences_selected', {
+        sourceScreen: 'onboarding',
+        preferredCategories: next,
+      }).catch(() => undefined);
+      return next;
+    });
+  }, []);
+
+  const recommended = useMemo(() => {
+    if (quests.length === 0) return [];
+    return recommendQuestsForPreferences({
+      catalog: quests,
+      preferences: { categories: selectedCategories, intensity: 'balanced', pace, focus },
+      limit: 3,
+    });
+  }, [quests, selectedCategories, pace, focus]);
+
+  const categoryName = useCallback(
+    (categoryId: string) => categories.find((c) => c.id === categoryId)?.name ?? 'Quest',
+    [categories]
+  );
+
   const canContinue = useMemo(() => {
-    if (step === 1) return categories.length > 0;
+    if (step === 2) return selectedCategories.length > 0;
     return true;
-  }, [step, categories.length]);
+  }, [step, selectedCategories.length]);
 
   async function finishOnboarding() {
     setSubmitError(null);
     setSaving(true);
     try {
-      await saveOnboardingState({ categories, intensity });
+      await saveOnboardingState({
+        categories: selectedCategories,
+        intensity: 'balanced',
+        pace,
+        focus,
+      });
       trackEvent('onboarding_completed', {
         sourceScreen: 'onboarding',
-        categoryCount: categories.length,
-        preferredCategories: categories,
-        intensityPreference: intensity,
+        categoryCount: selectedCategories.length,
+        preferredCategories: selectedCategories,
+        pacePreference: pace,
+        focusPreference: focus,
       }).catch(() => undefined);
-      router.replace('/(tabs)/journey');
+      router.replace('/(tabs)/explore');
     } catch (e: unknown) {
       const message = e instanceof Error ? e.message : 'Try again.';
       logError('onboarding.finishOnboarding', e, {
-        categoryCount: categories.length,
-        intensity,
+        categoryCount: selectedCategories.length,
       });
       setSubmitError(message);
       alertCompat('Could not save onboarding', message);
@@ -107,129 +262,169 @@ export default function OnboardingScreen() {
   if (checking) {
     return (
       <SafeAreaView style={styles.safe} edges={['top', 'bottom']}>
-        <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
+        <View style={styles.center}>
           <ActivityIndicator color={Theme.accent} />
         </View>
       </SafeAreaView>
     );
   }
 
+  const isWelcome = step === 0;
+
   return (
     <SafeAreaView style={styles.safe} edges={['top', 'bottom']}>
-      <ScrollView contentContainerStyle={styles.scroll}>
+      <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
         <Text style={styles.kicker}>Side Quest Life</Text>
         <ProgressDots step={step} />
         {submitError ? <Text style={styles.errorBanner}>{submitError}</Text> : null}
 
-        {step === 0 ? (
+        {isWelcome ? (
           <View style={styles.stepWrap}>
-            <Text style={styles.headline}>
-              Build a life map through small real-world quests.
+            <ImageBackground source={MAP_BACKGROUND} style={styles.hero} imageStyle={styles.heroImage}>
+              <View style={styles.heroScrim} />
+              <View style={styles.heroBadge}>
+                <Ionicons name="compass" size={26} color="#fff" />
+              </View>
+            </ImageBackground>
+            <Text style={styles.headline}>Turn ordinary days into small adventures.</Text>
+            <Text style={styles.lead}>
+              Side Quest Life nudges you toward tiny real-world quests — then helps you
+              remember them. Answer a few questions and we&apos;ll shape a map that fits you.
             </Text>
-            <View style={styles.block}>
-              <Bullet text="Action first: concrete quests you can do today." />
-              <Bullet text="Memory logging is core: short reflection, optional photo." />
-              <Bullet text="No streak pressure, no points, no noisy rewards." />
-            </View>
           </View>
         ) : null}
 
         {step === 1 ? (
           <View style={styles.stepWrap}>
-            <Text style={styles.headline}>Pick your preferred categories.</Text>
-            <Text style={styles.subtext}>Choose at least one.</Text>
-            <View style={styles.choiceWrap}>
-              <SelectableChip
-                label="Nature"
-                selected={categories.includes('nature')}
-                onPress={() => {
-                  const next = toggleCategory('nature', categories, setCategories);
-                  trackEvent('category_preferences_selected', {
-                    sourceScreen: 'onboarding',
-                    preferredCategories: next,
-                  }).catch(() => undefined);
-                }}
-              />
-              <SelectableChip
-                label="Adventure"
-                selected={categories.includes('adventure')}
-                onPress={() => {
-                  const next = toggleCategory('adventure', categories, setCategories);
-                  trackEvent('category_preferences_selected', {
-                    sourceScreen: 'onboarding',
-                    preferredCategories: next,
-                  }).catch(() => undefined);
-                }}
-              />
-              <SelectableChip
-                label="Social"
-                selected={categories.includes('social')}
-                onPress={() => {
-                  const next = toggleCategory('social', categories, setCategories);
-                  trackEvent('category_preferences_selected', {
-                    sourceScreen: 'onboarding',
-                    preferredCategories: next,
-                  }).catch(() => undefined);
-                }}
-              />
-              <SelectableChip
-                label="Relax"
-                selected={categories.includes('relax')}
-                onPress={() => {
-                  const next = toggleCategory('relax', categories, setCategories);
-                  trackEvent('category_preferences_selected', {
-                    sourceScreen: 'onboarding',
-                    preferredCategories: next,
-                  }).catch(() => undefined);
-                }}
-              />
+            <Text style={styles.headline}>How it works</Text>
+            <View style={styles.featureList}>
+              {FEATURE_ROWS.map((row) => (
+                <View key={row.title} style={styles.featureRow}>
+                  <View style={styles.featureIcon}>
+                    <Ionicons name={row.icon} size={22} color={Theme.accent} />
+                  </View>
+                  <View style={styles.featureText}>
+                    <Text style={styles.featureTitle}>{row.title}</Text>
+                    <Text style={styles.featureBody}>{row.body}</Text>
+                  </View>
+                </View>
+              ))}
             </View>
           </View>
         ) : null}
 
         {step === 2 ? (
           <View style={styles.stepWrap}>
-            <Text style={styles.headline}>Choose intensity.</Text>
+            <Text style={styles.headline}>What pulls you?</Text>
+            <Text style={styles.subtext}>Pick the moods you want more of. Choose at least one.</Text>
+            <View style={styles.choiceWrap}>
+              {CATEGORY_OPTIONS.map((option) => {
+                const selected = selectedCategories.includes(option.slug);
+                const accent = categoryAccentForCategoryId(`cat-${option.slug}`);
+                return (
+                  <Pressable
+                    key={option.slug}
+                    onPress={() => toggleCategory(option.slug)}
+                    style={({ pressed }) => [
+                      styles.optionRow,
+                      selected && { borderColor: accent, backgroundColor: `${accent}1a` },
+                      pressed && styles.pressed,
+                    ]}>
+                    <View style={[styles.optionIcon, { backgroundColor: `${accent}22` }]}>
+                      <FontAwesome
+                        name={categoryIconNameForCategoryId(`cat-${option.slug}`)}
+                        size={18}
+                        color={accent}
+                      />
+                    </View>
+                    <View style={styles.optionText}>
+                      <Text style={styles.optionTitle}>{option.label}</Text>
+                      <Text style={styles.optionDescription}>{option.description}</Text>
+                    </View>
+                    <Ionicons
+                      name={selected ? 'checkmark-circle' : 'ellipse-outline'}
+                      size={22}
+                      color={selected ? accent : Theme.border}
+                    />
+                  </Pressable>
+                );
+              })}
+            </View>
+          </View>
+        ) : null}
+
+        {step === 3 ? (
+          <View style={styles.stepWrap}>
+            <Text style={styles.headline}>How much time do you have?</Text>
+            <Text style={styles.subtext}>We&apos;ll match the length of your quests.</Text>
+            <View style={styles.choiceWrap}>
+              {PACE_OPTIONS.map((option) => (
+                <OptionCard
+                  key={option.value}
+                  icon={option.icon}
+                  label={option.label}
+                  description={option.description}
+                  selected={pace === option.value}
+                  onPress={() => setPace(option.value)}
+                />
+              ))}
+            </View>
+          </View>
+        ) : null}
+
+        {step === 4 ? (
+          <View style={styles.stepWrap}>
+            <Text style={styles.headline}>What are you after right now?</Text>
+            <Text style={styles.subtext}>This fine-tunes which quests we surface first.</Text>
+            <View style={styles.choiceWrap}>
+              {FOCUS_OPTIONS.map((option) => (
+                <OptionCard
+                  key={option.value}
+                  icon={option.icon}
+                  label={option.label}
+                  description={option.description}
+                  selected={focus === option.value}
+                  onPress={() => setFocus(option.value)}
+                />
+              ))}
+            </View>
+          </View>
+        ) : null}
+
+        {step === 5 ? (
+          <View style={styles.stepWrap}>
+            <Text style={styles.headline}>Your map is ready.</Text>
             <Text style={styles.subtext}>
-              You can change this later in your profile.
+              Based on your answers, here&apos;s where we&apos;d start. You can always explore the
+              rest of the map.
             </Text>
             <View style={styles.choiceWrap}>
-              <SelectableRow
-                label="Light"
-                description="Gentle quests with low friction."
-                selected={intensity === 'light'}
-                onPress={() => {
-                  setIntensity('light');
-                  trackEvent('intensity_selected', {
-                    sourceScreen: 'onboarding',
-                    intensityPreference: 'light',
-                  }).catch(() => undefined);
-                }}
-              />
-              <SelectableRow
-                label="Balanced"
-                description="A practical mix for most weeks."
-                selected={intensity === 'balanced'}
-                onPress={() => {
-                  setIntensity('balanced');
-                  trackEvent('intensity_selected', {
-                    sourceScreen: 'onboarding',
-                    intensityPreference: 'balanced',
-                  }).catch(() => undefined);
-                }}
-              />
-              <SelectableRow
-                label="Bold"
-                description="More challenging and exploratory."
-                selected={intensity === 'bold'}
-                onPress={() => {
-                  setIntensity('bold');
-                  trackEvent('intensity_selected', {
-                    sourceScreen: 'onboarding',
-                    intensityPreference: 'bold',
-                  }).catch(() => undefined);
-                }}
-              />
+              {recommended.length > 0 ? (
+                recommended.map((quest) => {
+                  const accent = categoryAccentForCategoryId(quest.categoryId);
+                  return (
+                    <View key={quest.id} style={styles.recommendCard}>
+                      <View style={[styles.recommendAccent, { backgroundColor: accent }]} />
+                      <View style={styles.recommendBody}>
+                        <Text style={styles.recommendMeta}>{categoryName(quest.categoryId)}</Text>
+                        <Text style={styles.recommendTitle} numberOfLines={2}>
+                          {quest.title}
+                        </Text>
+                        <Text style={styles.recommendSub} numberOfLines={2}>
+                          {quest.shortDescription}
+                        </Text>
+                      </View>
+                    </View>
+                  );
+                })
+              ) : (
+                <View style={styles.recommendEmpty}>
+                  <Ionicons name="sparkles-outline" size={22} color={Theme.accent} />
+                  <Text style={styles.recommendEmptyText}>
+                    Your quests are loading — tap below to jump into your map.
+                  </Text>
+                </View>
+              )}
             </View>
           </View>
         ) : null}
@@ -241,25 +436,25 @@ export default function OnboardingScreen() {
               disabled={saving}
               style={({ pressed }) => [
                 styles.secondaryBtn,
-                pressed && styles.secondaryBtnPressed,
+                pressed && styles.pressed,
                 saving && styles.ctaDisabled,
               ]}>
               <Text style={styles.secondaryBtnText}>Back</Text>
             </Pressable>
           ) : (
-            <View />
+            <View style={styles.footerSpacer} />
           )}
 
-          {step < 2 ? (
+          {step < TOTAL_STEPS - 1 ? (
             <Pressable
               onPress={() => setStep((s) => s + 1)}
               disabled={!canContinue || saving}
               style={({ pressed }) => [
                 styles.cta,
-                pressed && styles.ctaPressed,
+                pressed && styles.pressed,
                 (!canContinue || saving) && styles.ctaDisabled,
               ]}>
-              <Text style={styles.ctaText}>Next</Text>
+              <Text style={styles.ctaText}>{isWelcome ? 'Get started' : 'Next'}</Text>
             </Pressable>
           ) : (
             <Pressable
@@ -267,13 +462,13 @@ export default function OnboardingScreen() {
               disabled={saving}
               style={({ pressed }) => [
                 styles.cta,
-                pressed && styles.ctaPressed,
+                pressed && styles.pressed,
                 saving && styles.ctaDisabled,
               ]}>
               {saving ? (
                 <ActivityIndicator color="#fff" />
               ) : (
-                <Text style={styles.ctaText}>Start quests</Text>
+                <Text style={styles.ctaText}>Start exploring</Text>
               )}
             </Pressable>
           )}
@@ -283,73 +478,14 @@ export default function OnboardingScreen() {
   );
 }
 
-function toggleCategory(
-  value: OnboardingCategory,
-  current: OnboardingCategory[],
-  setValue: (next: OnboardingCategory[]) => void
-): OnboardingCategory[] {
-  if (current.includes(value)) {
-    const next = current.filter((c) => c !== value);
-    setValue(next);
-    return next;
-  }
-  const next = [...current, value];
-  setValue(next);
-  return next;
-}
-
-function ProgressDots({ step }: { step: number }) {
-  return (
-    <View style={styles.dots}>
-      {[0, 1, 2].map((i) => (
-        <Pressable
-          key={i}
-          style={[styles.dot, i <= step && styles.dotActive]}
-        />
-      ))}
-    </View>
-  );
-}
-
-function Bullet({ text }: { text: string }) {
-  return (
-    <View style={styles.bulletRow}>
-      <Text style={styles.bulletDot}>·</Text>
-      <Text style={styles.bulletText}>{text}</Text>
-    </View>
-  );
-}
-
-function SelectableChip({
-  label,
-  selected,
-  onPress,
-}: {
-  label: string;
-  selected: boolean;
-  onPress: () => void;
-}) {
-  return (
-    <Pressable
-      onPress={onPress}
-      style={({ pressed }) => [
-        styles.chip,
-        selected && styles.chipSelected,
-        pressed && styles.chipPressed,
-      ]}>
-      <Text style={[styles.chipText, selected && styles.chipTextSelected]}>
-        {label}
-      </Text>
-    </Pressable>
-  );
-}
-
-function SelectableRow({
+function OptionCard({
+  icon,
   label,
   description,
   selected,
   onPress,
 }: {
+  icon: keyof typeof Ionicons.glyphMap;
   label: string;
   description: string;
   selected: boolean;
@@ -359,25 +495,45 @@ function SelectableRow({
     <Pressable
       onPress={onPress}
       style={({ pressed }) => [
-        styles.row,
-        selected && styles.rowSelected,
-        pressed && styles.rowPressed,
+        styles.optionRow,
+        selected && styles.optionRowSelected,
+        pressed && styles.pressed,
       ]}>
-      <Text style={styles.rowTitle}>{label}</Text>
-      <Text style={styles.rowDescription}>{description}</Text>
+      <View style={[styles.optionIcon, selected && styles.optionIconSelected]}>
+        <Ionicons name={icon} size={20} color={selected ? '#fff' : Theme.accent} />
+      </View>
+      <View style={styles.optionText}>
+        <Text style={styles.optionTitle}>{label}</Text>
+        <Text style={styles.optionDescription}>{description}</Text>
+      </View>
+      <Ionicons
+        name={selected ? 'checkmark-circle' : 'ellipse-outline'}
+        size={22}
+        color={selected ? Theme.accent : Theme.border}
+      />
     </Pressable>
+  );
+}
+
+function ProgressDots({ step }: { step: number }) {
+  return (
+    <View style={styles.dots}>
+      {Array.from({ length: TOTAL_STEPS }).map((_, i) => (
+        <View key={i} style={[styles.dot, i <= step && styles.dotActive]} />
+      ))}
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: Theme.bg },
+  center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   scroll: {
     flexGrow: 1,
     paddingHorizontal: 24,
-    paddingTop: 32,
-    paddingBottom: 40,
+    paddingTop: 24,
+    paddingBottom: 32,
   },
-  stepWrap: { marginTop: 24, marginBottom: 18 },
   kicker: {
     fontSize: 13,
     letterSpacing: 1.2,
@@ -385,26 +541,56 @@ const styles = StyleSheet.create({
     color: Theme.textMuted,
     marginBottom: 12,
   },
-  dots: { flexDirection: 'row', gap: 8, marginTop: 2 },
+  dots: { flexDirection: 'row', gap: 6, marginTop: 2 },
   dot: {
-    width: 24,
+    flex: 1,
     height: 4,
     borderRadius: 99,
     backgroundColor: Theme.border,
   },
   dotActive: { backgroundColor: Theme.accent },
+  stepWrap: { marginTop: 24, marginBottom: 8 },
+  hero: {
+    height: 200,
+    borderRadius: 20,
+    overflow: 'hidden',
+    marginBottom: 24,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: Theme.surface,
+  },
+  heroImage: { borderRadius: 20 },
+  heroScrim: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(16, 24, 18, 0.28)',
+  },
+  heroBadge: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'rgba(92, 122, 107, 0.92)',
+    borderWidth: 2,
+    borderColor: 'rgba(255,255,255,0.55)',
+  },
   headline: {
     fontSize: 26,
-    lineHeight: 34,
-    fontWeight: '600',
+    lineHeight: 33,
+    fontWeight: '700',
     color: Theme.text,
-    marginBottom: 28,
+    marginBottom: 12,
+  },
+  lead: {
+    fontSize: 16,
+    lineHeight: 24,
+    color: Theme.textMuted,
   },
   subtext: {
     fontSize: 15,
     lineHeight: 22,
     color: Theme.textMuted,
-    marginBottom: 16,
+    marginBottom: 18,
   },
   errorBanner: {
     marginTop: 12,
@@ -417,83 +603,112 @@ const styles = StyleSheet.create({
     fontSize: 14,
     lineHeight: 20,
   },
-  block: { marginBottom: 36, gap: 14 },
-  bulletRow: { flexDirection: 'row', gap: 10, alignItems: 'flex-start' },
-  bulletDot: {
-    fontSize: 24,
-    lineHeight: 28,
-    color: Theme.accent,
-    marginTop: -2,
-  },
-  bulletText: {
-    flex: 1,
-    fontSize: 16,
-    lineHeight: 24,
-    color: Theme.text,
-  },
-  choiceWrap: { gap: 10 },
-  chip: {
-    paddingVertical: 12,
-    paddingHorizontal: 14,
-    borderRadius: 12,
+  featureList: { gap: 14, marginTop: 4 },
+  featureRow: {
+    flexDirection: 'row',
+    gap: 14,
+    alignItems: 'flex-start',
+    backgroundColor: Theme.surface,
     borderWidth: 1,
     borderColor: Theme.border,
-    backgroundColor: Theme.surface,
+    borderRadius: 16,
+    padding: 16,
   },
-  chipSelected: {
-    borderColor: Theme.accent,
+  featureIcon: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    alignItems: 'center',
+    justifyContent: 'center',
     backgroundColor: Theme.accentSoft,
   },
-  chipPressed: { opacity: 0.9 },
-  chipText: {
-    fontSize: 16,
-    color: Theme.text,
-    fontWeight: '500',
-  },
-  chipTextSelected: { color: Theme.accent, fontWeight: '600' },
-  row: {
+  featureText: { flex: 1, minWidth: 0 },
+  featureTitle: { fontSize: 17, fontWeight: '700', color: Theme.text, marginBottom: 4 },
+  featureBody: { fontSize: 14, lineHeight: 20, color: Theme.textMuted },
+  choiceWrap: { gap: 10 },
+  optionRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 14,
     borderWidth: 1,
     borderColor: Theme.border,
-    borderRadius: 12,
+    borderRadius: 16,
     backgroundColor: Theme.surface,
     padding: 14,
   },
-  rowSelected: {
+  optionRowSelected: {
     borderColor: Theme.accent,
     backgroundColor: Theme.accentSoft,
   },
-  rowPressed: { opacity: 0.9 },
-  rowTitle: { fontSize: 17, color: Theme.text, fontWeight: '600', marginBottom: 4 },
-  rowDescription: { fontSize: 14, color: Theme.textMuted, lineHeight: 20 },
+  optionIcon: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: Theme.accentSoft,
+  },
+  optionIconSelected: { backgroundColor: Theme.accent },
+  optionText: { flex: 1, minWidth: 0 },
+  optionTitle: { fontSize: 17, color: Theme.text, fontWeight: '600', marginBottom: 2 },
+  optionDescription: { fontSize: 14, color: Theme.textMuted, lineHeight: 19 },
+  recommendCard: {
+    flexDirection: 'row',
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: Theme.border,
+    backgroundColor: Theme.surface,
+    overflow: 'hidden',
+  },
+  recommendAccent: { width: 5 },
+  recommendBody: { flex: 1, padding: 14, gap: 4, minWidth: 0 },
+  recommendMeta: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: Theme.textMuted,
+    textTransform: 'uppercase',
+    letterSpacing: 0.6,
+  },
+  recommendTitle: { fontSize: 16, fontWeight: '700', color: Theme.text, lineHeight: 20 },
+  recommendSub: { fontSize: 14, color: Theme.textMuted, lineHeight: 19 },
+  recommendEmpty: {
+    flexDirection: 'row',
+    gap: 12,
+    alignItems: 'center',
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: Theme.border,
+    backgroundColor: Theme.surface,
+    padding: 16,
+  },
+  recommendEmptyText: { flex: 1, fontSize: 14, lineHeight: 20, color: Theme.textMuted },
   footer: {
-    marginTop: 'auto',
+    marginTop: 28,
     flexDirection: 'row',
     justifyContent: 'space-between',
+    alignItems: 'center',
     gap: 12,
   },
+  footerSpacer: { flex: 1 },
   cta: {
+    flex: 1,
     backgroundColor: Theme.accent,
     paddingVertical: 16,
     paddingHorizontal: 20,
-    borderRadius: 12,
+    borderRadius: 14,
     alignItems: 'center',
   },
-  ctaPressed: { opacity: 0.9 },
+  ctaText: { color: '#fff', fontSize: 17, fontWeight: '700' },
   ctaDisabled: { opacity: 0.5 },
-  ctaText: {
-    color: '#fff',
-    fontSize: 17,
-    fontWeight: '600',
-  },
   secondaryBtn: {
     paddingVertical: 16,
-    paddingHorizontal: 20,
-    borderRadius: 12,
+    paddingHorizontal: 22,
+    borderRadius: 14,
     alignItems: 'center',
     borderWidth: 1,
     borderColor: Theme.border,
     backgroundColor: Theme.surface,
   },
-  secondaryBtnPressed: { opacity: 0.9 },
   secondaryBtnText: { color: Theme.text, fontSize: 16, fontWeight: '600' },
+  pressed: { opacity: 0.85 },
 });

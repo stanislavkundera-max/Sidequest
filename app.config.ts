@@ -40,6 +40,13 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   plugins: [
     'expo-router',
     [
+      'expo-calendar',
+      {
+        calendarPermission:
+          'Side Quest Life adds a dated reminder to your calendar so side quests happen in real life.',
+      },
+    ],
+    [
       'expo-image-picker',
       {
         photosPermission:

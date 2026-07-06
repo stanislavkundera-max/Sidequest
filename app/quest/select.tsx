@@ -20,7 +20,11 @@ import { LoadingState } from '@/components/ui/LoadingState';
 import { Theme } from '@/constants/Theme';
 import { alertCompat } from '@/lib/alertCompat';
 import { categoryAccentForCategoryId } from '@/lib/categoryAccent';
-import { ACTIVE_LIMITS } from '@/src/features/quests';
+import {
+  canUserBeginQuest,
+  countActiveQuestsGlobally,
+  MAX_ACTIVE_QUESTS,
+} from '@/src/features/quests';
 import { useQuestDomainStore } from '@/src/features/quests';
 import {
   CATEGORY_TAB_ICON,
@@ -95,6 +99,11 @@ export default function QuestSelectionScreen() {
     [userQuests]
   );
 
+  const activePathCount = useMemo(
+    () => countActiveQuestsGlobally(userQuests),
+    [userQuests]
+  );
+
   const selectedCategory = useMemo<CategoryTabId>(
     () => parseCategoryTabParam(categoryParam),
     [categoryParam]
@@ -165,8 +174,11 @@ export default function QuestSelectionScreen() {
       <ScrollView contentContainerStyle={styles.scroll}>
         <Text style={styles.title}>Pick your quests</Text>
         <Text style={styles.sub}>
-          Choose a category, then browse quests by weekly, monthly, and yearly—same buckets as
-          Progress. Limits: 3 weekly, 2 monthly, 1 yearly.
+          Choose a category, then browse by cadence. Your active path fits up to {MAX_ACTIVE_QUESTS}{' '}
+          quests at once — use the Journey tab to let one wait or tap the heart on a new pick when you want room.
+        </Text>
+        <Text style={styles.pathLine}>
+          On your active path now: {activePathCount} / {MAX_ACTIVE_QUESTS}
         </Text>
 
         <ScrollView
@@ -251,7 +263,7 @@ export default function QuestSelectionScreen() {
                 <View style={styles.timeframeHead}>
                   <Text style={styles.timeframeTitle}>{TIMEFRAME_LABEL[tf]}</Text>
                   <Text style={styles.sectionMeta}>
-                    {activeByTimeframe[tf]}/{ACTIVE_LIMITS[tf]} active
+                    {activeByTimeframe[tf]} active in this cadence
                   </Text>
                 </View>
                 {questsByTimeframe[tf].length === 0 ? (
@@ -259,9 +271,8 @@ export default function QuestSelectionScreen() {
                 ) : (
                   questsByTimeframe[tf].map((quest) => {
                     const isActive = activeQuestIds.has(quest.id);
-                    const atLimit =
-                      activeByTimeframe[tf] >= ACTIVE_LIMITS[tf];
-                    const disabled = isActive || pending || atLimit;
+                    const canBegin = canUserBeginQuest(userQuests, quests, quest.id);
+                    const disabled = isActive || pending || !canBegin;
                     return (
                       <View key={quest.id} style={styles.card}>
                         <View
@@ -301,12 +312,12 @@ export default function QuestSelectionScreen() {
                               ]}>
                               <Text style={styles.addBtnText}>
                                 {isActive
-                                  ? 'Active'
+                                  ? 'On path'
                                   : pending
                                     ? 'Saving...'
-                                    : atLimit
-                                      ? 'At limit'
-                                      : 'Activate'}
+                                    : !canBegin
+                                      ? 'Path full'
+                                      : 'Begin'}
                               </Text>
                             </Pressable>
                           </View>
@@ -328,7 +339,13 @@ const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: Theme.bg },
   scroll: { padding: 20, paddingBottom: 36 },
   title: { fontSize: 28, fontWeight: '600', color: Theme.text, marginBottom: 8 },
-  sub: { fontSize: 15, color: Theme.textMuted, lineHeight: 22, marginBottom: 14 },
+  sub: { fontSize: 15, color: Theme.textMuted, lineHeight: 22, marginBottom: 8 },
+  pathLine: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: Theme.text,
+    marginBottom: 14,
+  },
   categoryScroll: { marginBottom: 12 },
   categoryScrollContent: {
     flexDirection: 'row',

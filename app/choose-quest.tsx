@@ -20,6 +20,7 @@ import { categoryAccentForCategoryId } from '@/lib/categoryAccent';
 import { useMemoryStore } from '@/src/features/memories/memoryStore';
 import { useQuestDomainStore } from '@/src/features/quests/questStore';
 import {
+  activeQuestResumePath,
   countCompletedJourneySteps,
 } from '@/src/features/quests/questHelpers';
 import {
@@ -251,7 +252,13 @@ export default function ChooseQuestScreen() {
                           accentColor={accent}
                           stepDone={stepDone}
                           stepTotal={stepTotal}
-                          onPress={() => router.push(`/quest/${quest.id}`)}
+                          onPress={() => {
+                            if (uq?.status === 'active') {
+                              router.push(activeQuestResumePath(quest, uq) as never);
+                              return;
+                            }
+                            router.push(`/quest/${quest.id}` as never);
+                          }}
                         />
                       );
                     })

@@ -2,7 +2,7 @@
 
 **Audience:** Humans + AI agents implementing the Journey tab. These rules are **binding** for Journey work unless the product owner explicitly changes them.
 
-**Scope:** `app/(tabs)/journey.tsx`, `components/journey/**`, `src/features/journey/**`. Avoid unrelated screens unless wiring requires a minimal, justified touch.
+**Scope:** `app/(tabs)/journey.tsx`, `components/journey/**`, `src/features/journey/**`. Shared hub chrome in `components/journey/journeyHubStyles.ts` also applies to the Progress quest hub (`components/progress/ProgressQuestHub.tsx`); keep both aligned when changing chips, timeframe strips, or discover rows. Avoid unrelated screens unless wiring requires a minimal, justified touch.
 
 ---
 
@@ -96,6 +96,12 @@ Do **not** block Journey UX on Rive/Lottie for the full scene; use them only for
 
 - Meaningful `accessibilityLabel` / roles on Journey controls, Timeline, and tappable artifacts.
 - Touch targets meet platform guidance; narrative region polite updates where used.
+
+---
+
+## Progress tab — hub list parity
+
+The **Progress** tab (`components/progress/ProgressQuestHub.tsx`) reuses the **same hub discover chrome** as the Journey catalog hub (`components/journey/journeyHubStyles.ts`): horizontal chips, timeframe hero imagery (`journeyBackgroundForTimeframe`), and discover-style quest rows. It does **not** embed the Journey world scene, path spine, or lateral artifacts. When tuning hub visuals, update the shared stylesheet so Journey and Progress stay aligned unless the product intentionally diverges them.
 
 ---
 

@@ -7,6 +7,7 @@ import {
 } from '@/src/features/journey/journeyPathGeometry';
 
 type ArtifactSize = 'small' | 'medium' | 'landmark';
+const PATH_APEX_MIN_GAP_U = 0.02;
 
 /**
  * Normalized points (0–1 of the **source bitmap**, not the view) along the painted path in `journey-valley-background.png`.
@@ -43,6 +44,93 @@ function segmentData() {
   }
   const total = segLens.reduce((a, b) => a + b, 0) || 1e-6;
   return { segLens, total };
+}
+
+function cumulativeUByPointIndex(): number[] {
+  const { segLens, total } = segmentData();
+  const out: number[] = [0];
+  let acc = 0;
+  for (let i = 0; i < segLens.length; i++) {
+    acc += segLens[i]!;
+    out.push(clamp01(acc / total));
+  }
+  return out;
+}
+
+function signum(v: number): -1 | 0 | 1 {
+  if (v > 0) return 1;
+  if (v < 0) return -1;
+  return 0;
+}
+
+/**
+ * Apexes = local left/right turning points of the painted trail.
+ * Returned in foreground->distance order as normalized path-U.
+ */
+function apexUsOnPaintedPath(): number[] {
+  const pts = JOURNEY_PATH_POINTS;
+  const uByIndex = cumulativeUByPointIndex();
+  const out: number[] = [];
+  for (let i = 1; i < pts.length - 1; i++) {
+    const dxPrev = pts[i]!.x - pts[i - 1]!.x;
+    const dxNext = pts[i + 1]!.x - pts[i]!.x;
+    const sxPrev = signum(dxPrev);
+    const sxNext = signum(dxNext);
+    const isApex = sxPrev !== 0 && sxNext !== 0 && sxPrev !== sxNext;
+    if (!isApex) continue;
+    const u = clamp01(uByIndex[i] ?? 0);
+    if (u <= 0 || u >= 1) continue;
+    out.push(u);
+  }
+  if (out.length === 0) return [0.16, 0.28, 0.42, 0.56, 0.7, 0.82];
+  return out;
+}
+
+function linearUs(count: number, startU: number, endU: number): number[] {
+  if (count <= 0) return [];
+  if (count === 1) return [clamp01((startU + endU) / 2)];
+  const out: number[] = [];
+  const denom = count - 1;
+  for (let i = 0; i < count; i++) {
+    out.push(clamp01(startU + (i / denom) * (endU - startU)));
+  }
+  return out;
+}
+
+function anchoredUsForRange(count: number, startU: number, endU: number): number[] {
+  if (count <= 0) return [];
+  const targets = linearUs(count, startU, endU);
+  const apexes = apexUsOnPaintedPath().filter((u) => u >= startU && u <= endU);
+  if (apexes.length === 0) return targets;
+
+  const picked: number[] = [];
+  for (let i = 0; i < targets.length; i++) {
+    const target = targets[i]!;
+    const minAllowed = (picked[picked.length - 1] ?? startU - 1) + PATH_APEX_MIN_GAP_U;
+    const candidatePool = apexes.filter((u) => u >= minAllowed && !picked.includes(u));
+    if (candidatePool.length === 0) {
+      picked.push(target);
+      continue;
+    }
+    let best = candidatePool[0]!;
+    let bestDist = Math.abs(best - target);
+    for (let j = 1; j < candidatePool.length; j++) {
+      const d = Math.abs(candidatePool[j]! - target);
+      if (d < bestDist) {
+        bestDist = d;
+        best = candidatePool[j]!;
+      }
+    }
+    picked.push(best);
+  }
+
+  // Keep monotonic order in case we fell back to target interpolation.
+  for (let i = 1; i < picked.length; i++) {
+    if (picked[i]! <= picked[i - 1]!) {
+      picked[i] = clamp01(picked[i - 1]! + PATH_APEX_MIN_GAP_U);
+    }
+  }
+  return picked.map((u) => clamp01(Math.max(startU, Math.min(endU, u))));
 }
 
 /** @param u 0 = path start (first point, foreground), 1 = path end (last point, distance). */
@@ -114,33 +202,33 @@ export function placeQuestsOnPaintedPath(nodes: JourneyPathNode[]): QuestPlaceme
   const uToT = (uPaint: number) => 1 - clamp01(uPaint);
 
   if (completed.length === 0) {
-    const denom = Math.max(1, active.length - 1);
+    const uAnchors = anchoredUsForRange(active.length, 0, visibleActiveMaxU);
     const merged = active.map((node, i) => {
-      const uPaint = (i / denom) * visibleActiveMaxU;
+      const uPaint = uAnchors[i] ?? 0;
       return placementFromNode(node, uToT(uPaint), (i % 2 === 0 ? -1 : 1) as -1 | 1, 'active');
     });
     return merged.map((p, i, arr) => ({ ...p, isCurrent: i === arr.length - 1 }));
   }
 
   if (active.length === 0) {
-    const denom = Math.max(1, completed.length - 1);
+    const uAnchors = anchoredUsForRange(completed.length, 0, visibleCompletedMaxU);
     const merged = completed.map((node, i) => {
-      const uPaint = (i / denom) * visibleCompletedMaxU;
+      const uPaint = uAnchors[i] ?? 0;
       return placementFromNode(node, uToT(uPaint), (i % 2 === 0 ? -1 : 1) as -1 | 1, 'completed');
     });
     return merged.map((p, i, arr) => ({ ...p, isCurrent: i === arr.length - 1 }));
   }
 
   const uCap = visibleCompletedMaxU;
-  const denomC = Math.max(1, completed.length - 1);
+  const completedAnchors = anchoredUsForRange(completed.length, 0, uCap);
   const placedC = completed.map((node, i) => {
-    const uPaint = (i / denomC) * uCap;
+    const uPaint = completedAnchors[i] ?? 0;
     return placementFromNode(node, uToT(uPaint), (i % 2 === 0 ? -1 : 1) as -1 | 1, 'completed');
   });
 
-  const denomA = Math.max(1, active.length - 1);
+  const activeAnchors = anchoredUsForRange(active.length, uCap, visibleActiveMaxU);
   const placedA = active.map((node, j) => {
-    const uPaint = uCap + (j / denomA) * (visibleActiveMaxU - uCap);
+    const uPaint = activeAnchors[j] ?? uCap;
     const side = ((completed.length + j) % 2 === 0 ? -1 : 1) as -1 | 1;
     return placementFromNode(node, uToT(uPaint), side, 'active');
   });
@@ -155,5 +243,13 @@ export function placeQuestsOnPaintedPath(nodes: JourneyPathNode[]): QuestPlaceme
 export function offsetFromPaintedPath(pl: QuestPlacement, _size: ArtifactSize, _seed: string): { x: number; y: number } {
   const uPaint = 1 - clamp01(pl.t);
   const p = pointAlongPaintedPath(uPaint);
-  return { x: clamp01(p.x), y: clamp01(p.y) };
+  const { tx, ty } = tangentAlongPaintedPath(uPaint);
+  const normalX = -ty;
+  const normalY = tx;
+  const sideSigned = pl.side === -1 ? -1 : 1;
+  const lateralBase = _size === 'landmark' ? 0.03 : _size === 'medium' ? 0.024 : 0.018;
+  const pullTowardCamera = 0.006;
+  const offsetX = normalX * lateralBase * sideSigned;
+  const offsetY = normalY * lateralBase * sideSigned + pullTowardCamera;
+  return { x: clamp01(p.x + offsetX), y: clamp01(p.y + offsetY) };
 }

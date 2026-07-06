@@ -8,8 +8,10 @@ import { useFonts } from 'expo-font';
 import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { useEffect } from 'react';
+import { Platform, StyleSheet, View } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import 'react-native-reanimated';
+import { MD3DarkTheme, MD3LightTheme, PaperProvider } from 'react-native-paper';
 
 import { Theme } from '@/constants/Theme';
 import { supabase } from '@/lib/supabase';
@@ -134,58 +136,91 @@ function RootLayoutNav() {
   }, [setSession, setInitialized, clearQuestDomain, clearMemories]);
 
   const navTheme = colorScheme === 'dark' ? NavDark : NavLight;
+  const paperTheme = colorScheme === 'dark' ? MD3DarkTheme : MD3LightTheme;
+
+  const inner = (
+    <PaperProvider theme={paperTheme}>
+      <NavigationThemeProvider value={navTheme}>
+        <StatusBar style={colorScheme === 'dark' ? 'light' : 'dark'} />
+        <Stack>
+          <Stack.Screen name="index" options={{ headerShown: false }} />
+          <Stack.Screen
+            name="onboarding"
+            options={{ headerShown: false, animation: 'fade' }}
+          />
+          <Stack.Screen name="(auth)" options={{ headerShown: false }} />
+          <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+          <Stack.Screen
+            name="quest/[id]"
+            options={{
+              title: 'Quest',
+              headerBackTitle: 'Back',
+              presentation: 'card',
+            }}
+          />
+          <Stack.Screen
+            name="quest/run/[id]"
+            options={{
+              title: 'Run quest',
+              headerBackTitle: 'Back',
+              presentation: 'card',
+            }}
+          />
+          <Stack.Screen
+            name="quest/select"
+            options={{
+              title: 'Pick quests',
+              headerBackTitle: 'Back',
+              presentation: 'card',
+            }}
+          />
+          <Stack.Screen
+            name="quest/completed"
+            options={{
+              title: 'Completed',
+              headerBackTitle: 'Back',
+              presentation: 'card',
+            }}
+          />
+          <Stack.Screen
+            name="memory/new"
+            options={{
+              title: 'New memory',
+              presentation: 'modal',
+              headerBackTitle: 'Cancel',
+            }}
+          />
+          <Stack.Screen
+            name="memory/[id]"
+            options={{
+              title: 'Memory',
+              headerBackTitle: 'Back',
+            }}
+          />
+        </Stack>
+      </NavigationThemeProvider>
+    </PaperProvider>
+  );
+
+  if (Platform.OS !== 'web') return inner;
 
   return (
-    <NavigationThemeProvider value={navTheme}>
-      <StatusBar style={colorScheme === 'dark' ? 'light' : 'dark'} />
-      <Stack>
-        <Stack.Screen name="index" options={{ headerShown: false }} />
-        <Stack.Screen
-          name="onboarding"
-          options={{ headerShown: false, animation: 'fade' }}
-        />
-        <Stack.Screen name="(auth)" options={{ headerShown: false }} />
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        <Stack.Screen
-          name="quest/[id]"
-          options={{
-            title: 'Quest',
-            headerBackTitle: 'Back',
-            presentation: 'card',
-          }}
-        />
-        <Stack.Screen
-          name="quest/select"
-          options={{
-            title: 'Pick quests',
-            headerBackTitle: 'Back',
-            presentation: 'card',
-          }}
-        />
-        <Stack.Screen
-          name="quest/completed"
-          options={{
-            title: 'Completed',
-            headerBackTitle: 'Back',
-            presentation: 'card',
-          }}
-        />
-        <Stack.Screen
-          name="memory/new"
-          options={{
-            title: 'New memory',
-            presentation: 'modal',
-            headerBackTitle: 'Cancel',
-          }}
-        />
-        <Stack.Screen
-          name="memory/[id]"
-          options={{
-            title: 'Memory',
-            headerBackTitle: 'Back',
-          }}
-        />
-      </Stack>
-    </NavigationThemeProvider>
+    <View style={styles.webOuter}>
+      <View style={styles.webMobile}>{inner}</View>
+    </View>
   );
 }
+
+const styles = StyleSheet.create({
+  webOuter: {
+    flex: 1,
+    backgroundColor: '#111',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  webMobile: {
+    width: 390,
+    flex: 1,
+    overflow: 'hidden',
+  },
+});

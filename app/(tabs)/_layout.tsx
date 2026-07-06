@@ -24,6 +24,9 @@ export default function TabLayout() {
   const initialized = useSessionStore((s) => s.initialized);
   const bootstrapQuests = useQuestDomainStore((s) => s.bootstrap);
   const bootstrapMemories = useMemoryStore((s) => s.bootstrap);
+  // Must run before any early return — it owns a useState/useEffect internally,
+  // so calling it conditionally would change the hook order between renders.
+  const headerShown = useClientOnlyValue(false, true);
 
   useEffect(() => {
     if (!user) return;
@@ -46,23 +49,38 @@ export default function TabLayout() {
 
   return (
     <Tabs
-      initialRouteName="journey"
+      initialRouteName="explore"
       screenOptions={{
         tabBarActiveTintColor: Theme.accent,
         tabBarInactiveTintColor: Theme.textMuted,
         tabBarStyle: {
           backgroundColor: Theme.surface,
-          borderTopColor: Theme.border,
+          borderTopWidth: 0,
+          borderTopColor: 'transparent',
+          elevation: 0,
+          shadowOpacity: 0,
+          shadowOffset: { width: 0, height: 0 },
         },
         headerStyle: { backgroundColor: Theme.bg },
         headerTintColor: Theme.text,
         headerShadowVisible: false,
-        headerShown: useClientOnlyValue(false, true),
+        headerShown,
       }}>
+      <Tabs.Screen
+        name="explore"
+        options={{
+          title: 'Explore',
+          headerShown: false,
+          tabBarIcon: ({ color }) => (
+            <TabBarIcon name="compass" color={color} />
+          ),
+        }}
+      />
       <Tabs.Screen
         name="journey"
         options={{
           title: 'Journey',
+          headerShown: false,
           tabBarIcon: ({ color }) => (
             <TabBarIcon name="map-o" color={color} />
           ),

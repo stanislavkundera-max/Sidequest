@@ -8,7 +8,9 @@ import {
 
 import type {
   OnboardingCategory,
+  OnboardingFocus,
   OnboardingIntensity,
+  OnboardingPace,
   OnboardingPreferences,
   OnboardingState,
 } from '@/src/features/onboarding/types';
@@ -16,6 +18,8 @@ import type {
 const DEFAULT_PREFERENCES: OnboardingPreferences = {
   categories: ['nature', 'adventure'],
   intensity: 'balanced',
+  pace: 'steady',
+  focus: 'comfort_zone',
 };
 const KEY = '@side_quest_life/onboarding_state_v1';
 
@@ -38,6 +42,25 @@ function normalizeIntensity(value: unknown): OnboardingIntensity {
   return 'balanced';
 }
 
+function normalizePace(value: unknown): OnboardingPace {
+  if (value === 'quick' || value === 'steady' || value === 'deep') {
+    return value;
+  }
+  return 'steady';
+}
+
+function normalizeFocus(value: unknown): OnboardingFocus {
+  if (
+    value === 'comfort_zone' ||
+    value === 'calm' ||
+    value === 'connection' ||
+    value === 'wonder'
+  ) {
+    return value;
+  }
+  return 'comfort_zone';
+}
+
 async function getLocalFallbackState(): Promise<OnboardingState> {
   const raw = await AsyncStorage.getItem(KEY);
   if (!raw) return DEFAULT_STATE;
@@ -50,6 +73,8 @@ async function getLocalFallbackState(): Promise<OnboardingState> {
           (parsed.preferences?.categories ?? DEFAULT_PREFERENCES.categories) as OnboardingCategory[]
         ),
         intensity: normalizeIntensity(parsed.preferences?.intensity),
+        pace: normalizePace(parsed.preferences?.pace),
+        focus: normalizeFocus(parsed.preferences?.focus),
       },
       completedAt:
         typeof parsed.completedAt === 'string' ? parsed.completedAt : null,
@@ -67,6 +92,8 @@ async function saveLocalFallbackState(
     preferences: {
       categories: toUniqueCategories(preferences.categories),
       intensity: normalizeIntensity(preferences.intensity),
+      pace: normalizePace(preferences.pace),
+      focus: normalizeFocus(preferences.focus),
     },
     completedAt: new Date().toISOString(),
   };
@@ -100,6 +127,8 @@ export async function saveOnboardingState(
   const normalized: OnboardingPreferences = {
     categories: toUniqueCategories(preferences.categories),
     intensity: normalizeIntensity(preferences.intensity),
+    pace: normalizePace(preferences.pace),
+    focus: normalizeFocus(preferences.focus),
   };
 
   try {

@@ -13,10 +13,8 @@ import { alertCompat, alertTwoChoice } from '@/lib/alertCompat';
 import { categoryAccentForCategoryId } from '@/lib/categoryAccent';
 import { isSupabaseConfigured, SUPABASE_CONFIGURE_HELP } from '@/lib/supabase';
 import { QuestFeedbackCard } from '@/src/features/feedback/QuestFeedbackCard';
-import {
-  getAvailableQuests,
-  incompleteJourneyStepsCount,
-} from '@/src/features/quests/questHelpers';
+import { QUEST_COPY } from '@/src/features/quests/questCopy';
+import { canUserBeginQuest, incompleteJourneyStepsCount } from '@/src/features/quests/questHelpers';
 import { useQuestDomainStore } from '@/src/features/quests/questStore';
 import { trackEvent } from '@/src/lib/analytics';
 import { logError } from '@/src/lib/monitoring/errorLogger';
@@ -51,9 +49,7 @@ export default function QuestDetailScreen() {
   const getQuestById = useQuestDomainStore((s) => s.getQuestById);
   const refreshUserQuests = useQuestDomainStore((s) => s.refreshUserQuests);
   const assignQuestToUser = useQuestDomainStore((s) => s.assignQuestToUser);
-  const completeQuest = useQuestDomainStore((s) => s.completeQuest);
   const deactivateQuest = useQuestDomainStore((s) => s.deactivateQuest);
-  const toggleQuestStep = useQuestDomainStore((s) => s.toggleQuestStep);
 
   const quest = useMemo(() => (id ? getQuestById(String(id)) : undefined), [id, getQuestById]);
 
@@ -82,13 +78,11 @@ export default function QuestDetailScreen() {
   const canAssign = useMemo(() => {
     if (!quest) return false;
     if (activeUq) return false;
-    return getAvailableQuests(userQuests, quests).some((q) => q.id === quest.id);
+    return canUserBeginQuest(userQuests, quests, quest.id);
   }, [quest, userQuests, quests, activeUq]);
 
   const [acting, setActing] = useState(false);
   const [assignFeedback, setAssignFeedback] = useState<string | null>(null);
-  const completionStartedRef = useRef(false);
-  const completionFinishedRef = useRef(false);
   const autoActivateHandledRef = useRef(false);
 
   useEffect(() => {
@@ -112,25 +106,12 @@ export default function QuestDetailScreen() {
     }).catch(() => undefined);
   }, [quest]);
 
-  useLayoutEffect(() => {
-    return () => {
-      if (completionStartedRef.current && !completionFinishedRef.current && quest) {
-        trackEvent('quest_completion_abandoned', {
-          sourceScreen: 'quest_detail',
-          questId: quest.id,
-          timeframe: quest.timeframe,
-          category: quest.categoryId,
-        }).catch(() => undefined);
-      }
-    };
-  }, [quest]);
-
-  async function onAssign() {
-    if (!quest || !user) return;
+  async function onAssign(): Promise<boolean> {
+    if (!quest || !user) return false;
     if (!isSupabaseConfigured()) {
       setAssignFeedback('Supabase is not configured.');
       alertCompat('Configuration', SUPABASE_CONFIGURE_HELP);
-      return;
+      return false;
     }
     setAssignFeedback(`Adding "${quest.title}" to your active quests...`);
     setActing(true);
@@ -138,13 +119,13 @@ export default function QuestDetailScreen() {
       const r = await assignQuestToUser(user.id, quest.id);
       if (!r.ok) {
         const reasonMessage =
-          r.reason === 'timeframe_full'
-            ? 'You are at the limit for this timeframe.'
+          r.reason === 'active_path_full'
+            ? QUEST_COPY.activePathFullBody
             : r.reason === 'already_active'
-              ? 'This quest is already active.'
+              ? 'This quest is already on your active path.'
               : 'Quest not found.';
         setAssignFeedback(reasonMessage);
-        if (r.reason === 'timeframe_full') {
+        if (r.reason === 'active_path_full') {
           trackEvent('quest_activation_failed_limit_reached', {
             sourceScreen: 'quest_detail',
             questId: quest.id,
@@ -152,23 +133,25 @@ export default function QuestDetailScreen() {
           }).catch(() => undefined);
         }
         alertCompat('Cannot add', reasonMessage);
-      } else {
-        setAssignFeedback('Quest added. Refreshing your active list...');
-        trackEvent('quest_activated', {
-          sourceScreen: 'quest_detail',
-          questId: quest.id,
-          timeframe: quest.timeframe,
-          category: quest.categoryId,
-          difficulty: quest.difficulty,
-        }).catch(() => undefined);
-        await refreshUserQuests(user.id);
-        setAssignFeedback('Quest is active. You can now mark it as completed when done.');
+        return false;
       }
+      setAssignFeedback('Quest added. Refreshing your active list...');
+      trackEvent('quest_activated', {
+        sourceScreen: 'quest_detail',
+        questId: quest.id,
+        timeframe: quest.timeframe,
+        category: quest.categoryId,
+        difficulty: quest.difficulty,
+      }).catch(() => undefined);
+      await refreshUserQuests(user.id);
+      setAssignFeedback('Quest is active. Open the runner when you are ready to work through the steps.');
+      return true;
     } catch (e: unknown) {
       logError('quest.detail.onAssign', e, { questId: quest.id });
       const message = e instanceof Error ? e.message : 'Try again.';
       setAssignFeedback(message);
       alertCompat('Cannot add', message);
+      return false;
     } finally {
       setActing(false);
     }
@@ -184,54 +167,6 @@ export default function QuestDetailScreen() {
     }
   }, [autoActivate, quest, user, activeUq, canAssign]);
 
-  async function performComplete() {
-    if (!activeUq || !quest || !user) return;
-    if (!isSupabaseConfigured()) {
-      alertCompat('Configuration', SUPABASE_CONFIGURE_HELP);
-      return;
-    }
-    completionStartedRef.current = true;
-    completionFinishedRef.current = false;
-    const questIdForMemory = quest.id;
-    setActing(true);
-    try {
-      const r = await completeQuest(user.id, activeUq.id);
-      if (!r.ok) {
-        alertCompat('Error', 'Could not complete quest.');
-        return;
-      }
-      completionFinishedRef.current = true;
-      trackEvent('quest_completed', {
-        sourceScreen: 'quest_detail',
-        questId: quest.id,
-        timeframe: quest.timeframe,
-        category: quest.categoryId,
-        difficulty: quest.difficulty,
-      }).catch(() => undefined);
-      alertTwoChoice('Quest complete', 'Want to log a memory?', {
-        cancel: { text: 'Not now' },
-        confirm: {
-          text: 'Log memory',
-          onPress: () => {
-            trackEvent('memory_creation_started', {
-              sourceScreen: 'quest_detail_complete_prompt',
-              questId: questIdForMemory,
-            }).catch(() => undefined);
-            router.push({
-              pathname: '/memory/new',
-              params: { questId: questIdForMemory },
-            });
-          },
-        },
-      });
-    } catch (e: unknown) {
-      logError('quest.detail.onComplete', e, { questId: quest.id, userQuestId: activeUq.id });
-      alertCompat('Error', e instanceof Error ? e.message : 'Could not complete quest.');
-    } finally {
-      setActing(false);
-    }
-  }
-
   async function performDeactivate() {
     if (!activeUq || !quest || !user) return;
     if (!isSupabaseConfigured()) {
@@ -243,9 +178,9 @@ export default function QuestDetailScreen() {
       const r = await deactivateQuest(user.id, activeUq.id);
       if (!r.ok) {
         alertCompat(
-          'Could not remove',
+          'Could not update',
           r.reason === 'not_active'
-            ? 'This quest is no longer active.'
+            ? 'This quest is no longer on your active path.'
             : 'Quest not found.'
         );
         return;
@@ -259,8 +194,8 @@ export default function QuestDetailScreen() {
       await refreshUserQuests(user.id);
       setAssignFeedback(null);
       alertCompat(
-        'Removed from active',
-        'You can add this quest again or pick another one if you have room in this timeframe.'
+        'Set aside for now',
+        'It is off your active path for now. Your journey steps stay as you left them. Open Journey → Liked when you want to pick it up again.'
       );
     } catch (e: unknown) {
       logError('quest.detail.onDeactivate', e, {
@@ -276,12 +211,12 @@ export default function QuestDetailScreen() {
   function requestDeactivate() {
     if (!activeUq || !quest || !user) return;
     alertTwoChoice(
-      'Remove this side quest?',
-      'Progress for this run will be cleared. You can activate this quest again later if you have space.',
+      'Let this quest wait?',
+      'It moves out of active motion; your progress stays saved — nothing is deleted. You will find it under Journey → Liked.',
       {
-        cancel: { text: 'Keep it' },
+        cancel: { text: 'Keep it on the path' },
         confirm: {
-          text: 'Remove',
+          text: QUEST_COPY.moveToLater,
           onPress: () => {
             void performDeactivate();
           },
@@ -290,35 +225,9 @@ export default function QuestDetailScreen() {
     );
   }
 
-  function requestComplete() {
-    if (!activeUq || !quest || !user) return;
-    const incomplete = incompleteJourneyStepsCount(activeUq, quest);
-    if (incomplete > 0) {
-      alertTwoChoice(
-        'Some steps still unchecked',
-        'You can still mark complete if you finished the quest your own way.',
-        {
-          cancel: { text: 'Go back' },
-          confirm: {
-            text: 'Mark complete anyway',
-            onPress: () => {
-              void performComplete();
-            },
-          },
-        }
-      );
-      return;
-    }
-    void performComplete();
-  }
-
-  async function handleToggleStep(stepId: string) {
-    if (!user || !activeUq) return;
-    try {
-      await toggleQuestStep(user.id, activeUq.id, stepId);
-    } catch {
-      alertCompat('Could not save', 'Your step change was reverted. Try again.');
-    }
+  function openRunner() {
+    if (!quest) return;
+    router.push(`/quest/run/${quest.id}`);
   }
 
   if (!id) {
@@ -375,6 +284,10 @@ export default function QuestDetailScreen() {
   }
 
   const accent = categoryAccentForCategoryId(quest.categoryId);
+  const incompleteStepCount =
+    activeUq && quest.actionSteps.length > 0
+      ? incompleteJourneyStepsCount(activeUq, quest)
+      : 0;
 
   return (
     <SafeAreaView style={styles.safe} edges={['bottom']}>
@@ -401,7 +314,6 @@ export default function QuestDetailScreen() {
           mode={activeUq ? 'active' : completedUq ? 'completed' : 'browse'}
           userQuest={activeUq ?? completedUq}
           accentColor={accent}
-          onToggleStep={activeUq ? (stepId) => void handleToggleStep(stepId) : undefined}
         />
 
         <View style={[styles.reflection, { borderLeftColor: accent }]}>
@@ -425,16 +337,20 @@ export default function QuestDetailScreen() {
 
         {activeUq ? (
           <>
+            {incompleteStepCount > 0 ? (
+              <Text style={styles.runnerHint}>
+                {incompleteStepCount} journey step{incompleteStepCount === 1 ? '' : 's'} left — finish
+                them in the runner in order before wrapping up.
+              </Text>
+            ) : null}
             <PrimaryButton
-              label="Mark as completed"
+              label="Continue quest"
               loading={acting || pending}
-              onPress={() => {
-                requestComplete();
-              }}
+              onPress={openRunner}
             />
             <Pressable
               accessibilityRole="button"
-              accessibilityLabel="Remove from active side quests"
+              accessibilityLabel="Let this quest wait; find it under Journey Liked"
               onPress={requestDeactivate}
               disabled={acting || pending}
               style={({ pressed }) => [
@@ -442,7 +358,7 @@ export default function QuestDetailScreen() {
                 (acting || pending) && styles.deactivateBtnDisabled,
                 pressed && !(acting || pending) && styles.deactivateBtnPressed,
               ]}>
-              <Text style={styles.deactivateBtnText}>Remove from active quests</Text>
+              <Text style={styles.deactivateBtnText}>{QUEST_COPY.moveToLater}</Text>
             </Pressable>
           </>
         ) : completedUq && !activeUq ? (
@@ -463,11 +379,14 @@ export default function QuestDetailScreen() {
           </View>
         ) : canAssign ? (
           <PrimaryButton
-            label="Add to my quests"
+            label="Begin"
             loading={acting || pending}
             onPress={() => {
-              setAssignFeedback('Working on it...');
-              void onAssign();
+              setAssignFeedback('Preparing your first step...');
+              void (async () => {
+                const ok = await onAssign();
+                if (ok) openRunner();
+              })();
             }}
           />
         ) : (
@@ -553,6 +472,12 @@ const styles = StyleSheet.create({
     letterSpacing: 0.6,
   },
   reflectionBody: { fontSize: 16, lineHeight: 24, color: Theme.text },
+  runnerHint: {
+    marginBottom: 14,
+    fontSize: 14,
+    lineHeight: 21,
+    color: Theme.textMuted,
+  },
   assignFeedback: {
     marginBottom: 14,
     color: Theme.accent,

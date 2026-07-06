@@ -2,6 +2,7 @@ import { create } from 'zustand';
 
 import {
   createMemoryEntry,
+  deleteAllMemoriesForUser,
   fetchMemoryTimeline,
 } from '@/src/repositories/memoriesRepository';
 import { logError } from '@/src/lib/monitoring/errorLogger';
@@ -27,6 +28,8 @@ type MemoryDomainState = {
     }
   ) => Promise<MemoryEntry>;
   removeMemory: (id: string) => void;
+  /** Admin tool: wipes every memory row for this user, locally and remotely. */
+  deleteAllMemories: (userId: string) => Promise<void>;
   clearMemories: () => void;
 };
 
@@ -108,6 +111,20 @@ export const useMemoryStore = create<MemoryDomainState>((set, get) => ({
 
   removeMemory: (id) =>
     set((s) => ({ memories: s.memories.filter((m) => m.id !== id) })),
+
+  deleteAllMemories: async (userId) => {
+    set({ saving: true, error: null });
+    try {
+      await deleteAllMemoriesForUser(userId);
+      set({ memories: [] });
+    } catch (e: unknown) {
+      logError('memoryStore.deleteAllMemories', e, { userId });
+      set({ error: e instanceof Error ? e.message : 'Could not delete memories.' });
+      throw e;
+    } finally {
+      set({ saving: false });
+    }
+  },
 
   clearMemories: () =>
     set({

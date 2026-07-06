@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 
+import { QUEST_COPY } from '@/src/features/quests/questCopy';
 import {
-  ACTIVE_LIMITS,
   getActiveUserQuests as getActiveUserQuestsPure,
   getAvailableQuests as getAvailableQuestsPure,
 } from '@/src/features/quests/questHelpers';
@@ -12,8 +12,11 @@ import {
 import {
   assignQuestToUser as assignQuestToUserRemote,
   completeUserQuest,
-  deactivateActiveUserQuest,
+  deleteAllUserQuestsForUser,
+  dismissSuggestedQuest as dismissSuggestedQuestRemote,
   fetchUserQuests,
+  moveActiveQuestToLater,
+  saveQuestForLater as saveQuestForLaterRemote,
   updateUserQuestStepProgress,
   type AssignQuestResult,
   type CompleteQuestResult,
@@ -22,7 +25,7 @@ import { trackEvent } from '@/src/lib/analytics';
 import { logError } from '@/src/lib/monitoring/errorLogger';
 import type { Category } from '@/src/types/category';
 import type { Quest } from '@/src/types/quest';
-import type { UserQuest } from '@/src/types/quest';
+import type { UserQuest, UserQuestStepEvidence } from '@/src/types/quest';
 
 function formatUnknownError(e: unknown, fallback: string): string {
   if (e instanceof Error) return e.message;
@@ -60,11 +63,13 @@ type QuestDomainState = {
   getQuestById: (id: string) => Quest | undefined;
   getCategoryById: (id: string) => Category | undefined;
   assignQuestToUser: (userId: string, questId: string) => Promise<AssignQuestResult>;
-  toggleQuestStep: (
+  completeStepWithEvidence: (
     userId: string,
     userQuestId: string,
-    stepId: string
-  ) => Promise<{ ok: true } | { ok: false; reason: 'not_found' | 'not_active' }>;
+    stepId: string,
+    evidence: UserQuestStepEvidence,
+    analytics?: { sourceScreen?: string }
+  ) => Promise<{ ok: true } | { ok: false; reason: 'not_found' | 'not_active' | 'already_done' }>;
   completeQuest: (
     userId: string,
     userQuestId: string,
@@ -77,6 +82,16 @@ type QuestDomainState = {
     userId: string,
     userQuestId: string
   ) => Promise<{ ok: true } | { ok: false; reason: 'not_found' | 'not_active' }>;
+  saveQuestForLater: (
+    userId: string,
+    questId: string
+  ) => Promise<{ ok: true } | { ok: false; reason: string }>;
+  dismissSuggestedQuest: (
+    userId: string,
+    questId: string
+  ) => Promise<{ ok: true } | { ok: false; reason: string }>;
+  /** Admin tool: wipes every user_quests row for this user, locally and remotely. */
+  deleteAllProgress: (userId: string) => Promise<void>;
   resetDomainState: () => void;
 };
 
@@ -132,18 +147,17 @@ export const useQuestDomainStore = create<QuestDomainState>((set, get) => ({
 
   getCategoryById: (id) => get().categories.find((c) => c.id === id),
 
-  toggleQuestStep: async (userId, userQuestId, stepId) => {
+  completeStepWithEvidence: async (userId, userQuestId, stepId, evidence, analytics) => {
     const prev = get().userQuests.find((u) => u.id === userQuestId);
     if (!prev) return { ok: false, reason: 'not_found' };
     if (prev.status !== 'active') return { ok: false, reason: 'not_active' };
+    if (prev.stepProgress[stepId]) return { ok: false, reason: 'already_done' };
 
-    const wasChecked = Boolean(prev.stepProgress[stepId]);
-    const nextProgress = { ...prev.stepProgress };
-    if (nextProgress[stepId]) {
-      delete nextProgress[stepId];
-    } else {
-      nextProgress[stepId] = new Date().toISOString();
-    }
+    const completedAt = new Date().toISOString();
+    const nextProgress = {
+      ...prev.stepProgress,
+      [stepId]: { completedAt, evidence },
+    };
 
     set((s) => ({
       userQuests: s.userQuests.map((u) =>
@@ -165,16 +179,19 @@ export const useQuestDomainStore = create<QuestDomainState>((set, get) => ({
           ),
         }));
       }
-      if (!wasChecked && nextProgress[stepId]) {
-        trackEvent('quest_step_completed', {
-          sourceScreen: 'quest_detail',
-          questId: prev.questId,
-          stepId,
-        }).catch(() => undefined);
-      }
+      trackEvent('quest_step_completed', {
+        sourceScreen: analytics?.sourceScreen ?? 'quest_runner',
+        questId: prev.questId,
+        stepId,
+        evidenceKind: evidence.kind,
+      }).catch(() => undefined);
       return { ok: true };
     } catch (e: unknown) {
-      logError('questStore.toggleQuestStep', e, { userId, userQuestId, stepId });
+      logError('questStore.completeStepWithEvidence', e, {
+        userId,
+        userQuestId,
+        stepId,
+      });
       set((s) => ({
         userQuests: s.userQuests.map((u) =>
           u.id === userQuestId ? prev : u
@@ -198,12 +215,14 @@ export const useQuestDomainStore = create<QuestDomainState>((set, get) => ({
         userQuests: get().userQuests,
       });
       if (result.ok) {
-        set((s) => ({ userQuests: [...s.userQuests, result.userQuest] }));
+        set((s) => ({
+          userQuests: s.userQuests.some((u) => u.id === result.userQuest.id)
+            ? s.userQuests.map((u) => (u.id === result.userQuest.id ? result.userQuest : u))
+            : [...s.userQuests, result.userQuest],
+        }));
       }
-      if (!result.ok && result.reason === 'timeframe_full') {
-        set({
-          error: `Limit reached (${ACTIVE_LIMITS[get().getQuestById(questId)?.timeframe ?? 'weekly']}).`,
-        });
+      if (!result.ok && result.reason === 'active_path_full') {
+        set({ error: QUEST_COPY.activePathFullBody });
       }
       return result;
     } catch (e: unknown) {
@@ -246,17 +265,81 @@ export const useQuestDomainStore = create<QuestDomainState>((set, get) => ({
   deactivateQuest: async (userId, userQuestId) => {
     set({ pending: true, error: null });
     try {
-      const result = await deactivateActiveUserQuest({ userId, userQuestId });
+      const result = await moveActiveQuestToLater({ userId, userQuestId });
       if (result.ok) {
         set((s) => ({
-          userQuests: s.userQuests.filter((u) => u.id !== userQuestId),
+          userQuests: s.userQuests.map((u) => (u.id === userQuestId ? result.userQuest : u)),
         }));
       }
-      return result;
+      return result.ok ? { ok: true as const } : { ok: false as const, reason: result.reason };
     } catch (e: unknown) {
       logError('questStore.deactivateQuest', e, { userId, userQuestId });
-      const message = formatUnknownError(e, 'Could not remove this quest.');
+      const message = formatUnknownError(e, 'Could not move this quest.');
       set({ error: isSupabaseQuestProgressSetupError(message) ? null : message });
+      throw e;
+    } finally {
+      set({ pending: false });
+    }
+  },
+
+  saveQuestForLater: async (userId, questId) => {
+    set({ pending: true, error: null });
+    try {
+      const result = await saveQuestForLaterRemote({
+        userId,
+        questId,
+        catalog: get().quests,
+        userQuests: get().userQuests,
+      });
+      if (result.ok) {
+        set((s) => ({
+          userQuests: s.userQuests.some((u) => u.id === result.userQuest.id)
+            ? s.userQuests.map((u) => (u.id === result.userQuest.id ? result.userQuest : u))
+            : [...s.userQuests, result.userQuest],
+        }));
+      }
+      return result.ok ? { ok: true as const } : { ok: false as const, reason: result.reason };
+    } catch (e: unknown) {
+      logError('questStore.saveQuestForLater', e, { userId, questId });
+      const message = formatUnknownError(e, 'Could not save quest.');
+      set({ error: isSupabaseQuestProgressSetupError(message) ? null : message });
+      throw e;
+    } finally {
+      set({ pending: false });
+    }
+  },
+
+  dismissSuggestedQuest: async (userId, questId) => {
+    set({ pending: true, error: null });
+    try {
+      const result = await dismissSuggestedQuestRemote({
+        userId,
+        questId,
+        catalog: get().quests,
+        userQuests: get().userQuests,
+      });
+      if (result.ok) {
+        set((s) => ({ userQuests: [...s.userQuests, result.userQuest] }));
+      }
+      return result.ok ? { ok: true as const } : { ok: false as const, reason: result.reason };
+    } catch (e: unknown) {
+      logError('questStore.dismissSuggestedQuest', e, { userId, questId });
+      const message = formatUnknownError(e, 'Could not dismiss suggestion.');
+      set({ error: isSupabaseQuestProgressSetupError(message) ? null : message });
+      throw e;
+    } finally {
+      set({ pending: false });
+    }
+  },
+
+  deleteAllProgress: async (userId) => {
+    set({ pending: true, error: null });
+    try {
+      await deleteAllUserQuestsForUser(userId);
+      set({ userQuests: [] });
+    } catch (e: unknown) {
+      logError('questStore.deleteAllProgress', e, { userId });
+      set({ error: formatUnknownError(e, 'Could not delete progress.') });
       throw e;
     } finally {
       set({ pending: false });

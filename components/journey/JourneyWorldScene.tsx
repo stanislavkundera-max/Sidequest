@@ -1,16 +1,15 @@
 import { useEffect, useMemo, useRef } from 'react';
 import { Animated, Easing, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
+import type { LayoutChangeEvent } from 'react-native';
 import { useAnimatedStyle, useSharedValue, withSequence, withTiming } from 'react-native-reanimated';
 
 import { JourneyArtifactLayer } from '@/components/journey/JourneyArtifactLayer';
 import { JourneyAtmosphere } from '@/components/journey/JourneyAtmosphere';
-import { JourneyCurrentPosition } from '@/components/journey/JourneyCurrentPosition';
 import { JourneyNarrative } from '@/components/journey/JourneyNarrative';
 import type { JourneyArtifact } from '@/src/features/journey/journeyArtifacts';
-import { imageNormToViewPixels } from '@/src/features/journey/journeyBackgroundFit';
-import { placeQuestsOnPaintedPath, pointAlongPaintedPath } from '@/src/features/journey/journeyImagePath';
+import { placeQuestsOnPaintedPath } from '@/src/features/journey/journeyImagePath';
 import { journeyUiScale } from '@/src/features/journey/journeyLayoutMetrics';
-import { clamp01, mix, scaleAtT, type JourneyPathNode } from '@/src/features/journey/journeyPathGeometry';
+import { clamp01, mix, type JourneyPathNode } from '@/src/features/journey/journeyPathGeometry';
 import { pickJourneyMood } from '@/src/features/journey/journeyVisualMood';
 import { getJourneyVisualState } from '@/src/features/journey/journeyWorld';
 import type { WorldState } from '@/src/features/journey/journeyWorld';
@@ -54,7 +53,7 @@ export function JourneyWorldScene({
   onOpenQuest,
   onOpenHome,
 }: {
-  /** Phone-sized stage width (see `journeyContentWidth`). */
+  /** Stage width in pixels (full width of the Journey screen). */
   layoutWidth: number;
   /** Full vertical space for the scene. */
   layoutHeight: number;
@@ -166,19 +165,6 @@ export function JourneyWorldScene({
   const camX = cameraDrift.interpolate({ inputRange: [0, 1], outputRange: [-drift, drift] });
   const camY = cameraDrift.interpolate({ inputRange: [0, 1], outputRange: [-0.65 * uiScale, 0.95 * uiScale] });
 
-  const completedPlacements = useMemo(
-    () => placements.filter((p) => p.journeyLeg === 'completed'),
-    [placements]
-  );
-  const hasCompleted = completedPlacements.length > 0;
-  const ringT = hasCompleted ? completedPlacements[completedPlacements.length - 1]!.t : 1;
-  const uPainted = hasCompleted ? 1 - completedPlacements[completedPlacements.length - 1]!.t : 0;
-  const currentNorm = pointAlongPaintedPath(uPainted);
-  const currentPt = imageNormToViewPixels(width, height, currentNorm.x, currentNorm.y);
-  const currentX = currentPt.x;
-  const currentY = currentPt.y;
-  const ringPx = Math.max(36, 64 * scaleAtT(ringT) * uiScale);
-
   const timelineStyle = useMemo(
     () => ({
       top: Math.round(12 + 6 * uiScale),
@@ -197,15 +183,26 @@ export function JourneyWorldScene({
   );
 
   const timelineTextSize = Math.round(11 + 2 * uiScale);
+  const onSceneLayout = useMemo(
+    () => (e: LayoutChangeEvent) => {
+      const { width: sceneWidth, height: sceneHeight } = e.nativeEvent.layout;
+      // #region agent log
+      fetch('http://127.0.0.1:7500/ingest/3d411866-325f-41a4-a403-81f0aa743cd9',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'cab87e'},body:JSON.stringify({sessionId:'cab87e',runId:'pre-fix-1',hypothesisId:'H2',location:'components/journey/JourneyWorldScene.tsx:onSceneLayout',message:'JourneyWorldScene root layout',data:{sceneWidth,sceneHeight,layoutWidth,layoutHeight,platform:Platform.OS},timestamp:Date.now()})}).catch(()=>{});
+      // #endregion
+    },
+    [layoutWidth, layoutHeight]
+  );
 
   return (
-    <View style={[styles.wrap, { width }]} accessibilityRole="image" accessibilityLabel="Your journey landscape">
+    <View
+      style={styles.wrap}
+      onLayout={onSceneLayout}
+      accessibilityRole="image"
+      accessibilityLabel="Your journey landscape">
       <JourneyAtmosphere mood={mood} visual={visual} animatedStyle={atmoStyle} />
 
       <Animated.View
         style={[StyleSheet.absoluteFillObject, { opacity: pathReveal, transform: [{ translateX: camX }, { translateY: camY }] }]}>
-        {nodes.length > 0 ? <JourneyCurrentPosition x={currentX} y={currentY} ringPx={ringPx} /> : null}
-
         <JourneyArtifactLayer
           artifacts={artifacts}
           width={width}
@@ -264,7 +261,13 @@ export function JourneyWorldScene({
 export { JourneyWorldScene as JourneyScene };
 
 const styles = StyleSheet.create({
-  wrap: { flex: 1, backgroundColor: 'transparent', overflow: 'hidden' },
+  wrap: {
+    flex: 1,
+    width: '100%',
+    alignSelf: 'stretch',
+    backgroundColor: 'transparent',
+    overflow: 'hidden',
+  },
   uiTop: { position: 'absolute', alignItems: 'flex-end' },
   timelineBtn: {
     borderRadius: 999,

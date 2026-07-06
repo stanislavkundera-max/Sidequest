@@ -5,6 +5,10 @@ import type {
   UserQuest,
 } from '@/src/types/quest';
 
+/** Max quests on the active path at once (replaces per-timeframe caps). */
+export const MAX_ACTIVE_QUESTS = 3;
+
+/** @deprecated Legacy per-timeframe caps — kept for analytics or migration only. */
 export const ACTIVE_LIMITS: Record<QuestTimeframe, number> = {
   weekly: 3,
   monthly: 2,
@@ -15,6 +19,11 @@ export function getActiveUserQuests(userQuests: UserQuest[]): UserQuest[] {
   return userQuests.filter((uq) => uq.status === 'active');
 }
 
+export function countActiveQuestsGlobally(userQuests: UserQuest[]): number {
+  return userQuests.filter((uq) => uq.status === 'active').length;
+}
+
+/** @deprecated Active path no longer uses per-timeframe caps — kept for compatibility. */
 export function countActiveForTimeframe(
   userQuests: UserQuest[],
   timeframe: QuestTimeframe,
@@ -26,30 +35,66 @@ export function countActiveForTimeframe(
   ).length;
 }
 
+export function getSavedForLaterUserQuest(
+  userQuests: UserQuest[],
+  questId: string
+): UserQuest | undefined {
+  return userQuests.find((uq) => uq.questId === questId && uq.status === 'saved_for_later');
+}
+
+export function getChosenUserQuest(
+  userQuests: UserQuest[],
+  questId: string
+): UserQuest | undefined {
+  return userQuests.find((uq) => uq.questId === questId && uq.status === 'chosen');
+}
+
 /**
- * Quests the user can still add: not already active for that quest id,
- * and the timeframe bucket has capacity (3 weekly / 2 monthly / 1 yearly).
+ * Quests the user can begin fresh from the catalog: not already on the active path for that id,
+ * global active path has room, and no open saved/chosen row for the same quest (those use re-activate flows).
  */
 export function getAvailableQuests(
   userQuests: UserQuest[],
   catalogList: Quest[]
 ): Quest[] {
-  const catalog = new Map(catalogList.map((q) => [q.id, q]));
-  const active = getActiveUserQuests(userQuests);
-  const activeQuestIds = new Set(active.map((uq) => uq.questId));
+  const activeQuestIds = new Set(
+    userQuests.filter((uq) => uq.status === 'active').map((uq) => uq.questId)
+  );
+  const blockedIds = new Set<string>();
+  for (const uq of userQuests) {
+    if (uq.status === 'saved_for_later' || uq.status === 'chosen') {
+      blockedIds.add(uq.questId);
+    }
+  }
 
   return catalogList.filter((quest) => {
     if (activeQuestIds.has(quest.id)) return false;
-    const used = countActiveForTimeframe(userQuests, quest.timeframe, catalog);
-    return used < ACTIVE_LIMITS[quest.timeframe];
+    if (blockedIds.has(quest.id)) return false;
+    return countActiveQuestsGlobally(userQuests) < MAX_ACTIVE_QUESTS;
   });
+}
+
+/** Whether the user can place this quest on the active path from detail / suggested (respects global cap). */
+export function canUserBeginQuest(
+  userQuests: UserQuest[],
+  catalog: Quest[],
+  questId: string
+): boolean {
+  if (!catalog.some((q) => q.id === questId)) return false;
+  if (userQuests.some((uq) => uq.questId === questId && uq.status === 'active')) return false;
+  const reopen = userQuests.some(
+    (uq) =>
+      uq.questId === questId && (uq.status === 'saved_for_later' || uq.status === 'chosen')
+  );
+  if (reopen) return countActiveQuestsGlobally(userQuests) < MAX_ACTIVE_QUESTS;
+  return getAvailableQuests(userQuests, catalog).some((q) => q.id === questId);
 }
 
 export type AssignQuestResult =
   | { ok: true; userQuest: UserQuest }
   | {
       ok: false;
-      reason: 'not_found' | 'already_active' | 'timeframe_full';
+      reason: 'not_found' | 'already_active' | 'active_path_full';
     };
 
 export function assignQuestToUser(
@@ -67,11 +112,8 @@ export function assignQuestToUser(
     return { ok: false, reason: 'already_active' };
   }
 
-  if (
-    countActiveForTimeframe(userQuests, quest.timeframe, catalog) >=
-    ACTIVE_LIMITS[quest.timeframe]
-  ) {
-    return { ok: false, reason: 'timeframe_full' };
+  if (countActiveQuestsGlobally(userQuests) >= MAX_ACTIVE_QUESTS) {
+    return { ok: false, reason: 'active_path_full' };
   }
 
   const userQuest: UserQuest = {
@@ -145,6 +187,26 @@ export function incompleteJourneyStepsCount(uq: UserQuest, quest: Quest): number
   const total = quest.actionSteps.length;
   if (total === 0) return 0;
   return total - countCompletedJourneySteps(uq, quest);
+}
+
+/** First unchecked step in catalog order — this is always the runner’s current step. */
+export function getFirstIncompleteJourneyStep(quest: Quest, uq: UserQuest): QuestActionStep | null {
+  for (const step of quest.actionSteps) {
+    if (!uq.stepProgress[step.id]) return step;
+  }
+  return null;
+}
+
+/**
+ * Where tapping an active quest should go: incomplete journey → `/quest/run/:id`,
+ * otherwise quest detail for wrap-up and completion.
+ */
+export function activeQuestResumePath(quest: Quest, uq: UserQuest): string {
+  const id = quest.id;
+  if (uq.status !== 'active') return `/quest/${id}`;
+  if (quest.actionSteps.length === 0) return `/quest/${id}`;
+  if (incompleteJourneyStepsCount(uq, quest) > 0) return `/quest/run/${id}`;
+  return `/quest/${id}`;
 }
 
 const TIMEFRAME_PRIORITY: QuestTimeframe[] = ['weekly', 'monthly', 'yearly'];

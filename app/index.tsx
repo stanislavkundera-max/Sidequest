@@ -98,7 +98,7 @@ export default function Index() {
     return <Redirect href="/onboarding" />;
   }
 
-  return <Redirect href="/(tabs)/journey" />;
+  return <Redirect href="/(tabs)/explore" />;
 }
 
 const styles = StyleSheet.create({

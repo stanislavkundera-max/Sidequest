@@ -1,13 +1,17 @@
 import { supabase } from '@/lib/supabase';
 import type {
   OnboardingCategory,
+  OnboardingFocus,
   OnboardingIntensity,
+  OnboardingPace,
   OnboardingPreferences,
   OnboardingState,
 } from '@/src/features/onboarding/types';
 
 const DEFAULT_CATEGORIES: OnboardingCategory[] = ['nature', 'adventure'];
 const DEFAULT_INTENSITY: OnboardingIntensity = 'balanced';
+const DEFAULT_PACE: OnboardingPace = 'steady';
+const DEFAULT_FOCUS: OnboardingFocus = 'comfort_zone';
 
 export type Profile = {
   id: string;
@@ -16,6 +20,8 @@ export type Profile = {
   onboardingCompleted: boolean;
   intensityPreference: OnboardingIntensity;
   preferredCategories: OnboardingCategory[];
+  pacePreference: OnboardingPace;
+  focusPreference: OnboardingFocus;
 };
 
 function normalizeIntensity(value: unknown): OnboardingIntensity {
@@ -23,6 +29,25 @@ function normalizeIntensity(value: unknown): OnboardingIntensity {
     return value;
   }
   return DEFAULT_INTENSITY;
+}
+
+function normalizePace(value: unknown): OnboardingPace {
+  if (value === 'quick' || value === 'steady' || value === 'deep') {
+    return value;
+  }
+  return DEFAULT_PACE;
+}
+
+function normalizeFocus(value: unknown): OnboardingFocus {
+  if (
+    value === 'comfort_zone' ||
+    value === 'calm' ||
+    value === 'connection' ||
+    value === 'wonder'
+  ) {
+    return value;
+  }
+  return DEFAULT_FOCUS;
 }
 
 function normalizeCategories(value: unknown): OnboardingCategory[] {
@@ -45,6 +70,8 @@ function mapProfileRow(row: any): Profile {
     onboardingCompleted: Boolean(row.onboarding_completed),
     intensityPreference: normalizeIntensity(row.intensity_preference),
     preferredCategories: normalizeCategories(row.preferred_categories),
+    pacePreference: normalizePace(row.pace_preference),
+    focusPreference: normalizeFocus(row.focus_preference),
   };
 }
 
@@ -86,6 +113,8 @@ export async function getOnboardingStateForUser(
       preferences: {
         categories: DEFAULT_CATEGORIES,
         intensity: DEFAULT_INTENSITY,
+        pace: DEFAULT_PACE,
+        focus: DEFAULT_FOCUS,
       },
       completedAt: null,
     };
@@ -96,6 +125,8 @@ export async function getOnboardingStateForUser(
     preferences: {
       categories: profile.preferredCategories,
       intensity: profile.intensityPreference,
+      pace: profile.pacePreference,
+      focus: profile.focusPreference,
     },
     completedAt: profile.onboardingCompleted ? profile.createdAt : null,
   };
@@ -109,6 +140,8 @@ export async function saveOnboardingStateForUser(
     onboarding_completed: true,
     intensity_preference: preferences.intensity,
     preferred_categories: preferences.categories,
+    pace_preference: preferences.pace,
+    focus_preference: preferences.focus,
   };
   let { data, error } = await supabase
     .from('profiles')
@@ -117,13 +150,9 @@ export async function saveOnboardingStateForUser(
     .select('*')
     .single();
 
-  // Backward-compatible fallback for projects that have not applied
-  // the newest schema column yet.
-  if (
-    error &&
-    typeof error.message === 'string' &&
-    error.message.includes('preferred_categories')
-  ) {
+  // Backward-compatible fallback for projects that have not applied the
+  // newest schema columns yet (preferred_categories / pace / focus).
+  if (error && typeof error.message === 'string' && isMissingColumnError(error.message)) {
     const fallback = await supabase
       .from('profiles')
       .update({
@@ -144,7 +173,26 @@ export async function saveOnboardingStateForUser(
     preferences: {
       categories: profile.preferredCategories,
       intensity: profile.intensityPreference,
+      pace: profile.pacePreference,
+      focus: profile.focusPreference,
     },
     completedAt: profile.createdAt,
   };
+}
+
+/** Admin tool: clears the completed flag so `/onboarding` runs again from step one. */
+export async function resetOnboardingForUser(userId: string): Promise<void> {
+  const { error } = await supabase
+    .from('profiles')
+    .update({ onboarding_completed: false })
+    .eq('id', userId);
+  if (error) throw error;
+}
+
+function isMissingColumnError(message: string): boolean {
+  return (
+    message.includes('preferred_categories') ||
+    message.includes('pace_preference') ||
+    message.includes('focus_preference')
+  );
 }

@@ -1,5 +1,6 @@
 import FontAwesome from '@expo/vector-icons/FontAwesome';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
+import { Card, Chip, Text, TouchableRipple } from 'react-native-paper';
 
 import { Theme } from '@/constants/Theme';
 import { categoryIconNameForCategoryId } from '@/lib/categoryIcons';
@@ -28,42 +29,54 @@ export function ActiveQuestProgressCard({
   const iconName = categoryIconNameForCategoryId(categoryId);
   const stepLabel = stepTotal > 0 ? `${stepDone}/${stepTotal} steps` : 'Open quest';
   return (
-    <Pressable
-      accessibilityLabel={
-        stepTotal > 0
-          ? `${title}, ${stepDone} of ${stepTotal} journey steps done`
-          : title
-      }
-      onPress={onPress}
-      style={({ pressed }) => [styles.card, pressed && styles.cardPressed]}>
-      <View style={[styles.accentBar, { backgroundColor: accentColor }]} />
-      <View style={styles.cardBody}>
-        <View style={styles.titleRow}>
-          <Text style={styles.cardTitle}>{title}</Text>
-          <View style={[styles.stepPill, { borderColor: accentColor }]}>
-            <Text style={[styles.stepPillText, { color: accentColor }]}>{stepLabel}</Text>
+    <Card style={styles.card} mode="elevated">
+      <TouchableRipple
+        accessibilityRole="button"
+        accessibilityLabel={
+          stepTotal > 0
+            ? `${title}, ${stepDone} of ${stepTotal} journey steps done`
+            : title
+        }
+        onPress={onPress}
+        borderless>
+        <View style={styles.row}>
+          <View style={[styles.accentBar, { backgroundColor: accentColor }]} />
+          <View style={styles.cardBody}>
+            <View style={styles.titleRow}>
+              <Text variant="titleMedium" style={styles.cardTitle} numberOfLines={2}>
+                {title}
+              </Text>
+              <Chip
+                compact
+                mode="outlined"
+                textStyle={{ color: accentColor }}
+                style={[styles.stepChip, { borderColor: accentColor }]}>
+                {stepLabel}
+              </Chip>
+            </View>
+            <Text variant="bodyMedium" style={styles.cardMeta} numberOfLines={2}>
+              {shortDescription}
+            </Text>
+            <View style={styles.cardFooter}>
+              <Text variant="labelMedium" style={styles.openHint} numberOfLines={1}>
+                {categoryLine}
+              </Text>
+              <View
+                style={[styles.categoryIconBadge, { borderColor: accentColor }]}
+                accessibilityElementsHidden
+                importantForAccessibility="no-hide-descendants">
+                <FontAwesome name={iconName} size={15} color={accentColor} />
+              </View>
+            </View>
           </View>
         </View>
-        <Text style={styles.cardMeta} numberOfLines={2}>
-          {shortDescription}
-        </Text>
-        <View style={styles.cardFooter}>
-          <Text style={styles.openHint}>{categoryLine}</Text>
-          <View
-            style={[styles.categoryIconBadge, { borderColor: accentColor }]}
-            accessibilityElementsHidden
-            importantForAccessibility="no-hide-descendants">
-            <FontAwesome name={iconName} size={15} color={accentColor} />
-          </View>
-        </View>
-      </View>
-    </Pressable>
+      </TouchableRipple>
+    </Card>
   );
 }
 
 const styles = StyleSheet.create({
   card: {
-    flexDirection: 'row',
     backgroundColor: Theme.surface,
     borderRadius: 14,
     overflow: 'hidden',
@@ -71,7 +84,7 @@ const styles = StyleSheet.create({
     borderColor: Theme.border,
     marginBottom: 12,
   },
-  cardPressed: { opacity: 0.92 },
+  row: { flexDirection: 'row' },
   accentBar: { width: 5 },
   cardBody: { flex: 1, padding: 16, paddingBottom: 14 },
   titleRow: {
@@ -83,19 +96,14 @@ const styles = StyleSheet.create({
   },
   cardTitle: {
     flex: 1,
-    fontSize: 18,
-    fontWeight: '600',
     color: Theme.text,
   },
-  stepPill: {
-    borderWidth: 1,
+  stepChip: {
     backgroundColor: Theme.bg,
-    paddingHorizontal: 10,
-    paddingVertical: 6,
     borderRadius: 999,
+    height: 30,
   },
-  stepPillText: { fontSize: 12, fontWeight: '800' },
-  cardMeta: { fontSize: 15, color: Theme.textMuted, lineHeight: 22 },
+  cardMeta: { color: Theme.textMuted, lineHeight: 22 },
   cardFooter: {
     marginTop: 10,
     flexDirection: 'row',
@@ -105,7 +113,6 @@ const styles = StyleSheet.create({
   },
   openHint: {
     flex: 1,
-    fontSize: 13,
     color: Theme.textMuted,
   },
   categoryIconBadge: {

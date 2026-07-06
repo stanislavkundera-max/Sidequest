@@ -67,3 +67,9 @@ export async function createMemoryEntry(params: {
     createdAt: data.created_at as string,
   };
 }
+
+/** Admin tool: wipes every memory entry for a user (row data only; storage photos are left orphaned). */
+export async function deleteAllMemoriesForUser(userId: string): Promise<void> {
+  const { error } = await supabase.from('memory_entries').delete().eq('user_id', userId);
+  if (error) throw error;
+}

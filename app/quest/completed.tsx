@@ -1,14 +1,16 @@
 import { useRouter } from 'expo-router';
 import { useCallback, useMemo } from 'react';
 import { useFocusEffect } from '@react-navigation/native';
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { HubDiscoverUserQuestRow } from '@/components/quests/HubDiscoverUserQuestRow';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { Theme } from '@/constants/Theme';
 import { categoryAccentForCategoryId } from '@/lib/categoryAccent';
 import { useQuestDomainStore } from '@/src/features/quests/questStore';
 import { trackEvent } from '@/src/lib/analytics';
+import type { Quest, UserQuest } from '@/src/types/quest';
 import { useSessionStore } from '@/stores/session';
 
 function categoryName(categoryId: string): string {
@@ -19,6 +21,18 @@ function categoryName(categoryId: string): string {
   );
 }
 
+function rowTitle(uq: UserQuest, quest?: Quest): string {
+  return uq.snapshotTitle?.trim() || quest?.title || 'Side quest';
+}
+
+function rowShort(uq: UserQuest, quest?: Quest): string {
+  return uq.snapshotShort?.trim() || quest?.shortDescription || '';
+}
+
+function rowCategoryId(uq: UserQuest, quest?: Quest): string {
+  return uq.snapshotCategoryId || quest?.categoryId || '';
+}
+
 export default function CompletedQuestsScreen() {
   const router = useRouter();
   const user = useSessionStore((s) => s.user);
@@ -27,9 +41,7 @@ export default function CompletedQuestsScreen() {
 
   const completed = useMemo(() => {
     const list = userQuests.filter((uq) => uq.status === 'completed');
-    return list.sort((a, b) =>
-      (b.completedAt ?? '').localeCompare(a.completedAt ?? '')
-    );
+    return list.sort((a, b) => (b.completedAt ?? '').localeCompare(a.completedAt ?? ''));
   }, [userQuests]);
 
   useFocusEffect(
@@ -59,9 +71,7 @@ export default function CompletedQuestsScreen() {
     <SafeAreaView style={styles.safe} edges={['bottom']}>
       <ScrollView contentContainerStyle={styles.scroll}>
         <Text style={styles.title}>Completed quests</Text>
-        <Text style={styles.sub}>
-          Tap a quest to open its details and reflection.
-        </Text>
+        <Text style={styles.sub}>Tap a quest to open its details and reflection.</Text>
 
         {completed.length === 0 ? (
           <EmptyState
@@ -73,38 +83,24 @@ export default function CompletedQuestsScreen() {
         ) : (
           completed.map((uq) => {
             const q = getQuestById(uq.questId);
-            if (!q) return null;
+            const cid = rowCategoryId(uq, q);
+            const accent = categoryAccentForCategoryId(cid);
             const when = uq.completedAt
               ? new Date(uq.completedAt).toLocaleDateString(undefined, {
                   dateStyle: 'medium',
                 })
               : '';
             return (
-              <Pressable
-                key={uq.id}
-                onPress={() => router.push(`/quest/${q.id}`)}
-                accessibilityRole="button"
-                accessibilityLabel={`Open ${q.title}`}
-                style={({ pressed }) => [
-                  styles.card,
-                  pressed && styles.cardPressed,
-                ]}>
-                <View
-                  style={[
-                    styles.accentBar,
-                    { backgroundColor: categoryAccentForCategoryId(q.categoryId) },
-                  ]}
+              <View key={uq.id} style={styles.rowWrap}>
+                <HubDiscoverUserQuestRow
+                  accentColor={accent}
+                  categoryMeta={cid ? categoryName(cid) : 'Side quest'}
+                  title={rowTitle(uq, q)}
+                  subtitle={rowShort(uq, q) || undefined}
+                  metaLight={when ? `Completed · ${when}` : 'Completed'}
+                  onRowPress={() => router.push(`/quest/${uq.questId}` as never)}
                 />
-                <View style={styles.cardBody}>
-                  <Text style={styles.cardTitle}>{q.title}</Text>
-                  <Text style={styles.cardMeta} numberOfLines={2}>
-                    {q.shortDescription}
-                  </Text>
-                  <Text style={styles.openHint}>
-                    {categoryName(q.categoryId)} · {when}
-                  </Text>
-                </View>
-              </Pressable>
+              </View>
             );
           })
         )}
@@ -129,28 +125,5 @@ const styles = StyleSheet.create({
     marginBottom: 20,
     lineHeight: 22,
   },
-  card: {
-    flexDirection: 'row',
-    backgroundColor: Theme.surface,
-    borderRadius: 14,
-    overflow: 'hidden',
-    borderWidth: 1,
-    borderColor: Theme.border,
-    marginBottom: 12,
-  },
-  cardPressed: { opacity: 0.92 },
-  accentBar: { width: 5 },
-  cardBody: { flex: 1, padding: 16 },
-  cardTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: Theme.text,
-    marginBottom: 6,
-  },
-  cardMeta: { fontSize: 15, color: Theme.textMuted, lineHeight: 22 },
-  openHint: {
-    marginTop: 10,
-    fontSize: 13,
-    color: Theme.textMuted,
-  },
+  rowWrap: { marginBottom: 10 },
 });

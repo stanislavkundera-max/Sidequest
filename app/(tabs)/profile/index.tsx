@@ -1,6 +1,6 @@
 import { ProgressOverview } from './ProgressOverview';
 
-/** Default Progress tab: weekly overview. */
+/** Progress tab — Journey-style hub for active and completed quests. */
 export default function ProfileWeeklyScreen() {
-  return <ProgressOverview focusedTimeframe="weekly" />;
+  return <ProgressOverview />;
 }

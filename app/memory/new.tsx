@@ -17,6 +17,7 @@ import { EmptyState } from '@/components/ui/EmptyState';
 import { ErrorState } from '@/components/ui/ErrorState';
 import { PrimaryButton } from '@/components/ui/PrimaryButton';
 import { Theme } from '@/constants/Theme';
+import { consumeMemoryDraft } from '@/src/features/memories/memoryDraft';
 import { useMemoryStore } from '@/src/features/memories/memoryStore';
 import { useQuestDomainStore } from '@/src/features/quests/questStore';
 import { trackEvent } from '@/src/lib/analytics';
@@ -43,9 +44,11 @@ export default function NewMemoryScreen() {
     [questId]
   );
 
-  const [title, setTitle] = useState<string>(quest?.title ?? '');
-  const [body, setBody] = useState('');
-  const [localUri, setLocalUri] = useState<string | null>(null);
+  // A guided run may have prepared a draft from collected step evidence.
+  const [draft] = useState(() => consumeMemoryDraft(questId ? String(questId) : null));
+  const [title, setTitle] = useState<string>(draft?.title ?? quest?.title ?? '');
+  const [body, setBody] = useState(draft?.body ?? '');
+  const [localUri, setLocalUri] = useState<string | null>(draft?.photoUri ?? null);
   const [saving, setSaving] = useState(false);
   const startedTracked = useRef(false);
   const hasForeignQuestId = Boolean(questId);
@@ -153,13 +156,6 @@ export default function NewMemoryScreen() {
           onChangeText={setTitle}
         />
 
-        {quest ? (
-          <View style={styles.contextCard}>
-            <Text style={styles.contextLabel}>From quest</Text>
-            <Text style={styles.contextValue}>{quest.title}</Text>
-          </View>
-        ) : null}
-
         <Text style={styles.label}>What stayed with you?</Text>
         <TextInput
           style={styles.input}
@@ -232,16 +228,6 @@ const styles = StyleSheet.create({
     backgroundColor: Theme.surface,
     marginBottom: 16,
   },
-  contextCard: {
-    borderWidth: 1,
-    borderColor: Theme.border,
-    borderRadius: 12,
-    backgroundColor: Theme.surface,
-    padding: 12,
-    marginBottom: 16,
-  },
-  contextLabel: { color: Theme.textMuted, fontSize: 12, marginBottom: 4 },
-  contextValue: { color: Theme.text, fontSize: 15, fontWeight: '500' },
   pickBtn: {
     alignSelf: 'flex-start',
     paddingVertical: 12,

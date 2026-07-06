@@ -3,7 +3,25 @@ import { SEED_CATEGORIES } from '@/src/constants/categories';
 import { enrichQuestWithJourney } from '@/src/constants/questJourneys';
 import { SEED_QUESTS } from '@/src/constants/quests';
 import type { Category } from '@/src/types/category';
-import type { Quest, QuestActionStep } from '@/src/types/quest';
+import type {
+  Quest,
+  QuestActionStep,
+  QuestStepInteraction,
+  QuestSuggestedGroup,
+} from '@/src/types/quest';
+
+function parseSuggestedGroup(raw: unknown): QuestSuggestedGroup | undefined {
+  if (
+    raw === 'do_now' ||
+    raw === 'low_energy' ||
+    raw === 'outside' ||
+    raw === 'social' ||
+    raw === 'weekend'
+  ) {
+    return raw;
+  }
+  return undefined;
+}
 
 function mapCategoryRow(row: any): Category {
   return {
@@ -14,18 +32,81 @@ function mapCategoryRow(row: any): Category {
   };
 }
 
+/** Validates a step interaction from DB jsonb; unknown shapes are dropped. */
+function parseInteraction(raw: unknown): QuestStepInteraction | undefined {
+  if (typeof raw !== 'object' || raw === null) return undefined;
+  const i = raw as Record<string, unknown>;
+  switch (i.kind) {
+    case 'confirm':
+      return { kind: 'confirm' };
+    case 'timer':
+      if (typeof i.minSeconds === 'number' && i.minSeconds > 0) {
+        return {
+          kind: 'timer',
+          minSeconds: i.minSeconds,
+          runningHint: typeof i.runningHint === 'string' ? i.runningHint : undefined,
+        };
+      }
+      return undefined;
+    case 'input':
+      if (typeof i.prompt === 'string') {
+        return {
+          kind: 'input',
+          prompt: i.prompt,
+          minChars: typeof i.minChars === 'number' ? i.minChars : undefined,
+          placeholder: typeof i.placeholder === 'string' ? i.placeholder : undefined,
+        };
+      }
+      return undefined;
+    case 'counter':
+      if (typeof i.prompt === 'string' && typeof i.count === 'number' && i.count > 0) {
+        return {
+          kind: 'counter',
+          prompt: i.prompt,
+          count: i.count,
+          itemLabel: typeof i.itemLabel === 'string' ? i.itemLabel : undefined,
+        };
+      }
+      return undefined;
+    case 'photo':
+      return {
+        kind: 'photo',
+        prompt: typeof i.prompt === 'string' ? i.prompt : undefined,
+      };
+    default:
+      return undefined;
+  }
+}
+
 function parseActionSteps(raw: unknown): QuestActionStep[] {
   if (!raw) return [];
-  if (Array.isArray(raw)) {
-    return raw.filter(
-      (s): s is QuestActionStep =>
+  if (!Array.isArray(raw)) return [];
+  return raw
+    .filter(
+      (s): s is Record<string, unknown> =>
         typeof s === 'object' &&
         s !== null &&
-        typeof (s as QuestActionStep).id === 'string' &&
-        typeof (s as QuestActionStep).title === 'string'
-    );
-  }
-  return [];
+        typeof s.id === 'string' &&
+        typeof s.title === 'string'
+    )
+    .map((s) => {
+      const step: QuestActionStep = {
+        id: s.id as string,
+        title: s.title as string,
+      };
+      if (typeof s.detail === 'string') step.detail = s.detail;
+      if (typeof s.tip === 'string') step.tip = s.tip;
+      if (typeof s.estimateMinutes === 'number') step.estimateMinutes = s.estimateMinutes;
+      if (s.action && typeof s.action === 'object' && s.action !== null) {
+        const kind = (s.action as { kind?: unknown }).kind;
+        if (kind === 'calendar') {
+          step.action = s.action as NonNullable<QuestActionStep['action']>;
+        }
+      }
+      const interaction = parseInteraction(s.interaction);
+      if (interaction) step.interaction = interaction;
+      return step;
+    });
 }
 
 function mapQuestRow(row: any): Quest {
@@ -42,6 +123,8 @@ function mapQuestRow(row: any): Quest {
     suggestedProofType: row.suggested_proof_type as Quest['suggestedProofType'],
     journeyIntro: (row.journey_intro as string | null | undefined) ?? undefined,
     actionSteps: parseActionSteps(row.action_steps),
+    isActive: row.is_active !== false,
+    suggestedGroup: parseSuggestedGroup(row.suggested_group) ?? null,
   };
   return enrichQuestWithJourney(base);
 }

@@ -7,7 +7,11 @@ create table if not exists public.profiles (
   onboarding_completed boolean not null default false,
   intensity_preference text not null default 'balanced'
     check (intensity_preference in ('light', 'balanced', 'bold')),
-  preferred_categories text[] not null default '{}'::text[]
+  preferred_categories text[] not null default '{}'::text[],
+  pace_preference text not null default 'steady'
+    check (pace_preference in ('quick', 'steady', 'deep')),
+  focus_preference text not null default 'comfort_zone'
+    check (focus_preference in ('comfort_zone', 'calm', 'connection', 'wonder'))
 );
 
 create table if not exists public.categories (
@@ -31,19 +35,39 @@ create table if not exists public.quests (
     check (suggested_proof_type in ('none', 'text', 'photo')),
   is_active boolean not null default true,
   journey_intro text,
-  action_steps jsonb not null default '[]'::jsonb
+  action_steps jsonb not null default '[]'::jsonb,
+  suggested_group text
+    check (
+      suggested_group is null
+      or suggested_group in ('do_now', 'low_energy', 'outside', 'social', 'weekend')
+    )
 );
 
 create table if not exists public.user_quests (
   id uuid primary key default gen_random_uuid(),
   user_id uuid not null references auth.users (id) on delete cascade,
   quest_id text not null references public.quests (id) on delete restrict,
-  status text not null default 'active' check (status in ('active', 'completed')),
+  status text not null default 'active'
+    constraint user_quests_status_chk check (
+      status in ('chosen', 'active', 'saved_for_later', 'completed', 'dismissed')
+    ),
   started_at timestamptz not null default now(),
   completed_at timestamptz,
+  updated_at timestamptz not null default now(),
+  saved_at timestamptz,
+  dismissed_at timestamptz,
+  memory_id uuid,
   note text,
   photo_url text,
-  step_progress jsonb not null default '{}'::jsonb
+  snapshot_title text,
+  snapshot_short text,
+  snapshot_category_id text references public.categories (id) on delete set null,
+  snapshot_estimated_minutes integer,
+  energy_level text check (energy_level is null or energy_level in ('low', 'medium', 'high')),
+  anchor_moment text,
+  step_progress jsonb not null default '{}'::jsonb,
+  /** v2: stepId -> { completedAt, evidence } */
+  step_progress_v2 jsonb not null default '{}'::jsonb
 );
 
 create table if not exists public.memory_entries (

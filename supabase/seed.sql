@@ -79,3 +79,25 @@ update public.quests set journey_intro = 'A short trip that breaks your everyday
 update public.quests set journey_intro = 'Learn an outdoor skill with a real guide.', action_steps = $json$[{"id":"s1","title":"Book a session with an instructor","estimateMinutes":60},{"id":"s2","title":"Show up with their prep list","estimateMinutes":30},{"id":"s3","title":"Finish the session and debrief yourself","estimateMinutes":240}]$json$::jsonb where id = 'q-y-02';
 update public.quests set journey_intro = 'Reconnect after a long silence.', action_steps = $json$[{"id":"s1","title":"Reach out and propose a real catch-up","estimateMinutes":30},{"id":"s2","title":"Meet or video call ≥45 minutes","estimateMinutes":45},{"id":"s3","title":"Listen for the first half of the time","estimateMinutes":1}]$json$::jsonb where id = 'q-y-03';
 update public.quests set journey_intro = 'One full day without productivity theater.', action_steps = $json$[{"id":"s1","title":"Pick a weekend or holiday day","estimateMinutes":5},{"id":"s2","title":"No paid work, errands, or chores marathons","estimateMinutes":480},{"id":"s3","title":"Spend the day on rest, play, or people","estimateMinutes":480}]$json$::jsonb where id = 'q-y-04';
+
+-- Suggested hub grouping (see `pickSuggestedQuests` in app)
+update public.quests set suggested_group = 'outside' where id = 'q-w-01';
+update public.quests set suggested_group = 'do_now' where id = 'q-w-02';
+update public.quests set suggested_group = 'low_energy' where id = 'q-w-03';
+update public.quests set suggested_group = 'outside' where id = 'q-w-04';
+update public.quests set suggested_group = 'social' where id = 'q-w-05';
+update public.quests set suggested_group = 'outside' where id = 'q-w-06';
+update public.quests set suggested_group = 'weekend' where id = 'q-w-07';
+update public.quests set suggested_group = 'do_now' where id = 'q-w-08';
+update public.quests set suggested_group = 'social' where id = 'q-w-09';
+update public.quests set suggested_group = 'outside' where id = 'q-w-10';
+update public.quests set suggested_group = 'outside' where id = 'q-m-01';
+update public.quests set suggested_group = 'social' where id = 'q-m-02';
+update public.quests set suggested_group = 'weekend' where id = 'q-m-03';
+update public.quests set suggested_group = 'low_energy' where id = 'q-m-04';
+update public.quests set suggested_group = 'social' where id = 'q-m-05';
+update public.quests set suggested_group = 'weekend' where id = 'q-m-06';
+update public.quests set suggested_group = 'weekend' where id = 'q-y-01';
+update public.quests set suggested_group = 'outside' where id = 'q-y-02';
+update public.quests set suggested_group = 'social' where id = 'q-y-03';
+update public.quests set suggested_group = 'weekend' where id = 'q-y-04';

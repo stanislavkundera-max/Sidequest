@@ -1,15 +1,22 @@
 import { useRouter } from 'expo-router';
 import { useCallback, useMemo } from 'react';
 import { useFocusEffect } from '@react-navigation/native';
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { HubDiscoverUserQuestRow } from '@/components/quests/HubDiscoverUserQuestRow';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { Theme } from '@/constants/Theme';
 import { categoryAccentForCategoryId } from '@/lib/categoryAccent';
+import { QUEST_COPY } from '@/src/features/quests/questCopy';
+import {
+  activeQuestResumePath,
+  countCompletedJourneySteps,
+  getNextActionableStepLabel,
+} from '@/src/features/quests/questHelpers';
 import { useQuestDomainStore } from '@/src/features/quests/questStore';
 import { trackEvent } from '@/src/lib/analytics';
-import type { QuestTimeframe } from '@/src/types/quest';
+import type { Quest, QuestTimeframe, UserQuest } from '@/src/types/quest';
 import { useSessionStore } from '@/stores/session';
 
 const TIMEFRAME_LABEL: Record<QuestTimeframe, string> = {
@@ -24,6 +31,23 @@ function categoryName(categoryId: string): string {
       .getState()
       .categories.find((c) => c.id === categoryId)?.name ?? categoryId
   );
+}
+
+function rowTitle(uq: UserQuest, quest?: Quest): string {
+  return uq.snapshotTitle?.trim() || quest?.title || 'Side quest';
+}
+
+function rowShort(uq: UserQuest, quest?: Quest): string {
+  return uq.snapshotShort?.trim() || quest?.shortDescription || '';
+}
+
+function rowCategoryId(uq: UserQuest, quest?: Quest): string {
+  return uq.snapshotCategoryId || quest?.categoryId || '';
+}
+
+function resumePath(quest: Quest | undefined, uq: UserQuest): string {
+  if (quest) return activeQuestResumePath(quest, uq);
+  return `/quest/${uq.questId}`;
 }
 
 function sortByStarted(a: { startedAt: string }, b: { startedAt: string }) {
@@ -67,46 +91,48 @@ export default function ActiveQuestsScreen() {
   return (
     <SafeAreaView style={styles.safe} edges={['bottom']}>
       <ScrollView contentContainerStyle={styles.scroll}>
-        <Text style={styles.title}>Active quests</Text>
-        <Text style={styles.sub}>Tap a quest to continue or review its steps.</Text>
+        <Text style={styles.title}>Active path</Text>
+        <Text style={styles.sub}>
+          Up to three quests can be active at once. Tap a row to continue, or use Continue. Suggested picks
+          and saved ideas live on the Journey tab.
+        </Text>
 
         {active.length === 0 ? (
           <EmptyState
-            title="No active quests"
-            message="Add a quest from the catalog to see it here."
-            actionLabel="Browse quests"
-            onAction={() => router.push('/quest/select' as never)}
+            title="Nothing on your path yet"
+            message="Open Journey to pick something small to try today, or browse the full catalog when you want more ideas."
+            actionLabel="Open Journey"
+            onAction={() => router.push('/(tabs)/journey' as never)}
           />
         ) : (
           active.map((uq) => {
             const q = getQuestById(uq.questId);
-            if (!q) return null;
-            const when = new Date(uq.startedAt).toLocaleDateString(undefined, {
-              dateStyle: 'medium',
-            });
+            const cid = rowCategoryId(uq, q);
+            const accent = categoryAccentForCategoryId(cid);
+            const title = rowTitle(uq, q);
+            const tfLabel = q ? TIMEFRAME_LABEL[q.timeframe] : TIMEFRAME_LABEL.weekly;
+            const stepTotal = q?.actionSteps.length ?? 0;
+            const stepDone = q && stepTotal > 0 ? countCompletedJourneySteps(uq, q) : 0;
+            const nextLabel =
+              q && stepTotal > 0 ? getNextActionableStepLabel(uq, q) : rowShort(uq, q) || 'Continue when you are ready';
+            const metaSteps = stepTotal > 0 ? `${stepDone}/${stepTotal} steps` : 'In motion';
+            const started = new Date(uq.startedAt).toLocaleDateString(undefined, { dateStyle: 'medium' });
+
             return (
-              <Pressable
-                key={uq.id}
-                onPress={() => router.push(`/quest/${q.id}`)}
-                accessibilityRole="button"
-                accessibilityLabel={`Open ${q.title}`}
-                style={({ pressed }) => [styles.card, pressed && styles.cardPressed]}>
-                <View
-                  style={[
-                    styles.accentBar,
-                    { backgroundColor: categoryAccentForCategoryId(q.categoryId) },
-                  ]}
+              <View key={uq.id} style={styles.rowWrap}>
+                <HubDiscoverUserQuestRow
+                  accentColor={accent}
+                  categoryMeta={`${cid ? categoryName(cid) : 'Side quest'} · ${tfLabel} · ${metaSteps}`}
+                  title={title}
+                  subtitle={nextLabel}
+                  metaLight={`Started ${started}`}
+                  onRowPress={() => router.push(resumePath(q, uq) as never)}
+                  primaryAction={{
+                    label: QUEST_COPY.continueQuest,
+                    onPress: () => router.push(resumePath(q, uq) as never),
+                  }}
                 />
-                <View style={styles.cardBody}>
-                  <Text style={styles.cardTitle}>{q.title}</Text>
-                  <Text style={styles.cardMeta} numberOfLines={2}>
-                    {q.shortDescription}
-                  </Text>
-                  <Text style={styles.openHint}>
-                    {categoryName(q.categoryId)} · {TIMEFRAME_LABEL[q.timeframe]} · started {when}
-                  </Text>
-                </View>
-              </Pressable>
+              </View>
             );
           })
         )}
@@ -131,28 +157,5 @@ const styles = StyleSheet.create({
     marginBottom: 20,
     lineHeight: 22,
   },
-  card: {
-    flexDirection: 'row',
-    backgroundColor: Theme.surface,
-    borderRadius: 14,
-    overflow: 'hidden',
-    borderWidth: 1,
-    borderColor: Theme.border,
-    marginBottom: 12,
-  },
-  cardPressed: { opacity: 0.92 },
-  accentBar: { width: 5 },
-  cardBody: { flex: 1, padding: 16 },
-  cardTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: Theme.text,
-    marginBottom: 6,
-  },
-  cardMeta: { fontSize: 15, color: Theme.textMuted, lineHeight: 22 },
-  openHint: {
-    marginTop: 10,
-    fontSize: 13,
-    color: Theme.textMuted,
-  },
+  rowWrap: { marginBottom: 10 },
 });
