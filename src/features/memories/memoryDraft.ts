@@ -1,10 +1,6 @@
 import type { Quest, UserQuest } from '@/src/types/quest';
 
-/**
- * One-shot handoff of run evidence from the quest runner to the new-memory
- * screen. Module-level on purpose: it only needs to survive a single
- * navigation, not restarts (long bodies do not fit in route params).
- */
+/** What the quest runner hands off to auto-create a memory on wrap-up. */
 export type MemoryDraft = {
   questId: string;
   title: string;
@@ -12,22 +8,10 @@ export type MemoryDraft = {
   photoUri: string | null;
 };
 
-let pendingDraft: MemoryDraft | null = null;
+/** Used when a run collected no written evidence (only confirm/timer steps). */
+const NO_EVIDENCE_NOTE = 'Completed — no notes captured for this run.';
 
-export function setMemoryDraft(draft: MemoryDraft): void {
-  pendingDraft = draft;
-}
-
-/** Returns the draft for this quest (or any, when questId is omitted) and clears it. */
-export function consumeMemoryDraft(questId?: string | null): MemoryDraft | null {
-  const draft = pendingDraft;
-  if (!draft) return null;
-  if (questId && draft.questId !== questId) return null;
-  pendingDraft = null;
-  return draft;
-}
-
-/** Builds a human memory body from what the user wrote/collected during the run. */
+/** Builds a memory body from what the user wrote/collected during the run. */
 export function composeMemoryDraftFromRun(quest: Quest, uq: UserQuest): MemoryDraft {
   const paragraphs: string[] = [];
   let photoUri: string | null = null;
@@ -48,7 +32,7 @@ export function composeMemoryDraftFromRun(quest: Quest, uq: UserQuest): MemoryDr
   return {
     questId: quest.id,
     title: quest.title,
-    body: paragraphs.join('\n\n'),
+    body: paragraphs.length > 0 ? paragraphs.join('\n\n') : NO_EVIDENCE_NOTE,
     photoUri,
   };
 }

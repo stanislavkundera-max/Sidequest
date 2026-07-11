@@ -73,3 +73,35 @@ export async function deleteAllMemoriesForUser(userId: string): Promise<void> {
   const { error } = await supabase.from('memory_entries').delete().eq('user_id', userId);
   if (error) throw error;
 }
+
+export async function updateMemoryEntry(params: {
+  userId: string;
+  id: string;
+  title: string;
+  body: string;
+  photoUrl: string | null;
+}): Promise<MemoryEntry> {
+  const { data, error } = await supabase
+    .from('memory_entries')
+    .update({
+      title: params.title,
+      body: params.body,
+      photo_url: params.photoUrl,
+    })
+    .eq('id', params.id)
+    .eq('user_id', params.userId)
+    .select('id,user_quest_id,title,body,photo_url,created_at,user_quests(quest_id)')
+    .single();
+  if (error) throw error;
+  return mapMemoryRow(data as MemoryRowWithJoin);
+}
+
+/** Row data only — the photo in storage (if any) is left orphaned, same as bulk delete. */
+export async function deleteMemoryEntry(params: { userId: string; id: string }): Promise<void> {
+  const { error } = await supabase
+    .from('memory_entries')
+    .delete()
+    .eq('id', params.id)
+    .eq('user_id', params.userId);
+  if (error) throw error;
+}

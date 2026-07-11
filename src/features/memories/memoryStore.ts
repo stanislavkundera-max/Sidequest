@@ -3,7 +3,9 @@ import { create } from 'zustand';
 import {
   createMemoryEntry,
   deleteAllMemoriesForUser,
+  deleteMemoryEntry,
   fetchMemoryTimeline,
+  updateMemoryEntry,
 } from '@/src/repositories/memoriesRepository';
 import { logError } from '@/src/lib/monitoring/errorLogger';
 import { uploadPhotoForUser } from '@/src/repositories/photoRepository';
@@ -28,6 +30,13 @@ type MemoryDomainState = {
     }
   ) => Promise<MemoryEntry>;
   removeMemory: (id: string) => void;
+  /** `photoUri: null` removes the photo; unchanged from the entry's current value keeps it as-is. */
+  updateMemory: (
+    userId: string,
+    id: string,
+    input: { title: string; body: string; photoUri: string | null }
+  ) => Promise<MemoryEntry>;
+  deleteMemory: (userId: string, id: string) => Promise<void>;
   /** Admin tool: wipes every memory row for this user, locally and remotely. */
   deleteAllMemories: (userId: string) => Promise<void>;
   clearMemories: () => void;
@@ -111,6 +120,53 @@ export const useMemoryStore = create<MemoryDomainState>((set, get) => ({
 
   removeMemory: (id) =>
     set((s) => ({ memories: s.memories.filter((m) => m.id !== id) })),
+
+  updateMemory: async (userId, id, input) => {
+    set({ saving: true, error: null });
+    try {
+      const current = get().memories.find((m) => m.id === id);
+      let photoUrl: string | null;
+      if (input.photoUri === null) {
+        photoUrl = null;
+      } else if (input.photoUri === current?.photoUri) {
+        photoUrl = input.photoUri;
+      } else {
+        photoUrl = await uploadPhotoForUser({ userId, localUri: input.photoUri });
+      }
+
+      const entry = await updateMemoryEntry({
+        userId,
+        id,
+        title: input.title,
+        body: input.body,
+        photoUrl,
+      });
+      set((s) => ({
+        memories: s.memories.map((m) => (m.id === id ? entry : m)),
+      }));
+      return entry;
+    } catch (e: unknown) {
+      logError('memoryStore.updateMemory', e, { userId, id });
+      set({ error: e instanceof Error ? e.message : 'Failed to update memory.' });
+      throw e;
+    } finally {
+      set({ saving: false });
+    }
+  },
+
+  deleteMemory: async (userId, id) => {
+    set({ saving: true, error: null });
+    try {
+      await deleteMemoryEntry({ userId, id });
+      set((s) => ({ memories: s.memories.filter((m) => m.id !== id) }));
+    } catch (e: unknown) {
+      logError('memoryStore.deleteMemory', e, { userId, id });
+      set({ error: e instanceof Error ? e.message : 'Failed to delete memory.' });
+      throw e;
+    } finally {
+      set({ saving: false });
+    }
+  },
 
   deleteAllMemories: async (userId) => {
     set({ saving: true, error: null });

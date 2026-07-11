@@ -17,18 +17,12 @@ import { EmptyState } from '@/components/ui/EmptyState';
 import { ErrorState } from '@/components/ui/ErrorState';
 import { PrimaryButton } from '@/components/ui/PrimaryButton';
 import { Theme } from '@/constants/Theme';
-import { consumeMemoryDraft } from '@/src/features/memories/memoryDraft';
+import { memoryTitleFromBody } from '@/src/features/memories/memoryTitle';
 import { useMemoryStore } from '@/src/features/memories/memoryStore';
 import { useQuestDomainStore } from '@/src/features/quests/questStore';
 import { trackEvent } from '@/src/lib/analytics';
 import { logError } from '@/src/lib/monitoring/errorLogger';
 import { useSessionStore } from '@/stores/session';
-
-function memoryTitleFromBody(body: string): string {
-  const line = body.trim().split('\n')[0]?.trim() ?? '';
-  if (!line) return 'Memory';
-  return line.length > 80 ? `${line.slice(0, 77)}…` : line;
-}
 
 export default function NewMemoryScreen() {
   const router = useRouter();
@@ -44,11 +38,9 @@ export default function NewMemoryScreen() {
     [questId]
   );
 
-  // A guided run may have prepared a draft from collected step evidence.
-  const [draft] = useState(() => consumeMemoryDraft(questId ? String(questId) : null));
-  const [title, setTitle] = useState<string>(draft?.title ?? quest?.title ?? '');
-  const [body, setBody] = useState(draft?.body ?? '');
-  const [localUri, setLocalUri] = useState<string | null>(draft?.photoUri ?? null);
+  const [title, setTitle] = useState<string>(quest?.title ?? '');
+  const [body, setBody] = useState('');
+  const [localUri, setLocalUri] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const startedTracked = useRef(false);
   const hasForeignQuestId = Boolean(questId);

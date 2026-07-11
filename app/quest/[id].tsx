@@ -13,6 +13,7 @@ import { alertCompat, alertTwoChoice } from '@/lib/alertCompat';
 import { categoryAccentForCategoryId } from '@/lib/categoryAccent';
 import { isSupabaseConfigured, SUPABASE_CONFIGURE_HELP } from '@/lib/supabase';
 import { QuestFeedbackCard } from '@/src/features/feedback/QuestFeedbackCard';
+import { useMemoryStore } from '@/src/features/memories/memoryStore';
 import { QUEST_COPY } from '@/src/features/quests/questCopy';
 import { canUserBeginQuest, incompleteJourneyStepsCount } from '@/src/features/quests/questHelpers';
 import { useQuestDomainStore } from '@/src/features/quests/questStore';
@@ -50,6 +51,7 @@ export default function QuestDetailScreen() {
   const refreshUserQuests = useQuestDomainStore((s) => s.refreshUserQuests);
   const assignQuestToUser = useQuestDomainStore((s) => s.assignQuestToUser);
   const deactivateQuest = useQuestDomainStore((s) => s.deactivateQuest);
+  const memories = useMemoryStore((s) => s.memories);
 
   const quest = useMemo(() => (id ? getQuestById(String(id)) : undefined), [id, getQuestById]);
 
@@ -74,6 +76,13 @@ export default function QuestDetailScreen() {
         (b.completedAt ?? '').localeCompare(a.completedAt ?? '')
     )[0];
   }, [quest, userQuests]);
+
+  // The runner auto-saves a memory on wrap-up; older completions (or a
+  // failed auto-save) may still lack one, so only then offer to add one.
+  const existingMemory = useMemo(
+    () => (completedUq ? memories.find((m) => m.userQuestId === completedUq.id) : undefined),
+    [completedUq, memories]
+  );
 
   const canAssign = useMemo(() => {
     if (!quest) return false;
@@ -367,13 +376,15 @@ export default function QuestDetailScreen() {
             <Pressable
               style={[styles.secondaryBtn, { backgroundColor: Theme.accentSoft }]}
               onPress={() =>
-                router.push({
-                  pathname: '/memory/new',
-                  params: { questId: quest.id },
-                })
+                existingMemory
+                  ? router.push(`/memory/${existingMemory.id}`)
+                  : router.push({
+                      pathname: '/memory/new',
+                      params: { questId: quest.id },
+                    })
               }>
               <Text style={[styles.secondaryBtnText, { color: accent }]}>
-                Add a memory
+                {existingMemory ? 'View memory' : 'Add a memory'}
               </Text>
             </Pressable>
           </View>

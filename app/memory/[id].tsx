@@ -1,20 +1,40 @@
-import { useLocalSearchParams, useNavigation } from 'expo-router';
-import { useLayoutEffect, useMemo } from 'react';
-import { Image, ScrollView, StyleSheet, Text, View } from 'react-native';
+import * as ImagePicker from 'expo-image-picker';
+import { useLocalSearchParams, useNavigation, useRouter } from 'expo-router';
+import { useLayoutEffect, useMemo, useState } from 'react';
+import {
+  Alert,
+  Image,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { EmptyState } from '@/components/ui/EmptyState';
 import { LoadingState } from '@/components/ui/LoadingState';
+import { PrimaryButton } from '@/components/ui/PrimaryButton';
 import { Theme } from '@/constants/Theme';
+import { alertCompat, alertTwoChoice } from '@/lib/alertCompat';
+import { memoryTitleFromBody } from '@/src/features/memories/memoryTitle';
 import { useMemoryStore } from '@/src/features/memories/memoryStore';
 import { useQuestDomainStore } from '@/src/features/quests/questStore';
 import { trackEvent } from '@/src/lib/analytics';
+import { logError } from '@/src/lib/monitoring/errorLogger';
+import { useSessionStore } from '@/stores/session';
 
 export default function MemoryDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const navigation = useNavigation();
+  const router = useRouter();
+  const user = useSessionStore((s) => s.user);
   const getQuestById = useQuestDomainStore((s) => s.getQuestById);
   const loading = useMemoryStore((s) => s.loading);
+  const saving = useMemoryStore((s) => s.saving);
+  const updateMemory = useMemoryStore((s) => s.updateMemory);
+  const deleteMemory = useMemoryStore((s) => s.deleteMemory);
   const memory = useMemoryStore((s) =>
     id ? s.memories.find((m) => m.id === id) : undefined
   );
@@ -22,6 +42,12 @@ export default function MemoryDetailScreen() {
     () => (memory?.questId ? getQuestById(memory.questId) : undefined),
     [memory, getQuestById]
   );
+
+  const [editing, setEditing] = useState(false);
+  const [title, setTitle] = useState('');
+  const [body, setBody] = useState('');
+  const [localUri, setLocalUri] = useState<string | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
   useLayoutEffect(() => {
     if (!memory) return;
@@ -38,6 +64,85 @@ export default function MemoryDetailScreen() {
       title: 'Memory',
     });
   }, [navigation]);
+
+  function startEditing() {
+    if (!memory) return;
+    setTitle(memory.title);
+    setBody(memory.body);
+    setLocalUri(memory.photoUri);
+    setEditing(true);
+  }
+
+  function cancelEditing() {
+    setEditing(false);
+  }
+
+  async function pickImage() {
+    try {
+      const perm = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      if (!perm.granted) {
+        Alert.alert('Permission', 'Photo access is needed to attach an image.');
+        return;
+      }
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ['images'],
+        quality: 0.85,
+      });
+      if (!result.canceled && result.assets[0]) {
+        setLocalUri(result.assets[0].uri);
+      }
+    } catch (e: unknown) {
+      logError('memory.detail.pickImage', e);
+      Alert.alert('Could not open gallery', e instanceof Error ? e.message : 'Please try again.');
+    }
+  }
+
+  async function saveEdits() {
+    if (!memory || !user) return;
+    const text = body.trim();
+    if (!text) {
+      Alert.alert('Write something', 'Add a few words about the experience.');
+      return;
+    }
+    try {
+      await updateMemory(user.id, memory.id, {
+        title: title.trim() || memoryTitleFromBody(text),
+        body: text,
+        photoUri: localUri,
+      });
+      setEditing(false);
+    } catch (e: unknown) {
+      alertCompat('Error', e instanceof Error ? e.message : 'Could not save changes.');
+    }
+  }
+
+  function confirmDelete() {
+    if (!memory || !user) return;
+    alertTwoChoice(
+      'Delete this memory?',
+      'This permanently removes it. This cannot be undone.',
+      {
+        cancel: { text: 'Cancel' },
+        confirm: {
+          text: 'Delete',
+          onPress: () => {
+            void (async () => {
+              setDeleting(true);
+              try {
+                await deleteMemory(user.id, memory.id);
+                router.replace('/(tabs)/memories');
+              } catch (e: unknown) {
+                logError('memory.detail.delete', e, { memoryId: memory.id });
+                alertCompat('Error', e instanceof Error ? e.message : 'Could not delete memory.');
+              } finally {
+                setDeleting(false);
+              }
+            })();
+          },
+        },
+      }
+    );
+  }
 
   if (loading && !memory) {
     return (
@@ -60,6 +165,57 @@ export default function MemoryDetailScreen() {
     );
   }
 
+  if (editing) {
+    return (
+      <SafeAreaView style={styles.safe} edges={['bottom']}>
+        <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
+          <Text style={styles.label}>Title</Text>
+          <TextInput
+            style={styles.titleInput}
+            placeholder="Memory title"
+            placeholderTextColor={Theme.textMuted}
+            value={title}
+            onChangeText={setTitle}
+          />
+
+          <Text style={styles.label}>What stayed with you?</Text>
+          <TextInput
+            style={styles.input}
+            multiline
+            textAlignVertical="top"
+            placeholder="A feeling, a detail, a small surprise…"
+            placeholderTextColor={Theme.textMuted}
+            value={body}
+            onChangeText={setBody}
+          />
+
+          <Text style={styles.label}>Photo (optional)</Text>
+          {localUri ? (
+            <View style={styles.previewWrap}>
+              <Image source={{ uri: localUri }} style={styles.image} />
+              <Pressable onPress={() => setLocalUri(null)} style={styles.removePhoto}>
+                <Text style={styles.removePhotoText}>Remove</Text>
+              </Pressable>
+            </View>
+          ) : (
+            <Pressable onPress={() => void pickImage()} style={styles.pickBtn}>
+              <Text style={styles.pickBtnText}>Choose photo</Text>
+            </Pressable>
+          )}
+
+          <PrimaryButton label="Save changes" loading={saving} onPress={() => void saveEdits()} />
+          <Pressable
+            accessibilityRole="button"
+            disabled={saving}
+            onPress={cancelEditing}
+            style={({ pressed }) => [styles.cancelLink, pressed && !saving && styles.pressed]}>
+            <Text style={styles.cancelLinkText}>Cancel</Text>
+          </Pressable>
+        </ScrollView>
+      </SafeAreaView>
+    );
+  }
+
   return (
     <SafeAreaView style={styles.safe} edges={['bottom']}>
       <ScrollView contentContainerStyle={styles.scroll}>
@@ -77,6 +233,28 @@ export default function MemoryDetailScreen() {
           <Image source={{ uri: memory.photoUri }} style={styles.image} />
         ) : null}
         <Text style={styles.body}>{memory.body}</Text>
+
+        <View style={styles.actionsRow}>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Edit memory"
+            onPress={startEditing}
+            style={({ pressed }) => [styles.editBtn, pressed && styles.pressed]}>
+            <Text style={styles.editBtnText}>Edit</Text>
+          </Pressable>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Delete memory"
+            disabled={deleting}
+            onPress={confirmDelete}
+            style={({ pressed }) => [
+              styles.deleteBtn,
+              deleting && styles.disabled,
+              pressed && !deleting && styles.pressed,
+            ]}>
+            <Text style={styles.deleteBtnText}>{deleting ? 'Deleting…' : 'Delete'}</Text>
+          </Pressable>
+        </View>
       </ScrollView>
     </SafeAreaView>
   );
@@ -85,13 +263,6 @@ export default function MemoryDetailScreen() {
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: Theme.bg },
   scroll: { padding: 20, paddingBottom: 40 },
-  center: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: Theme.bg,
-  },
-  muted: { color: Theme.textMuted },
   date: { fontSize: 13, color: Theme.textMuted, marginBottom: 16 },
   title: {
     fontSize: 20,
@@ -112,4 +283,75 @@ const styles = StyleSheet.create({
     fontSize: 14,
   },
   body: { fontSize: 18, lineHeight: 28, color: Theme.text },
+  actionsRow: {
+    flexDirection: 'row',
+    gap: 10,
+    marginTop: 28,
+  },
+  editBtn: {
+    flex: 1,
+    alignItems: 'center',
+    paddingVertical: 14,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: Theme.border,
+    backgroundColor: Theme.surface,
+  },
+  editBtnText: { fontSize: 15, fontWeight: '600', color: Theme.text },
+  deleteBtn: {
+    flex: 1,
+    alignItems: 'center',
+    paddingVertical: 14,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: Theme.danger,
+    backgroundColor: '#fdecea',
+  },
+  deleteBtnText: { fontSize: 15, fontWeight: '600', color: Theme.danger },
+  pressed: { opacity: 0.85 },
+  disabled: { opacity: 0.55 },
+  label: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: Theme.textMuted,
+    marginBottom: 8,
+  },
+  input: {
+    minHeight: 140,
+    borderWidth: 1,
+    borderColor: Theme.border,
+    borderRadius: 12,
+    padding: 14,
+    fontSize: 16,
+    color: Theme.text,
+    backgroundColor: Theme.surface,
+    marginBottom: 20,
+  },
+  titleInput: {
+    borderWidth: 1,
+    borderColor: Theme.border,
+    borderRadius: 12,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    fontSize: 16,
+    color: Theme.text,
+    backgroundColor: Theme.surface,
+    marginBottom: 16,
+  },
+  pickBtn: {
+    alignSelf: 'flex-start',
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderRadius: 10,
+    backgroundColor: Theme.surface,
+    borderWidth: 1,
+    borderColor: Theme.border,
+    marginBottom: 28,
+  },
+  pickBtnText: { color: Theme.accent, fontWeight: '600' },
+  previewWrap: { marginBottom: 24 },
+  removePhoto: { marginTop: 8 },
+  removePhotoText: { color: Theme.danger, fontWeight: '600' },
+  cancelLink: { alignSelf: 'center', paddingVertical: 14 },
+  cancelLinkText: { fontSize: 15, fontWeight: '600', color: Theme.textMuted },
 });

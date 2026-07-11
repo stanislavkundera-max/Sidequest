@@ -28,10 +28,8 @@ import { alertCompat, alertTwoChoice } from '@/lib/alertCompat';
 import { categoryAccentForCategoryId } from '@/lib/categoryAccent';
 import { isSupabaseConfigured, SUPABASE_CONFIGURE_HELP } from '@/lib/supabase';
 import { DEFAULT_JOURNEY_STEP_TIP } from '@/src/constants/questJourneys';
-import {
-  composeMemoryDraftFromRun,
-  setMemoryDraft,
-} from '@/src/features/memories/memoryDraft';
+import { composeMemoryDraftFromRun } from '@/src/features/memories/memoryDraft';
+import { useMemoryStore } from '@/src/features/memories/memoryStore';
 import {
   calendarEventStillExists,
   createQuestCalendarEvent,
@@ -126,6 +124,7 @@ export default function QuestRunScreen() {
   const completeStepWithEvidence = useQuestDomainStore((s) => s.completeStepWithEvidence);
   const completeQuest = useQuestDomainStore((s) => s.completeQuest);
   const deactivateQuest = useQuestDomainStore((s) => s.deactivateQuest);
+  const createMemoryForQuest = useMemoryStore((s) => s.createMemoryForQuest);
 
   const bootstrap = useQuestDomainStore((s) => s.bootstrap);
   const quests = useQuestDomainStore((s) => s.quests);
@@ -367,10 +366,9 @@ export default function QuestRunScreen() {
       alertCompat('Configuration', SUPABASE_CONFIGURE_HELP);
       return;
     }
-    const questIdForMemory = quest.id;
     setActing(true);
     try {
-      // Compose the memory draft from the freshest progress before completion.
+      // Compose the memory from the freshest progress before completion.
       const latestUq =
         useQuestDomainStore
           .getState()
@@ -391,30 +389,39 @@ export default function QuestRunScreen() {
         difficulty: quest.difficulty,
       }).catch(() => undefined);
 
-      setMemoryDraft(draft);
+      // The quest is complete either way — a memory-save hiccup shouldn't
+      // read as a failed completion, so it gets its own try/catch.
+      let memoryId: string | null = null;
+      try {
+        const memory = await createMemoryForQuest(user.id, {
+          questId: quest.id,
+          title: draft.title,
+          body: draft.body,
+          photoUri: draft.photoUri,
+        });
+        memoryId = memory.id;
+        trackEvent('memory_created', {
+          sourceScreen: 'quest_runner_auto',
+          memoryId: memory.id,
+          questId: quest.id,
+          hasPhoto: Boolean(draft.photoUri),
+        }).catch(() => undefined);
+      } catch (memoryError: unknown) {
+        logError('quest.runner.autoMemory', memoryError, { questId: quest.id });
+      }
+
       router.replace(`/quest/${quest.id}`);
-      alertTwoChoice(
-        'Quest complete',
-        draft.body || draft.photoUri
-          ? 'We drafted a memory from what you collected on the way. Want to keep it?'
-          : 'Want to log a memory?',
-        {
-          cancel: { text: 'Not now' },
+      if (memoryId) {
+        alertTwoChoice('Quest complete', 'Saved to your memories.', {
+          cancel: { text: 'OK' },
           confirm: {
-            text: 'Log memory',
-            onPress: () => {
-              trackEvent('memory_creation_started', {
-                sourceScreen: 'quest_runner_complete_prompt',
-                questId: questIdForMemory,
-              }).catch(() => undefined);
-              router.push({
-                pathname: '/memory/new',
-                params: { questId: questIdForMemory },
-              });
-            },
+            text: 'View memory',
+            onPress: () => router.push(`/memory/${memoryId}`),
           },
-        }
-      );
+        });
+      } else {
+        alertCompat('Quest complete', 'Nice work — this one is done.');
+      }
     } catch (e: unknown) {
       logError('quest.runner.wrapUpQuest', e, { questId: quest.id, userQuestId: activeUq.id });
       alertCompat('Error', e instanceof Error ? e.message : 'Could not complete quest.');
