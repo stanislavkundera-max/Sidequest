@@ -62,19 +62,19 @@ const PACE_OPTIONS: PaceOption[] = [
   {
     value: 'quick',
     label: 'A few minutes',
-    description: 'Short quests I can finish this week',
+    description: 'Short quests I can finish this week — about 15–45 minutes',
     icon: 'flash-outline',
   },
   {
     value: 'steady',
     label: 'A steady rhythm',
-    description: 'A practical mix across the month',
+    description: 'A practical mix across the month — about 1–3 hours',
     icon: 'walk-outline',
   },
   {
     value: 'deep',
     label: 'Bigger journeys',
-    description: 'Longer quests that unfold over time',
+    description: 'Longer quests that unfold over time — half a day or more',
     icon: 'trail-sign-outline',
   },
 ];
@@ -149,10 +149,7 @@ export default function OnboardingScreen() {
   const bootstrap = useQuestDomainStore((s) => s.bootstrap);
 
   const [step, setStep] = useState(isEditMode ? EDIT_MODE_FIRST_STEP : 0);
-  const [selectedCategories, setSelectedCategories] = useState<OnboardingCategory[]>([
-    'nature',
-    'adventure',
-  ]);
+  const [selectedCategories, setSelectedCategories] = useState<OnboardingCategory[]>([]);
   const [pace, setPace] = useState<OnboardingPace>('steady');
   const [focus, setFocus] = useState<OnboardingFocus>('comfort_zone');
   const [natureConnection, setNatureConnection] = useState<OnboardingScaleAnswer>(3);
@@ -427,7 +424,7 @@ export default function OnboardingScreen() {
 
         {step === 4 ? (
           <View style={styles.stepWrap}>
-            <Text style={styles.headline}>What are you after right now?</Text>
+            <Text style={styles.headline}>What do you want more of right now?</Text>
             <Text style={styles.subtext}>This fine-tunes which quests we surface first.</Text>
             <View style={styles.choiceWrap}>
               {FOCUS_OPTIONS.map((option) => (
@@ -459,7 +456,7 @@ export default function OnboardingScreen() {
                 onChange={setNatureConnection}
               />
               <ScaleQuestion
-                prompt="How often do you feel isolated or disconnected from people?"
+                prompt="How often have you recently felt isolated or disconnected from people?"
                 lowLabel="Rarely"
                 highLabel="Very often"
                 value={isolation}
