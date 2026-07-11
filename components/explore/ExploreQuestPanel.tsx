@@ -140,6 +140,11 @@ export function ExploreQuestPanel({ userId, categoryId, preferences }: Props) {
               <Ionicons name="sparkles-outline" size={16} color={Theme.accent} />
               <Text style={styles.sectionHeadText}>Recommended for you</Text>
             </View>
+            {!nothingToShow ? (
+              <Text style={panelStyles.recommendedCaption}>
+                Based on your answers — every quest is still yours to try.
+              </Text>
+            ) : null}
             {nothingToShow ? (
               <View style={[styles.heroCard, styles.heroEmptyPadded, panelStyles.emptyCard]}>
                 <Text style={styles.emptyTitleSolid}>{EXPLORE_COPY.panelEmptyTitle}</Text>
@@ -207,6 +212,13 @@ const panelStyles = StyleSheet.create({
   scroll: { flex: 1 },
   scrollContent: { paddingBottom: 24, paddingTop: 4 },
   list: { gap: 10, paddingHorizontal: 16, paddingBottom: 4 },
+  recommendedCaption: {
+    fontSize: 12,
+    color: Theme.textMuted,
+    paddingHorizontal: 16,
+    marginTop: -6,
+    marginBottom: 10,
+  },
   emptyCard: { minHeight: 120, marginHorizontal: 16 },
   discoverMore: {
     flexDirection: 'row',

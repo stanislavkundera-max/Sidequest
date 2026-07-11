@@ -178,6 +178,36 @@ begin
   end if;
 end $$;
 
+-- 7) Profile baseline self-report columns (nature connection / isolation).
+-- 1-5 scale, does not affect quest recommendation scoring — re-askable
+-- later to measure change over time.
+alter table if exists public.profiles
+  add column if not exists nature_connection smallint not null default 3,
+  add column if not exists isolation_score smallint not null default 3;
+
+do $$
+begin
+  if not exists (
+    select 1 from pg_constraint c
+    join pg_class t on t.oid = c.conrelid
+    where t.relname = 'profiles' and c.conname = 'profiles_nature_connection_chk'
+  ) then
+    alter table public.profiles
+      add constraint profiles_nature_connection_chk
+      check (nature_connection between 1 and 5);
+  end if;
+
+  if not exists (
+    select 1 from pg_constraint c
+    join pg_class t on t.oid = c.conrelid
+    where t.relname = 'profiles' and c.conname = 'profiles_isolation_score_chk'
+  ) then
+    alter table public.profiles
+      add constraint profiles_isolation_score_chk
+      check (isolation_score between 1 and 5);
+  end if;
+end $$;
+
 -- 4) Sanity check output.
 select
   exists (

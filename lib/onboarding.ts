@@ -23,6 +23,8 @@ export async function setOnboardingComplete(
       intensity: 'balanced',
       pace: 'steady',
       focus: 'comfort_zone',
+      natureConnection: 3,
+      isolation: 3,
     }
   );
 }

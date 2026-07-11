@@ -11,7 +11,13 @@ create table if not exists public.profiles (
   pace_preference text not null default 'steady'
     check (pace_preference in ('quick', 'steady', 'deep')),
   focus_preference text not null default 'comfort_zone'
-    check (focus_preference in ('comfort_zone', 'calm', 'connection', 'wonder'))
+    check (focus_preference in ('comfort_zone', 'calm', 'connection', 'wonder')),
+  -- Baseline self-report only (1-5) — does not affect quest recommendation
+  -- scoring. Re-askable later to measure change over time.
+  nature_connection smallint not null default 3
+    check (nature_connection between 1 and 5),
+  isolation_score smallint not null default 3
+    check (isolation_score between 1 and 5)
 );
 
 create table if not exists public.categories (

@@ -4,6 +4,7 @@ export type {
   OnboardingPace,
   OnboardingFocus,
   OnboardingPreferences,
+  OnboardingScaleAnswer,
   OnboardingState,
 } from '@/src/features/onboarding/types';
 export {

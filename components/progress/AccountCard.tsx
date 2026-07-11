@@ -16,7 +16,7 @@ import { useSessionStore } from '@/stores/session';
 
 /**
  * Account controls.
- * - Everyone: sign out.
+ * - Everyone: sign out, edit onboarding preferences.
  * - Admin email only: redo onboarding, delete all progress, and a
  *   "preview as regular user" toggle that hides these admin tools so the
  *   admin can see exactly what a non-admin sees.
@@ -153,6 +153,14 @@ export function AccountCard() {
         </View>
       ) : (
         <View style={styles.actionsRow}>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Edit preferences"
+            onPress={() => router.push('/onboarding?edit=1')}
+            style={({ pressed }) => [styles.editBtn, pressed && styles.pressed]}>
+            <Ionicons name="options-outline" size={14} color={Theme.text} />
+            <Text style={styles.editBtnText}>Edit preferences</Text>
+          </Pressable>
           {showAdminTools ? (
             <>
               <Pressable
@@ -219,6 +227,18 @@ const styles = StyleSheet.create({
   email: { flex: 1, fontSize: 14, fontWeight: '600', color: Theme.text },
   actionsRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   busyRow: { alignItems: 'center', paddingVertical: 4 },
+  editBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    borderRadius: 999,
+    paddingVertical: 8,
+    paddingHorizontal: 14,
+    borderWidth: 1,
+    borderColor: Theme.border,
+    backgroundColor: Theme.bg,
+  },
+  editBtnText: { fontSize: 13, fontWeight: '700', color: Theme.text },
   adminBtn: {
     flexDirection: 'row',
     alignItems: 'center',

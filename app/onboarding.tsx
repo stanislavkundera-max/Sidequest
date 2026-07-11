@@ -1,4 +1,4 @@
-import { useRouter } from 'expo-router';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   ActivityIndicator,
@@ -19,7 +19,7 @@ import { Theme } from '@/constants/Theme';
 import { categoryAccentForCategoryId } from '@/lib/categoryAccent';
 import { categoryIconNameForCategoryId } from '@/lib/categoryIcons';
 import { getOnboardingComplete } from '@/lib/onboarding';
-import { saveOnboardingState } from '@/src/features/onboarding';
+import { getOnboardingState, saveOnboardingState } from '@/src/features/onboarding';
 import { recommendQuestsForPreferences } from '@/src/features/quests/suggestedQuests';
 import { useQuestDomainStore } from '@/src/features/quests/questStore';
 import { trackEvent } from '@/src/lib/analytics';
@@ -29,11 +29,14 @@ import type {
   OnboardingCategory,
   OnboardingFocus,
   OnboardingPace,
+  OnboardingScaleAnswer,
 } from '@/src/features/onboarding';
 
 const MAP_BACKGROUND = require('@/assets/images/explore-map-background.png');
 
-const TOTAL_STEPS = 6;
+const TOTAL_STEPS = 7;
+/** First step shown when editing existing answers (skips welcome + how-it-works). */
+const EDIT_MODE_FIRST_STEP = 2;
 
 type CategoryOption = {
   slug: OnboardingCategory;
@@ -134,20 +137,26 @@ const FEATURE_ROWS: FeatureRow[] = [
   },
 ];
 
+const SCALE_VALUES: OnboardingScaleAnswer[] = [1, 2, 3, 4, 5];
+
 export default function OnboardingScreen() {
   const router = useRouter();
+  const { edit } = useLocalSearchParams<{ edit?: string }>();
+  const isEditMode = edit === '1';
   const user = useSessionStore((s) => s.user);
   const quests = useQuestDomainStore((s) => s.quests);
   const categories = useQuestDomainStore((s) => s.categories);
   const bootstrap = useQuestDomainStore((s) => s.bootstrap);
 
-  const [step, setStep] = useState(0);
+  const [step, setStep] = useState(isEditMode ? EDIT_MODE_FIRST_STEP : 0);
   const [selectedCategories, setSelectedCategories] = useState<OnboardingCategory[]>([
     'nature',
     'adventure',
   ]);
   const [pace, setPace] = useState<OnboardingPace>('steady');
   const [focus, setFocus] = useState<OnboardingFocus>('comfort_zone');
+  const [natureConnection, setNatureConnection] = useState<OnboardingScaleAnswer>(3);
+  const [isolation, setIsolation] = useState<OnboardingScaleAnswer>(3);
   const [checking, setChecking] = useState(true);
   const [saving, setSaving] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
@@ -163,6 +172,28 @@ export default function OnboardingScreen() {
 
   useEffect(() => {
     let mounted = true;
+
+    if (isEditMode) {
+      // Editing existing answers: prefill from the current state instead of
+      // checking whether onboarding is complete (it already is).
+      getOnboardingState()
+        .then((state) => {
+          if (!mounted) return;
+          setSelectedCategories(state.preferences.categories);
+          setPace(state.preferences.pace);
+          setFocus(state.preferences.focus);
+          setNatureConnection(state.preferences.natureConnection);
+          setIsolation(state.preferences.isolation);
+          setChecking(false);
+        })
+        .catch(() => {
+          if (mounted) setChecking(false);
+        });
+      return () => {
+        mounted = false;
+      };
+    }
+
     getOnboardingComplete()
       .then((done: boolean) => {
         if (!mounted) return;
@@ -182,7 +213,7 @@ export default function OnboardingScreen() {
     return () => {
       mounted = false;
     };
-  }, [router]);
+  }, [router, isEditMode]);
 
   // Warm the quest catalog so the summary can show tailored picks.
   useEffect(() => {
@@ -192,10 +223,10 @@ export default function OnboardingScreen() {
   useEffect(() => {
     if (checking || startedTracked.current) return;
     startedTracked.current = true;
-    trackEvent('onboarding_started', { sourceScreen: 'onboarding' }).catch(
-      () => undefined
-    );
-  }, [checking]);
+    trackEvent('onboarding_started', {
+      sourceScreen: isEditMode ? 'onboarding_edit' : 'onboarding',
+    }).catch(() => undefined);
+  }, [checking, isEditMode]);
 
   const toggleCategory = useCallback((slug: OnboardingCategory) => {
     setSelectedCategories((current) => {
@@ -214,10 +245,17 @@ export default function OnboardingScreen() {
     if (quests.length === 0) return [];
     return recommendQuestsForPreferences({
       catalog: quests,
-      preferences: { categories: selectedCategories, intensity: 'balanced', pace, focus },
+      preferences: {
+        categories: selectedCategories,
+        intensity: 'balanced',
+        pace,
+        focus,
+        natureConnection,
+        isolation,
+      },
       limit: 3,
     });
-  }, [quests, selectedCategories, pace, focus]);
+  }, [quests, selectedCategories, pace, focus, natureConnection, isolation]);
 
   const categoryName = useCallback(
     (categoryId: string) => categories.find((c) => c.id === categoryId)?.name ?? 'Quest',
@@ -238,15 +276,21 @@ export default function OnboardingScreen() {
         intensity: 'balanced',
         pace,
         focus,
+        natureConnection,
+        isolation,
       });
       trackEvent('onboarding_completed', {
-        sourceScreen: 'onboarding',
+        sourceScreen: isEditMode ? 'onboarding_edit' : 'onboarding',
         categoryCount: selectedCategories.length,
         preferredCategories: selectedCategories,
         pacePreference: pace,
         focusPreference: focus,
       }).catch(() => undefined);
-      router.replace('/(tabs)/explore');
+      if (isEditMode) {
+        router.back();
+      } else {
+        router.replace('/(tabs)/explore');
+      }
     } catch (e: unknown) {
       const message = e instanceof Error ? e.message : 'Try again.';
       logError('onboarding.finishOnboarding', e, {
@@ -257,6 +301,14 @@ export default function OnboardingScreen() {
     } finally {
       setSaving(false);
     }
+  }
+
+  function goBack() {
+    if (isEditMode && step <= EDIT_MODE_FIRST_STEP) {
+      router.back();
+      return;
+    }
+    setStep((s) => s - 1);
   }
 
   if (checking) {
@@ -270,12 +322,13 @@ export default function OnboardingScreen() {
   }
 
   const isWelcome = step === 0;
+  const isFirstVisibleStep = isEditMode ? step === EDIT_MODE_FIRST_STEP : step === 0;
 
   return (
     <SafeAreaView style={styles.safe} edges={['top', 'bottom']}>
       <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
         <Text style={styles.kicker}>Side Quest Life</Text>
-        <ProgressDots step={step} />
+        <ProgressDots step={step} startAt={isEditMode ? EDIT_MODE_FIRST_STEP : 0} />
         {submitError ? <Text style={styles.errorBanner}>{submitError}</Text> : null}
 
         {isWelcome ? (
@@ -393,7 +446,34 @@ export default function OnboardingScreen() {
 
         {step === 5 ? (
           <View style={styles.stepWrap}>
-            <Text style={styles.headline}>Your map is ready.</Text>
+            <Text style={styles.headline}>A couple of honest ones.</Text>
+            <Text style={styles.subtext}>
+              This is just a baseline for you — it doesn&apos;t change which quests you see.
+            </Text>
+            <View style={styles.choiceWrap}>
+              <ScaleQuestion
+                prompt="How connected do you feel to nature right now?"
+                lowLabel="Not at all"
+                highLabel="Very connected"
+                value={natureConnection}
+                onChange={setNatureConnection}
+              />
+              <ScaleQuestion
+                prompt="How often do you feel isolated or disconnected from people?"
+                lowLabel="Rarely"
+                highLabel="Very often"
+                value={isolation}
+                onChange={setIsolation}
+              />
+            </View>
+          </View>
+        ) : null}
+
+        {step === 6 ? (
+          <View style={styles.stepWrap}>
+            <Text style={styles.headline}>
+              {isEditMode ? 'Your updated map is ready.' : 'Your map is ready.'}
+            </Text>
             <Text style={styles.subtext}>
               Based on your answers, here&apos;s where we&apos;d start. You can always explore the
               rest of the map.
@@ -426,13 +506,17 @@ export default function OnboardingScreen() {
                 </View>
               )}
             </View>
+            <Text style={styles.footnote}>
+              These are just a starting point — every quest in Journey stays open to you.
+              You can update these answers anytime from the Progress tab.
+            </Text>
           </View>
         ) : null}
 
         <View style={styles.footer}>
-          {step > 0 ? (
+          {!isFirstVisibleStep ? (
             <Pressable
-              onPress={() => setStep((s) => s - 1)}
+              onPress={goBack}
               disabled={saving}
               style={({ pressed }) => [
                 styles.secondaryBtn,
@@ -468,7 +552,9 @@ export default function OnboardingScreen() {
               {saving ? (
                 <ActivityIndicator color="#fff" />
               ) : (
-                <Text style={styles.ctaText}>Start exploring</Text>
+                <Text style={styles.ctaText}>
+                  {isEditMode ? 'Save changes' : 'Start exploring'}
+                </Text>
               )}
             </Pressable>
           )}
@@ -515,11 +601,56 @@ function OptionCard({
   );
 }
 
-function ProgressDots({ step }: { step: number }) {
+function ScaleQuestion({
+  prompt,
+  lowLabel,
+  highLabel,
+  value,
+  onChange,
+}: {
+  prompt: string;
+  lowLabel: string;
+  highLabel: string;
+  value: OnboardingScaleAnswer;
+  onChange: (next: OnboardingScaleAnswer) => void;
+}) {
+  return (
+    <View style={styles.scaleCard}>
+      <Text style={styles.scalePrompt}>{prompt}</Text>
+      <View style={styles.scaleRow}>
+        {SCALE_VALUES.map((n) => {
+          const selected = value === n;
+          return (
+            <Pressable
+              key={n}
+              accessibilityRole="button"
+              accessibilityLabel={`${n} of 5`}
+              onPress={() => onChange(n)}
+              style={({ pressed }) => [
+                styles.scaleDot,
+                selected && styles.scaleDotSelected,
+                pressed && styles.pressed,
+              ]}>
+              <Text style={[styles.scaleDotText, selected && styles.scaleDotTextSelected]}>
+                {n}
+              </Text>
+            </Pressable>
+          );
+        })}
+      </View>
+      <View style={styles.scaleLabelsRow}>
+        <Text style={styles.scaleEdgeLabel}>{lowLabel}</Text>
+        <Text style={styles.scaleEdgeLabel}>{highLabel}</Text>
+      </View>
+    </View>
+  );
+}
+
+function ProgressDots({ step, startAt }: { step: number; startAt: number }) {
   return (
     <View style={styles.dots}>
-      {Array.from({ length: TOTAL_STEPS }).map((_, i) => (
-        <View key={i} style={[styles.dot, i <= step && styles.dotActive]} />
+      {Array.from({ length: TOTAL_STEPS - startAt }).map((_, i) => (
+        <View key={i} style={[styles.dot, i <= step - startAt && styles.dotActive]} />
       ))}
     </View>
   );
@@ -652,6 +783,31 @@ const styles = StyleSheet.create({
   optionText: { flex: 1, minWidth: 0 },
   optionTitle: { fontSize: 17, color: Theme.text, fontWeight: '600', marginBottom: 2 },
   optionDescription: { fontSize: 14, color: Theme.textMuted, lineHeight: 19 },
+  scaleCard: {
+    borderWidth: 1,
+    borderColor: Theme.border,
+    borderRadius: 16,
+    backgroundColor: Theme.surface,
+    padding: 16,
+    gap: 12,
+  },
+  scalePrompt: { fontSize: 16, fontWeight: '600', color: Theme.text, lineHeight: 22 },
+  scaleRow: { flexDirection: 'row', gap: 8, justifyContent: 'space-between' },
+  scaleDot: {
+    flex: 1,
+    height: 44,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: Theme.border,
+    backgroundColor: Theme.bg,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  scaleDotSelected: { backgroundColor: Theme.accent, borderColor: Theme.accent },
+  scaleDotText: { fontSize: 16, fontWeight: '700', color: Theme.textMuted },
+  scaleDotTextSelected: { color: '#fff' },
+  scaleLabelsRow: { flexDirection: 'row', justifyContent: 'space-between' },
+  scaleEdgeLabel: { fontSize: 12, color: Theme.textMuted },
   recommendCard: {
     flexDirection: 'row',
     borderRadius: 16,
@@ -682,6 +838,12 @@ const styles = StyleSheet.create({
     padding: 16,
   },
   recommendEmptyText: { flex: 1, fontSize: 14, lineHeight: 20, color: Theme.textMuted },
+  footnote: {
+    marginTop: 16,
+    fontSize: 13,
+    lineHeight: 19,
+    color: Theme.textMuted,
+  },
   footer: {
     marginTop: 28,
     flexDirection: 'row',

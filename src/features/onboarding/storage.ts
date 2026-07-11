@@ -12,14 +12,19 @@ import type {
   OnboardingIntensity,
   OnboardingPace,
   OnboardingPreferences,
+  OnboardingScaleAnswer,
   OnboardingState,
 } from '@/src/features/onboarding/types';
+
+const DEFAULT_SCALE_ANSWER: OnboardingScaleAnswer = 3;
 
 const DEFAULT_PREFERENCES: OnboardingPreferences = {
   categories: ['nature', 'adventure'],
   intensity: 'balanced',
   pace: 'steady',
   focus: 'comfort_zone',
+  natureConnection: DEFAULT_SCALE_ANSWER,
+  isolation: DEFAULT_SCALE_ANSWER,
 };
 const KEY = '@side_quest_life/onboarding_state_v1';
 
@@ -61,6 +66,14 @@ function normalizeFocus(value: unknown): OnboardingFocus {
   return 'comfort_zone';
 }
 
+function normalizeScaleAnswer(value: unknown): OnboardingScaleAnswer {
+  const n = typeof value === 'number' ? value : Number(value);
+  if (Number.isInteger(n) && n >= 1 && n <= 5) {
+    return n as OnboardingScaleAnswer;
+  }
+  return DEFAULT_SCALE_ANSWER;
+}
+
 async function getLocalFallbackState(): Promise<OnboardingState> {
   const raw = await AsyncStorage.getItem(KEY);
   if (!raw) return DEFAULT_STATE;
@@ -75,6 +88,8 @@ async function getLocalFallbackState(): Promise<OnboardingState> {
         intensity: normalizeIntensity(parsed.preferences?.intensity),
         pace: normalizePace(parsed.preferences?.pace),
         focus: normalizeFocus(parsed.preferences?.focus),
+        natureConnection: normalizeScaleAnswer(parsed.preferences?.natureConnection),
+        isolation: normalizeScaleAnswer(parsed.preferences?.isolation),
       },
       completedAt:
         typeof parsed.completedAt === 'string' ? parsed.completedAt : null,
@@ -94,6 +109,8 @@ async function saveLocalFallbackState(
       intensity: normalizeIntensity(preferences.intensity),
       pace: normalizePace(preferences.pace),
       focus: normalizeFocus(preferences.focus),
+      natureConnection: normalizeScaleAnswer(preferences.natureConnection),
+      isolation: normalizeScaleAnswer(preferences.isolation),
     },
     completedAt: new Date().toISOString(),
   };
@@ -129,6 +146,8 @@ export async function saveOnboardingState(
     intensity: normalizeIntensity(preferences.intensity),
     pace: normalizePace(preferences.pace),
     focus: normalizeFocus(preferences.focus),
+    natureConnection: normalizeScaleAnswer(preferences.natureConnection),
+    isolation: normalizeScaleAnswer(preferences.isolation),
   };
 
   try {

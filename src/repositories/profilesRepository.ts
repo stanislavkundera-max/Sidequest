@@ -5,6 +5,7 @@ import type {
   OnboardingIntensity,
   OnboardingPace,
   OnboardingPreferences,
+  OnboardingScaleAnswer,
   OnboardingState,
 } from '@/src/features/onboarding/types';
 
@@ -12,6 +13,7 @@ const DEFAULT_CATEGORIES: OnboardingCategory[] = ['nature', 'adventure'];
 const DEFAULT_INTENSITY: OnboardingIntensity = 'balanced';
 const DEFAULT_PACE: OnboardingPace = 'steady';
 const DEFAULT_FOCUS: OnboardingFocus = 'comfort_zone';
+const DEFAULT_SCALE_ANSWER: OnboardingScaleAnswer = 3;
 
 export type Profile = {
   id: string;
@@ -22,6 +24,8 @@ export type Profile = {
   preferredCategories: OnboardingCategory[];
   pacePreference: OnboardingPace;
   focusPreference: OnboardingFocus;
+  natureConnection: OnboardingScaleAnswer;
+  isolation: OnboardingScaleAnswer;
 };
 
 function normalizeIntensity(value: unknown): OnboardingIntensity {
@@ -50,6 +54,14 @@ function normalizeFocus(value: unknown): OnboardingFocus {
   return DEFAULT_FOCUS;
 }
 
+function normalizeScaleAnswer(value: unknown): OnboardingScaleAnswer {
+  const n = typeof value === 'number' ? value : Number(value);
+  if (Number.isInteger(n) && n >= 1 && n <= 5) {
+    return n as OnboardingScaleAnswer;
+  }
+  return DEFAULT_SCALE_ANSWER;
+}
+
 function normalizeCategories(value: unknown): OnboardingCategory[] {
   if (!Array.isArray(value)) return DEFAULT_CATEGORIES;
   const categories = value.filter(
@@ -72,6 +84,8 @@ function mapProfileRow(row: any): Profile {
     preferredCategories: normalizeCategories(row.preferred_categories),
     pacePreference: normalizePace(row.pace_preference),
     focusPreference: normalizeFocus(row.focus_preference),
+    natureConnection: normalizeScaleAnswer(row.nature_connection),
+    isolation: normalizeScaleAnswer(row.isolation_score),
   };
 }
 
@@ -115,6 +129,8 @@ export async function getOnboardingStateForUser(
         intensity: DEFAULT_INTENSITY,
         pace: DEFAULT_PACE,
         focus: DEFAULT_FOCUS,
+        natureConnection: DEFAULT_SCALE_ANSWER,
+        isolation: DEFAULT_SCALE_ANSWER,
       },
       completedAt: null,
     };
@@ -127,46 +143,67 @@ export async function getOnboardingStateForUser(
       intensity: profile.intensityPreference,
       pace: profile.pacePreference,
       focus: profile.focusPreference,
+      natureConnection: profile.natureConnection,
+      isolation: profile.isolation,
     },
     completedAt: profile.onboardingCompleted ? profile.createdAt : null,
   };
+}
+
+/**
+ * Tries each payload in order, falling back to the previous (more widely
+ * compatible) one whenever the error looks like a missing-column error —
+ * so older Supabase schemas that haven't run the latest migration yet keep
+ * working instead of failing onboarding entirely.
+ */
+async function updateProfileWithFallback(
+  userId: string,
+  payloadAttempts: Record<string, unknown>[]
+): Promise<any> {
+  let lastError: { message?: string } | null = null;
+  for (const payload of payloadAttempts) {
+    const { data, error } = await supabase
+      .from('profiles')
+      .update(payload)
+      .eq('id', userId)
+      .select('*')
+      .single();
+    if (!error) return data;
+    if (!isMissingColumnError(error.message)) throw error;
+    lastError = error;
+  }
+  throw lastError;
 }
 
 export async function saveOnboardingStateForUser(
   userId: string,
   preferences: OnboardingPreferences
 ): Promise<OnboardingState> {
-  const primaryUpdate = {
-    onboarding_completed: true,
-    intensity_preference: preferences.intensity,
-    preferred_categories: preferences.categories,
-    pace_preference: preferences.pace,
-    focus_preference: preferences.focus,
-  };
-  let { data, error } = await supabase
-    .from('profiles')
-    .update(primaryUpdate)
-    .eq('id', userId)
-    .select('*')
-    .single();
+  const data = await updateProfileWithFallback(userId, [
+    {
+      onboarding_completed: true,
+      intensity_preference: preferences.intensity,
+      preferred_categories: preferences.categories,
+      pace_preference: preferences.pace,
+      focus_preference: preferences.focus,
+      nature_connection: preferences.natureConnection,
+      isolation_score: preferences.isolation,
+    },
+    // Fallback: nature_connection/isolation columns not migrated yet.
+    {
+      onboarding_completed: true,
+      intensity_preference: preferences.intensity,
+      preferred_categories: preferences.categories,
+      pace_preference: preferences.pace,
+      focus_preference: preferences.focus,
+    },
+    // Fallback: pace/focus/categories columns not migrated yet either.
+    {
+      onboarding_completed: true,
+      intensity_preference: preferences.intensity,
+    },
+  ]);
 
-  // Backward-compatible fallback for projects that have not applied the
-  // newest schema columns yet (preferred_categories / pace / focus).
-  if (error && typeof error.message === 'string' && isMissingColumnError(error.message)) {
-    const fallback = await supabase
-      .from('profiles')
-      .update({
-        onboarding_completed: true,
-        intensity_preference: preferences.intensity,
-      })
-      .eq('id', userId)
-      .select('*')
-      .single();
-    data = fallback.data;
-    error = fallback.error;
-  }
-
-  if (error) throw error;
   const profile = mapProfileRow(data);
   return {
     complete: profile.onboardingCompleted,
@@ -175,6 +212,8 @@ export async function saveOnboardingStateForUser(
       intensity: profile.intensityPreference,
       pace: profile.pacePreference,
       focus: profile.focusPreference,
+      natureConnection: profile.natureConnection,
+      isolation: profile.isolation,
     },
     completedAt: profile.createdAt,
   };
@@ -189,10 +228,13 @@ export async function resetOnboardingForUser(userId: string): Promise<void> {
   if (error) throw error;
 }
 
-function isMissingColumnError(message: string): boolean {
+function isMissingColumnError(message?: string): boolean {
+  if (!message) return false;
   return (
     message.includes('preferred_categories') ||
     message.includes('pace_preference') ||
-    message.includes('focus_preference')
+    message.includes('focus_preference') ||
+    message.includes('nature_connection') ||
+    message.includes('isolation_score')
   );
 }
