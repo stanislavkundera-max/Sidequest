@@ -34,10 +34,12 @@ export function QuestFeedbackCard({
   questId,
   sourceScreen,
 }: QuestFeedbackCardProps) {
-  const [status, setStatus] = useState<'idle' | 'sent'>('idle');
+  const [status, setStatus] = useState<'idle' | 'sending' | 'sent'>('idle');
+  const [rating, setRating] = useState<'up' | 'down' | null>(null);
   const [note, setNote] = useState('');
 
-  async function submit(rating: 'up' | 'down') {
+  async function submit() {
+    if (!rating) return;
     const submissionId = `${userId}:${questId}`;
     const existing = await readSubmittedMap();
     if (existing[submissionId]) {
@@ -45,6 +47,7 @@ export function QuestFeedbackCard({
       return;
     }
 
+    setStatus('sending');
     await trackEvent('quest_feedback_submitted', {
       userId,
       questId,
@@ -71,18 +74,26 @@ export function QuestFeedbackCard({
       <Text style={styles.sub}>Optional, helps improve quest quality.</Text>
       <View style={styles.row}>
         <Pressable
-          onPress={() => {
-            void submit('up');
-          }}
-          style={({ pressed }) => [styles.btn, pressed && styles.btnPressed]}>
-          <Text style={styles.btnText}>Meaningful</Text>
+          onPress={() => setRating('up')}
+          style={({ pressed }) => [
+            styles.btn,
+            rating === 'up' && styles.btnSelected,
+            pressed && styles.btnPressed,
+          ]}>
+          <Text style={[styles.btnText, rating === 'up' && styles.btnTextSelected]}>
+            Meaningful
+          </Text>
         </Pressable>
         <Pressable
-          onPress={() => {
-            void submit('down');
-          }}
-          style={({ pressed }) => [styles.btn, pressed && styles.btnPressed]}>
-          <Text style={styles.btnText}>Not quite</Text>
+          onPress={() => setRating('down')}
+          style={({ pressed }) => [
+            styles.btn,
+            rating === 'down' && styles.btnSelected,
+            pressed && styles.btnPressed,
+          ]}>
+          <Text style={[styles.btnText, rating === 'down' && styles.btnTextSelected]}>
+            Not quite
+          </Text>
         </Pressable>
       </View>
       <TextInput
@@ -92,6 +103,22 @@ export function QuestFeedbackCard({
         value={note}
         onChangeText={setNote}
       />
+      {rating ? (
+        <Pressable
+          onPress={() => {
+            void submit();
+          }}
+          disabled={status === 'sending'}
+          style={({ pressed }) => [
+            styles.sendBtn,
+            pressed && styles.btnPressed,
+            status === 'sending' && styles.sendBtnDisabled,
+          ]}>
+          <Text style={styles.sendBtnText}>
+            {status === 'sending' ? 'Sending…' : 'Send feedback'}
+          </Text>
+        </Pressable>
+      ) : null}
     </View>
   );
 }
@@ -119,7 +146,9 @@ const styles = StyleSheet.create({
     backgroundColor: Theme.bg,
   },
   btnPressed: { opacity: 0.9 },
+  btnSelected: { backgroundColor: Theme.accentSoft, borderColor: Theme.accent },
   btnText: { color: Theme.text, fontSize: 13, fontWeight: '500' },
+  btnTextSelected: { color: Theme.accent, fontWeight: '700' },
   input: {
     borderWidth: 1,
     borderColor: Theme.border,
@@ -130,4 +159,12 @@ const styles = StyleSheet.create({
     backgroundColor: Theme.bg,
     fontSize: 14,
   },
+  sendBtn: {
+    borderRadius: 10,
+    paddingVertical: 10,
+    alignItems: 'center',
+    backgroundColor: Theme.accent,
+  },
+  sendBtnDisabled: { opacity: 0.6 },
+  sendBtnText: { color: '#fff', fontSize: 13, fontWeight: '600' },
 });

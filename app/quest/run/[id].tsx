@@ -226,7 +226,7 @@ export default function QuestRunScreen() {
         timeframe: quest.timeframe,
         category: quest.categoryId,
       }).catch(() => undefined);
-      router.replace(`/quest/${quest.id}`);
+      router.replace('/(tabs)/journey');
     } catch (e: unknown) {
       logError('quest.runner.leaveQuest', e, { questId: quest.id, userQuestId: activeUq.id });
       alertCompat('Error', e instanceof Error ? e.message : 'Could not leave this quest.');
@@ -410,7 +410,7 @@ export default function QuestRunScreen() {
         logError('quest.runner.autoMemory', memoryError, { questId: quest.id });
       }
 
-      router.replace(`/quest/${quest.id}`);
+      router.replace('/(tabs)/journey');
       if (memoryId) {
         alertTwoChoice('Quest complete', 'Saved to your memories.', {
           cancel: { text: 'OK' },
@@ -420,7 +420,21 @@ export default function QuestRunScreen() {
           },
         });
       } else {
-        alertCompat('Quest complete', 'Nice work — this one is done.');
+        // Completion always succeeds even if the auto-memory save failed —
+        // but that failure must stay visible, or it looks like memories
+        // silently vanish (reported by testers as "memories don't propagate").
+        alertTwoChoice(
+          'Quest complete',
+          "Nice work — this one is done. We couldn't save a memory for it automatically.",
+          {
+            cancel: { text: 'OK' },
+            confirm: {
+              text: 'Add a memory',
+              onPress: () =>
+                router.push({ pathname: '/memory/new', params: { questId: quest.id } }),
+            },
+          }
+        );
       }
     } catch (e: unknown) {
       logError('quest.runner.wrapUpQuest', e, { questId: quest.id, userQuestId: activeUq.id });
@@ -744,7 +758,7 @@ export default function QuestRunScreen() {
             </View>
 
             <PrimaryButton
-              label="Wrap up quest"
+              label="Complete quest"
               loading={primaryBusy}
               onPress={() => void wrapUpQuest()}
             />
@@ -752,13 +766,13 @@ export default function QuestRunScreen() {
               accessibilityRole="button"
               accessibilityLabel="Back to quest without completing"
               disabled={primaryBusy}
-              onPress={() => router.replace(`/quest/${quest.id}`)}
+              onPress={() => router.replace('/(tabs)/journey')}
               style={({ pressed }) => [
                 styles.doneBackLink,
                 primaryBusy && { opacity: 0.45 },
                 pressed && !primaryBusy && { opacity: 0.75 },
               ]}>
-              <Text style={styles.doneBackLinkText}>Back to quest</Text>
+              <Text style={styles.doneBackLinkText}>Back to journey</Text>
             </Pressable>
           </View>
         )}

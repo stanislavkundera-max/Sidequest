@@ -105,4 +105,6 @@ export const stepInteractionStyles = StyleSheet.create({
   secondaryBtnText: { color: Theme.accent, fontWeight: '600', fontSize: 14 },
   pressed: { opacity: 0.85 },
   disabled: { opacity: 0.5 },
+  timerResetLink: { alignSelf: 'center', paddingVertical: 8, paddingHorizontal: 4 },
+  timerResetLinkText: { color: Theme.danger, fontWeight: '600', fontSize: 14 },
 });

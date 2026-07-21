@@ -52,7 +52,10 @@ export default function TabLayout() {
       initialRouteName="explore"
       screenOptions={{
         tabBarActiveTintColor: Theme.accent,
-        tabBarInactiveTintColor: Theme.textMuted,
+        // textMuted is too close in perceived brightness to accent for a 24px
+        // icon to read as "changed" — use a lighter neutral just for inactive
+        // tab icons so the active state is visibly distinct.
+        tabBarInactiveTintColor: '#b3aca4',
         tabBarStyle: {
           backgroundColor: Theme.surface,
           borderTopWidth: 0,

@@ -226,7 +226,7 @@ export function NextActionCallout({
       <TouchableRipple
         onPress={() => onOpenQuest(questId)}
         accessibilityRole="button"
-        accessibilityLabel={`Wrap up quest ${questTitle}`}
+        accessibilityLabel={`Finish quest ${questTitle}`}
         borderless>
         <Card.Content>
           <Text variant="labelLarge" style={styles.calloutKicker}>
@@ -236,7 +236,7 @@ export function NextActionCallout({
             {questTitle}
           </Text>
           <Text variant="bodyMedium" style={styles.calloutBody}>
-            Journey steps are checked off—open this quest to wrap up or log a memory.
+            Journey steps are checked off—open this quest to finish it or log a memory.
           </Text>
           <Text variant="labelMedium" style={styles.calloutHint}>
             Open quest to finish

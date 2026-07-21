@@ -192,7 +192,7 @@ export default function MemoryDetailScreen() {
           <Text style={styles.label}>Photo (optional)</Text>
           {localUri ? (
             <View style={styles.previewWrap}>
-              <Image source={{ uri: localUri }} style={styles.image} />
+              <Image source={{ uri: localUri }} style={styles.image} resizeMode="contain" />
               <Pressable onPress={() => setLocalUri(null)} style={styles.removePhoto}>
                 <Text style={styles.removePhotoText}>Remove</Text>
               </Pressable>
@@ -230,7 +230,7 @@ export default function MemoryDetailScreen() {
           <Text style={styles.questContext}>From quest: {quest.title}</Text>
         ) : null}
         {memory.photoUri ? (
-          <Image source={{ uri: memory.photoUri }} style={styles.image} />
+          <Image source={{ uri: memory.photoUri }} style={styles.image} resizeMode="contain" />
         ) : null}
         <Text style={styles.body}>{memory.body}</Text>
 

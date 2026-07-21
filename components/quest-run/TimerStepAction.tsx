@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react';
-import { Text, View } from 'react-native';
+import { Pressable, Text, View } from 'react-native';
 
 import { PrimaryButton } from '@/components/ui/PrimaryButton';
 import { stepInteractionStyles as styles } from '@/components/quest-run/stepInteractionStyles';
+import { alertTwoChoice } from '@/lib/alertCompat';
 import {
   clearStepTimer,
   elapsedSeconds,
@@ -74,6 +75,24 @@ export function TimerStepAction({
     void clearStepTimer(userQuestId, stepId);
   }
 
+  function requestReset() {
+    alertTwoChoice(
+      'Reset this timer?',
+      'The time you have logged so far will be lost and the timer starts over from zero.',
+      {
+        cancel: { text: 'Keep going' },
+        confirm: {
+          text: 'Reset timer',
+          onPress: () => {
+            void clearStepTimer(userQuestId, stepId).then(() => {
+              setStartedAt(null);
+            });
+          },
+        },
+      }
+    );
+  }
+
   if (!hydrated) return null;
 
   if (!running) {
@@ -108,6 +127,18 @@ export function TimerStepAction({
         loading={busy}
         onPress={finish}
       />
+      <Pressable
+        accessibilityRole="button"
+        accessibilityLabel="Reset this timer"
+        disabled={busy}
+        onPress={requestReset}
+        style={({ pressed }) => [
+          styles.timerResetLink,
+          busy && styles.disabled,
+          pressed && !busy && styles.pressed,
+        ]}>
+        <Text style={styles.timerResetLinkText}>Reset timer</Text>
+      </Pressable>
     </View>
   );
 }

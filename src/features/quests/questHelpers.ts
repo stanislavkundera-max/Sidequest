@@ -170,7 +170,7 @@ export function getNextActionableStepLabel(uq: UserQuest, quest: Quest): string 
       return step.title;
     }
   }
-  return 'All steps done — open to wrap up';
+  return 'All steps done — open to finish';
 }
 
 /** How many journey steps are checked for this active user quest. */

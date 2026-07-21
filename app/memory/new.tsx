@@ -162,7 +162,7 @@ export default function NewMemoryScreen() {
         <Text style={styles.label}>Photo (optional)</Text>
         {localUri ? (
           <View style={styles.previewWrap}>
-            <Image source={{ uri: localUri }} style={styles.preview} />
+            <Image source={{ uri: localUri }} style={styles.preview} resizeMode="contain" />
             <Pressable onPress={() => setLocalUri(null)} style={styles.removePhoto}>
               <Text style={styles.removePhotoText}>Remove</Text>
             </Pressable>
