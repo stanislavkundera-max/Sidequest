@@ -43,11 +43,11 @@ async function signInFromAuthSurface(page: Page, email: string, password: string
 async function completeOnboardingIfVisible(page: Page) {
   if ((await detectSurface(page)) !== 'onboarding') return;
   await clickVisibleText(page, 'Next');
-  await expect(page.getByText('Pick your preferred categories.')).toBeVisible();
+  await expect(page.getByText("Pick the kinds of quests you'd enjoy.")).toBeVisible();
   await clickVisibleText(page, 'Next');
-  await expect(page.getByText('Choose intensity.')).toBeVisible();
+  await expect(page.getByText('How bold should your quests be?')).toBeVisible();
   await clickVisibleText(page, 'Bold');
-  await clickVisibleText(page, 'Start quests');
+  await clickVisibleText(page, 'Start exploring');
 }
 
 async function ensureAuthenticatedOrSkip(page: Page, options?: { allowOnboardingCompletion?: boolean }) {

@@ -22,7 +22,6 @@ export async function setOnboardingComplete(
       categories: ['nature', 'adventure'],
       intensity: 'balanced',
       pace: 'steady',
-      focus: 'comfort_zone',
       natureConnection: 3,
       isolation: 3,
     }

@@ -21,6 +21,6 @@ name: Bootstrap auth and onboarding journey
       visible: "Side Quest Life"
     commands:
       - tapOn: "Next"
-      - assertVisible: "Pick your preferred categories."
+      - assertVisible: "Pick the kinds of quests you'd enjoy."
       - tapOn: "Next"
-      - assertVisible: "Choose intensity."
+      - assertVisible: "How bold should your quests be?"

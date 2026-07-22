@@ -1,5 +1,5 @@
 import type {
-  OnboardingFocus,
+  OnboardingIntensity,
   OnboardingPace,
   OnboardingPreferences,
 } from '@/src/features/onboarding/types';
@@ -14,31 +14,19 @@ const PACE_TIMEFRAME: Record<OnboardingPace, QuestTimeframe> = {
   deep: 'yearly',
 };
 
-function focusScore(quest: Quest, focus: OnboardingFocus): number {
-  switch (focus) {
-    case 'comfort_zone':
+/** Intensity answer → nudge toward quests whose difficulty matches the stretch. */
+function intensityScore(quest: Quest, intensity: OnboardingIntensity): number {
+  switch (intensity) {
+    case 'bold':
+      return quest.difficulty === 'hard' ? 2 : quest.difficulty === 'medium' ? 1 : 0;
+    case 'light':
       return (
-        (quest.difficulty === 'hard' ? 2 : quest.difficulty === 'medium' ? 1 : 0) +
-        (quest.suggestedGroup === 'outside' || quest.suggestedGroup === 'do_now' ? 1 : 0)
-      );
-    case 'calm':
-      return (
-        (quest.categoryId === 'cat-relax' ? 2 : 0) +
-        (quest.difficulty === 'easy' ? 1 : 0) +
+        (quest.difficulty === 'easy' ? 2 : 0) +
         (quest.suggestedGroup === 'low_energy' ? 1 : 0)
       );
-    case 'connection':
-      return (
-        (quest.categoryId === 'cat-social' ? 2 : 0) +
-        (quest.suggestedGroup === 'social' ? 1 : 0)
-      );
-    case 'wonder':
-      return (
-        (quest.categoryId === 'cat-nature' ? 2 : 0) +
-        (quest.suggestedGroup === 'outside' ? 1 : 0)
-      );
+    case 'balanced':
     default:
-      return 0;
+      return quest.difficulty === 'medium' ? 1 : 0;
   }
 }
 
@@ -53,7 +41,7 @@ export function scoreQuestForPreferences(
   let score = 0;
   if (preferredIds.has(quest.categoryId)) score += 3;
   if (quest.timeframe === PACE_TIMEFRAME[preferences.pace]) score += 2;
-  score += focusScore(quest, preferences.focus);
+  score += intensityScore(quest, preferences.intensity);
   return score;
 }
 

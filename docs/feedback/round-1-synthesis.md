@@ -12,6 +12,17 @@ the strongest prioritization signal and is called out inline.
 
 ## ✅ Fixed this session (2026-07-22)
 
+- **Onboarding "What pulls you" duplicates the category selection** (fix-now item, T) —
+  diagnosed as a real duplication, not just wording: step 2 picks categories (+3 signal) and
+  step 4's `focus` options `calm`/`connection`/`wonder` just re-selected the Relax/Social/Nature
+  category the user already picked (`focusScore` in `suggestedQuests.ts`); only `comfort_zone`
+  was orthogonal. Reframed onboarding around **three orthogonal knobs — Theme / Time /
+  Intensity**: step 2 headline → "How do you want to spend more time?"; step 4 → "How bold
+  should your quests be?" (Gentle / Balanced / Bold), reviving the previously-dead `intensity`
+  field (already had DB column + `intensity_selected` event) and retiring `focus` from the data
+  model. Scoring now rewards difficulty fit instead of double-counting category. No Supabase
+  migration (the `focus_preference` column is left unused). Touches `app/onboarding.tsx`,
+  `src/features/quests/suggestedQuests.ts`, and the onboarding types/storage/repository.
 - **Sign up "doesn't work"** (bug #1, E, D) — no code error, but `signUp()` against an
   already-registered-but-unconfirmed email returns a *silent success* from Supabase
   (`data.user.identities` empty, no error, no new confirmation email — a deliberate
@@ -51,6 +62,12 @@ the strongest prioritization signal and is called out inline.
 - **"Wrap up quest" copy unclear** (fix-now item, D) — renamed to "Complete quest" (button),
   "open to finish" (`questHelpers.ts` hint), and "finish it" (`ProgressOverviewBlocks.tsx`) across
   all user-facing spots.
+- **Quick copy/UX batch** (fix-now items) — (1) web calendar-step button "I scheduled it" →
+  "Let's schedule it" (D); (2) removed the distracting centered compass badge from the onboarding
+  welcome hero (T); (3) shortened the over-long "Your map is ready" footnote (D). Also confirmed
+  already-resolved: category pre-selection, the old "What are you after" step, the isolation copy,
+  and the completed-list newest-first sort. "World???" (E) couldn't be located in code — likely a
+  Supabase-sourced category name.
 
 ---
 
@@ -76,23 +93,23 @@ the strongest prioritization signal and is called out inline.
 ## 🔧 Fix now (copy / UX polish)
 
 ### Onboarding
-- Nature + Adventure pre-selected with no "why" explanation — M.
-- "What are you after right now?" — confusing word order, can't picture anything — M.
-- "How often do you feel isolated?" — too vague (generally vs. recently) — M.
+- Nature + Adventure pre-selected with no "why" explanation — M. ✅ **Fixed** — categories start empty (prior commit).
+- "What are you after right now?" — confusing word order, can't picture anything — M. ✅ **Resolved** — that step (old `focus`) was replaced by the intensity question.
+- "How often do you feel isolated?" — too vague (generally vs. recently) — M. ✅ **Resolved** — current copy asks "recently felt isolated".
 - Quest frequency not explained with numbers — M.
-- Compass in the middle of the first-screen image is distracting — T.
+- Compass in the middle of the first-screen image is distracting — T. ✅ **Fixed** — removed the centered compass badge from the welcome hero.
 - "How much time do you have" → "how much time do you want to dedicate" — D.
-- "Your map is ready" → rename to "Almost set"; bottom text too long — D.
-- "What pulls you" duplicates the category selection — T.
+- "Your map is ready" → rename to "Almost set"; bottom text too long — D. 🔧 *Bottom footnote shortened; headline kept as "Your map is ready" (rename to "Almost set" not done).*
+- "What pulls you" duplicates the category selection — T. ✅ **Fixed** — see above (Theme/Time/Intensity reframe).
 
 ### Quests / detail
 - **Quest length**: daily / weekly / monthly doesn't make sense → reframe as *how much time it takes* — M, E, D (3 testers).
 - Wrap-up message looks like an **error** / disliked notification — E, T.
-- "I scheduled it" → "let's schedule it" — D. *(still open)*
+- "I scheduled it" → "let's schedule it" — D. ✅ **Fixed** — the web calendar-step button now reads "Let's schedule it" (the in-dialog confirm stays "I scheduled it" as a past-tense attestation).
 - "wrap up quest" unclear → "every step is done" — D. ✅ **Fixed** — see above.
 - Progress quest detail: too much text + duplicates the memory → split them, less text — T.
-- Sort the activity list by completion time (newest first) — D.
-- "World???" as a category name is confusing — E.
+- Sort the activity list by completion time (newest first) — D. ✅ **Already satisfied** — the completed list sorts newest-first (`ProgressQuestHub.tsx`, `CompletedShowcase.tsx`). Active list is oldest-started-first by design.
+- "World???" as a category name is confusing — E. ⚠️ **Couldn't locate** — no "World" label in code; likely a Supabase-sourced category name (`categories.name`), so rename lives in the DB/dashboard, not the repo.
 - Progress tab icon disliked — T.
 
 ### Explore map

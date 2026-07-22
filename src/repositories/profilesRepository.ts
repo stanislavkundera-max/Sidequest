@@ -1,7 +1,6 @@
 import { supabase } from '@/lib/supabase';
 import type {
   OnboardingCategory,
-  OnboardingFocus,
   OnboardingIntensity,
   OnboardingPace,
   OnboardingPreferences,
@@ -12,7 +11,6 @@ import type {
 const DEFAULT_CATEGORIES: OnboardingCategory[] = ['nature', 'adventure'];
 const DEFAULT_INTENSITY: OnboardingIntensity = 'balanced';
 const DEFAULT_PACE: OnboardingPace = 'steady';
-const DEFAULT_FOCUS: OnboardingFocus = 'comfort_zone';
 const DEFAULT_SCALE_ANSWER: OnboardingScaleAnswer = 3;
 
 export type Profile = {
@@ -23,7 +21,6 @@ export type Profile = {
   intensityPreference: OnboardingIntensity;
   preferredCategories: OnboardingCategory[];
   pacePreference: OnboardingPace;
-  focusPreference: OnboardingFocus;
   natureConnection: OnboardingScaleAnswer;
   isolation: OnboardingScaleAnswer;
 };
@@ -40,18 +37,6 @@ function normalizePace(value: unknown): OnboardingPace {
     return value;
   }
   return DEFAULT_PACE;
-}
-
-function normalizeFocus(value: unknown): OnboardingFocus {
-  if (
-    value === 'comfort_zone' ||
-    value === 'calm' ||
-    value === 'connection' ||
-    value === 'wonder'
-  ) {
-    return value;
-  }
-  return DEFAULT_FOCUS;
 }
 
 function normalizeScaleAnswer(value: unknown): OnboardingScaleAnswer {
@@ -83,7 +68,6 @@ function mapProfileRow(row: any): Profile {
     intensityPreference: normalizeIntensity(row.intensity_preference),
     preferredCategories: normalizeCategories(row.preferred_categories),
     pacePreference: normalizePace(row.pace_preference),
-    focusPreference: normalizeFocus(row.focus_preference),
     natureConnection: normalizeScaleAnswer(row.nature_connection),
     isolation: normalizeScaleAnswer(row.isolation_score),
   };
@@ -128,7 +112,6 @@ export async function getOnboardingStateForUser(
         categories: DEFAULT_CATEGORIES,
         intensity: DEFAULT_INTENSITY,
         pace: DEFAULT_PACE,
-        focus: DEFAULT_FOCUS,
         natureConnection: DEFAULT_SCALE_ANSWER,
         isolation: DEFAULT_SCALE_ANSWER,
       },
@@ -142,7 +125,6 @@ export async function getOnboardingStateForUser(
       categories: profile.preferredCategories,
       intensity: profile.intensityPreference,
       pace: profile.pacePreference,
-      focus: profile.focusPreference,
       natureConnection: profile.natureConnection,
       isolation: profile.isolation,
     },
@@ -185,7 +167,6 @@ export async function saveOnboardingStateForUser(
       intensity_preference: preferences.intensity,
       preferred_categories: preferences.categories,
       pace_preference: preferences.pace,
-      focus_preference: preferences.focus,
       nature_connection: preferences.natureConnection,
       isolation_score: preferences.isolation,
     },
@@ -195,9 +176,8 @@ export async function saveOnboardingStateForUser(
       intensity_preference: preferences.intensity,
       preferred_categories: preferences.categories,
       pace_preference: preferences.pace,
-      focus_preference: preferences.focus,
     },
-    // Fallback: pace/focus/categories columns not migrated yet either.
+    // Fallback: pace/categories columns not migrated yet either.
     {
       onboarding_completed: true,
       intensity_preference: preferences.intensity,
@@ -211,7 +191,6 @@ export async function saveOnboardingStateForUser(
       categories: profile.preferredCategories,
       intensity: profile.intensityPreference,
       pace: profile.pacePreference,
-      focus: profile.focusPreference,
       natureConnection: profile.natureConnection,
       isolation: profile.isolation,
     },
@@ -233,7 +212,6 @@ function isMissingColumnError(message?: string): boolean {
   return (
     message.includes('preferred_categories') ||
     message.includes('pace_preference') ||
-    message.includes('focus_preference') ||
     message.includes('nature_connection') ||
     message.includes('isolation_score')
   );

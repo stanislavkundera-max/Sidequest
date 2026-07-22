@@ -563,7 +563,7 @@ export default function QuestRunScreen() {
       return (
         <View style={styles.calendarBlock}>
           <PrimaryButton
-            label={calendarDeviceOk ? 'Add to calendar' : 'I scheduled it'}
+            label={calendarDeviceOk ? 'Add to calendar' : "Let's schedule it"}
             loading={primaryBusy}
             onPress={() => handleCalendarStep(step)}
           />

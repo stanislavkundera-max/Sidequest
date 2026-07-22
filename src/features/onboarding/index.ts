@@ -2,7 +2,6 @@ export type {
   OnboardingCategory,
   OnboardingIntensity,
   OnboardingPace,
-  OnboardingFocus,
   OnboardingPreferences,
   OnboardingScaleAnswer,
   OnboardingState,

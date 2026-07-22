@@ -1,11 +1,19 @@
 # Onboarding revision plan (plan only — not yet implemented)
 
-Current onboarding is 6 steps: welcome → how it works → categories → pace →
-focus → summary (`app/onboarding.tsx`). Answers are stored as
-`OnboardingPreferences` (`categories`, `intensity`, `pace`, `focus`) and only
-ever used to *score* quest recommendations (`recommendQuestsForPreferences`,
+Current onboarding is 7 steps: welcome → how it works → categories → pace →
+intensity → baseline scales → summary (`app/onboarding.tsx`). Answers are stored
+as `OnboardingPreferences` (`categories`, `intensity`, `pace`, plus the
+`natureConnection`/`isolation` baseline scales) and only ever used to *score*
+quest recommendations (`recommendQuestsForPreferences`,
 `recommendQuestsInCategory`) — nothing in the app restricts access based on
 them. That fact isn't communicated anywhere in the UI right now.
+
+> Note: the old step-4 `focus` question (comfort_zone/calm/connection/wonder)
+> was retired in the 2026-07-22 pass — three of its four options just re-picked a
+> category already chosen in step 2. It was replaced by an **intensity** question
+> (Gentle/Balanced/Bold), so the three onboarding "knobs" are now orthogonal:
+> Theme (categories) / Time (pace) / Intensity. See
+> `docs/feedback/round-1-synthesis.md`.
 
 ## What this revision needs to add
 
@@ -29,7 +37,7 @@ them. That fact isn't communicated anywhere in the UI right now.
   (`resetOnboardingComplete` + `/onboarding`), gated by `isAdminEmail`.
 - Plan: add a non-destructive "Edit preferences" entry point for everyone —
   likely from the Progress tab's account area — that reopens the
-  categories/pace/focus steps (steps 2–4) without replaying welcome/how-it-
+  categories/pace/intensity steps (steps 2–4) without replaying welcome/how-it-
   works, and without wiping quest/memory history the way the admin
   "Delete all progress" does.
 - Data model question to settle at implementation time: overwrite in place,
@@ -57,7 +65,7 @@ them. That fact isn't communicated anywhere in the UI right now.
 1. How it works
 2. Categories
 3. Pace
-4. Focus
+4. Intensity
 5. **New:** nature connection + isolation scale(s)
 6. Summary — recommended quests + "just a starting point, always editable"
    copy

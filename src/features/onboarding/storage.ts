@@ -8,7 +8,6 @@ import {
 
 import type {
   OnboardingCategory,
-  OnboardingFocus,
   OnboardingIntensity,
   OnboardingPace,
   OnboardingPreferences,
@@ -22,7 +21,6 @@ const DEFAULT_PREFERENCES: OnboardingPreferences = {
   categories: ['nature', 'adventure'],
   intensity: 'balanced',
   pace: 'steady',
-  focus: 'comfort_zone',
   natureConnection: DEFAULT_SCALE_ANSWER,
   isolation: DEFAULT_SCALE_ANSWER,
 };
@@ -54,18 +52,6 @@ function normalizePace(value: unknown): OnboardingPace {
   return 'steady';
 }
 
-function normalizeFocus(value: unknown): OnboardingFocus {
-  if (
-    value === 'comfort_zone' ||
-    value === 'calm' ||
-    value === 'connection' ||
-    value === 'wonder'
-  ) {
-    return value;
-  }
-  return 'comfort_zone';
-}
-
 function normalizeScaleAnswer(value: unknown): OnboardingScaleAnswer {
   const n = typeof value === 'number' ? value : Number(value);
   if (Number.isInteger(n) && n >= 1 && n <= 5) {
@@ -87,7 +73,6 @@ async function getLocalFallbackState(): Promise<OnboardingState> {
         ),
         intensity: normalizeIntensity(parsed.preferences?.intensity),
         pace: normalizePace(parsed.preferences?.pace),
-        focus: normalizeFocus(parsed.preferences?.focus),
         natureConnection: normalizeScaleAnswer(parsed.preferences?.natureConnection),
         isolation: normalizeScaleAnswer(parsed.preferences?.isolation),
       },
@@ -108,7 +93,6 @@ async function saveLocalFallbackState(
       categories: toUniqueCategories(preferences.categories),
       intensity: normalizeIntensity(preferences.intensity),
       pace: normalizePace(preferences.pace),
-      focus: normalizeFocus(preferences.focus),
       natureConnection: normalizeScaleAnswer(preferences.natureConnection),
       isolation: normalizeScaleAnswer(preferences.isolation),
     },
@@ -145,7 +129,6 @@ export async function saveOnboardingState(
     categories: toUniqueCategories(preferences.categories),
     intensity: normalizeIntensity(preferences.intensity),
     pace: normalizePace(preferences.pace),
-    focus: normalizeFocus(preferences.focus),
     natureConnection: normalizeScaleAnswer(preferences.natureConnection),
     isolation: normalizeScaleAnswer(preferences.isolation),
   };

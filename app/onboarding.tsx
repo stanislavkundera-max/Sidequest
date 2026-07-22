@@ -27,7 +27,7 @@ import { logError } from '@/src/lib/monitoring/errorLogger';
 import { useSessionStore } from '@/stores/session';
 import type {
   OnboardingCategory,
-  OnboardingFocus,
+  OnboardingIntensity,
   OnboardingPace,
   OnboardingScaleAnswer,
 } from '@/src/features/onboarding';
@@ -79,37 +79,31 @@ const PACE_OPTIONS: PaceOption[] = [
   },
 ];
 
-type FocusOption = {
-  value: OnboardingFocus;
+type IntensityOption = {
+  value: OnboardingIntensity;
   label: string;
   description: string;
   icon: keyof typeof Ionicons.glyphMap;
 };
 
-const FOCUS_OPTIONS: FocusOption[] = [
+const INTENSITY_OPTIONS: IntensityOption[] = [
   {
-    value: 'comfort_zone',
-    label: 'Push my comfort zone',
-    description: 'Bolder, braver little dares',
-    icon: 'rocket-outline',
-  },
-  {
-    value: 'calm',
-    label: 'More calm',
-    description: 'Slow down and restore',
+    value: 'light',
+    label: 'Gentle',
+    description: 'Softer, low-pressure quests',
     icon: 'leaf-outline',
   },
   {
-    value: 'connection',
-    label: 'More people',
-    description: 'Connect and share moments',
-    icon: 'people-outline',
+    value: 'balanced',
+    label: 'Balanced',
+    description: 'A comfortable mix',
+    icon: 'walk-outline',
   },
   {
-    value: 'wonder',
-    label: 'More wonder',
-    description: 'Notice and explore the everyday',
-    icon: 'sparkles-outline',
+    value: 'bold',
+    label: 'Bold',
+    description: 'Braver dares that stretch me',
+    icon: 'rocket-outline',
   },
 ];
 
@@ -151,7 +145,7 @@ export default function OnboardingScreen() {
   const [step, setStep] = useState(isEditMode ? EDIT_MODE_FIRST_STEP : 0);
   const [selectedCategories, setSelectedCategories] = useState<OnboardingCategory[]>([]);
   const [pace, setPace] = useState<OnboardingPace>('steady');
-  const [focus, setFocus] = useState<OnboardingFocus>('comfort_zone');
+  const [intensity, setIntensity] = useState<OnboardingIntensity>('balanced');
   const [natureConnection, setNatureConnection] = useState<OnboardingScaleAnswer>(3);
   const [isolation, setIsolation] = useState<OnboardingScaleAnswer>(3);
   const [checking, setChecking] = useState(true);
@@ -178,7 +172,7 @@ export default function OnboardingScreen() {
           if (!mounted) return;
           setSelectedCategories(state.preferences.categories);
           setPace(state.preferences.pace);
-          setFocus(state.preferences.focus);
+          setIntensity(state.preferences.intensity);
           setNatureConnection(state.preferences.natureConnection);
           setIsolation(state.preferences.isolation);
           setChecking(false);
@@ -244,15 +238,14 @@ export default function OnboardingScreen() {
       catalog: quests,
       preferences: {
         categories: selectedCategories,
-        intensity: 'balanced',
+        intensity,
         pace,
-        focus,
         natureConnection,
         isolation,
       },
       limit: 3,
     });
-  }, [quests, selectedCategories, pace, focus, natureConnection, isolation]);
+  }, [quests, selectedCategories, pace, intensity, natureConnection, isolation]);
 
   const categoryName = useCallback(
     (categoryId: string) => categories.find((c) => c.id === categoryId)?.name ?? 'Quest',
@@ -270,9 +263,8 @@ export default function OnboardingScreen() {
     try {
       await saveOnboardingState({
         categories: selectedCategories,
-        intensity: 'balanced',
+        intensity,
         pace,
-        focus,
         natureConnection,
         isolation,
       });
@@ -281,7 +273,7 @@ export default function OnboardingScreen() {
         categoryCount: selectedCategories.length,
         preferredCategories: selectedCategories,
         pacePreference: pace,
-        focusPreference: focus,
+        intensityPreference: intensity,
       }).catch(() => undefined);
       if (isEditMode) {
         router.back();
@@ -332,9 +324,6 @@ export default function OnboardingScreen() {
           <View style={styles.stepWrap}>
             <ImageBackground source={MAP_BACKGROUND} style={styles.hero} imageStyle={styles.heroImage}>
               <View style={styles.heroScrim} />
-              <View style={styles.heroBadge}>
-                <Ionicons name="compass" size={26} color="#fff" />
-              </View>
             </ImageBackground>
             <Text style={styles.headline}>Turn ordinary days into small adventures.</Text>
             <Text style={styles.lead}>
@@ -365,8 +354,8 @@ export default function OnboardingScreen() {
 
         {step === 2 ? (
           <View style={styles.stepWrap}>
-            <Text style={styles.headline}>What pulls you?</Text>
-            <Text style={styles.subtext}>Pick the moods you want more of. Choose at least one.</Text>
+            <Text style={styles.headline}>How do you want to spend more time?</Text>
+            <Text style={styles.subtext}>Pick the kinds of quests you&apos;d enjoy. Choose at least one.</Text>
             <View style={styles.choiceWrap}>
               {CATEGORY_OPTIONS.map((option) => {
                 const selected = selectedCategories.includes(option.slug);
@@ -424,17 +413,23 @@ export default function OnboardingScreen() {
 
         {step === 4 ? (
           <View style={styles.stepWrap}>
-            <Text style={styles.headline}>What do you want more of right now?</Text>
-            <Text style={styles.subtext}>This fine-tunes which quests we surface first.</Text>
+            <Text style={styles.headline}>How bold should your quests be?</Text>
+            <Text style={styles.subtext}>This sets how much of a stretch we aim for.</Text>
             <View style={styles.choiceWrap}>
-              {FOCUS_OPTIONS.map((option) => (
+              {INTENSITY_OPTIONS.map((option) => (
                 <OptionCard
                   key={option.value}
                   icon={option.icon}
                   label={option.label}
                   description={option.description}
-                  selected={focus === option.value}
-                  onPress={() => setFocus(option.value)}
+                  selected={intensity === option.value}
+                  onPress={() => {
+                    setIntensity(option.value);
+                    trackEvent('intensity_selected', {
+                      sourceScreen: 'onboarding',
+                      intensityPreference: option.value,
+                    }).catch(() => undefined);
+                  }}
                 />
               ))}
             </View>
@@ -504,8 +499,8 @@ export default function OnboardingScreen() {
               )}
             </View>
             <Text style={styles.footnote}>
-              These are just a starting point — every quest in Journey stays open to you.
-              You can update these answers anytime from the Progress tab.
+              Just a starting point — every quest stays open, and you can update your
+              answers anytime.
             </Text>
           </View>
         ) : null}
@@ -691,16 +686,6 @@ const styles = StyleSheet.create({
   heroScrim: {
     ...StyleSheet.absoluteFillObject,
     backgroundColor: 'rgba(16, 24, 18, 0.28)',
-  },
-  heroBadge: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: 'rgba(92, 122, 107, 0.92)',
-    borderWidth: 2,
-    borderColor: 'rgba(255,255,255,0.55)',
   },
   headline: {
     fontSize: 26,
