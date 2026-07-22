@@ -10,8 +10,22 @@ the strongest prioritization signal and is called out inline.
 
 ---
 
-## ✅ Fixed this session (2026-07-21)
+## ✅ Fixed this session (2026-07-22)
 
+- **Sign up "doesn't work"** (bug #1, E, D) — no code error, but `signUp()` against an
+  already-registered-but-unconfirmed email returns a *silent success* from Supabase
+  (`data.user.identities` empty, no error, no new confirmation email — a deliberate
+  anti-enumeration behavior). The app showed the same "check your email" message either way,
+  so a repeat signup attempt looked identical to a working one that quietly did nothing.
+  [`sign-in.tsx`](../../app/(auth)/sign-in.tsx) now detects this case and shows "This email is
+  already registered..." instead. **If sign-up still fails after this, the next suspect is the
+  Supabase dashboard's "Confirm email" setting — not something fixable from the repo.**
+- **Memory saves 10× on web** (bug #2, E) — found the exact cause: the success path called a
+  multi-button `Alert.alert(...)`, which **does not render at all on web**. The Save button
+  re-enabled immediately with zero visible feedback, so testers tapped Save repeatedly.
+  [`memory/new.tsx`](../../app/memory/new.tsx) now navigates straight to the saved memory on
+  success instead of waiting on a dialog; also swapped every remaining raw `Alert.alert` in
+  `memory/new.tsx` and `memory/[id].tsx` for the web-safe `alertCompat`.
 - **Timer/stopwatch can't be stopped or reset** (bug #3) — added a confirm-gated "Reset timer"
   action to [`TimerStepAction.tsx`](../../components/quest-run/TimerStepAction.tsx).
 - **Leave / Wrap-up / "Back to quest" don't return to the app** (part of bug #8) — all three now
@@ -43,8 +57,8 @@ the strongest prioritization signal and is called out inline.
 ## 🐛 Bugs (broken behavior, fix now)
 
 ### Critical — blocks the core loop
-1. **Sign up doesn't work** — E, D. (For E it "eventually confirmed" → possibly email-confirmation / latency rather than fully dead.)
-2. **Memory save is broken** — E: looks like the memory didn't save, so the user saves it 10× → then it shows 10×. Related: M: "memories don't propagate on wrap-up." ✅ *M's half fixed above; E's "10× on web" half still open — likely missing `alertCompat` in `memory/new.tsx`.*
+1. **Sign up doesn't work** — E, D. (For E it "eventually confirmed" → possibly email-confirmation / latency rather than fully dead.) ✅ **Fixed** — see above (plus a possible remaining Supabase dashboard setting to check).
+2. **Memory save is broken** — E: looks like the memory didn't save, so the user saves it 10× → then it shows 10×. Related: M: "memories don't propagate on wrap-up." ✅ **Fixed** — both halves, see above.
 3. **Timer / stopwatch can't be stopped or reset** — M, D. (D started it by accident and couldn't stop it; M afraid of losing progress.) ✅ **Fixed** — see above.
 
 ### High

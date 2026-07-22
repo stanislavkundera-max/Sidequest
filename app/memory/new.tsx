@@ -2,7 +2,6 @@ import * as ImagePicker from 'expo-image-picker';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import {
-  Alert,
   Image,
   Pressable,
   ScrollView,
@@ -17,6 +16,7 @@ import { EmptyState } from '@/components/ui/EmptyState';
 import { ErrorState } from '@/components/ui/ErrorState';
 import { PrimaryButton } from '@/components/ui/PrimaryButton';
 import { Theme } from '@/constants/Theme';
+import { alertCompat } from '@/lib/alertCompat';
 import { memoryTitleFromBody } from '@/src/features/memories/memoryTitle';
 import { useMemoryStore } from '@/src/features/memories/memoryStore';
 import { useQuestDomainStore } from '@/src/features/quests/questStore';
@@ -59,7 +59,7 @@ export default function NewMemoryScreen() {
     try {
       const perm = await ImagePicker.requestMediaLibraryPermissionsAsync();
       if (!perm.granted) {
-        Alert.alert('Permission', 'Photo access is needed to attach an image.');
+        alertCompat('Permission', 'Photo access is needed to attach an image.');
         return;
       }
       const result = await ImagePicker.launchImageLibraryAsync({
@@ -71,7 +71,7 @@ export default function NewMemoryScreen() {
       }
     } catch (e: unknown) {
       logError('memory.new.pickImage', e);
-      Alert.alert(
+      alertCompat(
         'Could not open gallery',
         e instanceof Error ? e.message : 'Please try again.'
       );
@@ -79,15 +79,16 @@ export default function NewMemoryScreen() {
   }
 
   async function save() {
+    if (saving || memorySaving) return;
     const text = body.trim();
     if (!text) {
-      Alert.alert('Write something', 'Add a few words about the experience.');
+      alertCompat('Write something', 'Add a few words about the experience.');
       return;
     }
     const resolvedTitle = title.trim() || memoryTitleFromBody(text);
     const qid = quest?.id ?? null;
     if (!user) {
-      Alert.alert('Sign in required', 'Please sign in to save memories.');
+      alertCompat('Sign in required', 'Please sign in to save memories.');
       return;
     }
 
@@ -105,13 +106,11 @@ export default function NewMemoryScreen() {
         questId: qid,
         hasPhoto: Boolean(localUri),
       }).catch(() => undefined);
-      Alert.alert('Memory saved', 'Your reflection was added to memories.', [
-        {
-          text: 'View memory',
-          onPress: () => router.replace(`/memory/${entry.id}`),
-        },
-        { text: 'Go to memories', onPress: () => router.replace('/(tabs)/memories') },
-      ]);
+      // Navigate straight to the saved memory instead of showing a confirmation
+      // dialog: a multi-button Alert.alert never renders on web, so the button
+      // re-enabled with no visible feedback and testers tapped Save repeatedly,
+      // creating duplicate entries. The screen change is the confirmation.
+      router.replace(`/memory/${entry.id}`);
     } catch (e: unknown) {
       trackEvent('memory_creation_failed', {
         sourceScreen: 'memory_new',
@@ -119,7 +118,7 @@ export default function NewMemoryScreen() {
         hasPhoto: Boolean(localUri),
       }).catch(() => undefined);
       logError('memory.new.save', e, { questId: qid, hasPhoto: Boolean(localUri) });
-      Alert.alert('Error', e instanceof Error ? e.message : 'Save failed');
+      alertCompat('Error', e instanceof Error ? e.message : 'Save failed');
     } finally {
       setSaving(false);
     }

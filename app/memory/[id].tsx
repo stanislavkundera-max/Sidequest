@@ -2,7 +2,6 @@ import * as ImagePicker from 'expo-image-picker';
 import { useLocalSearchParams, useNavigation, useRouter } from 'expo-router';
 import { useLayoutEffect, useMemo, useState } from 'react';
 import {
-  Alert,
   Image,
   Pressable,
   ScrollView,
@@ -81,7 +80,7 @@ export default function MemoryDetailScreen() {
     try {
       const perm = await ImagePicker.requestMediaLibraryPermissionsAsync();
       if (!perm.granted) {
-        Alert.alert('Permission', 'Photo access is needed to attach an image.');
+        alertCompat('Permission', 'Photo access is needed to attach an image.');
         return;
       }
       const result = await ImagePicker.launchImageLibraryAsync({
@@ -93,7 +92,7 @@ export default function MemoryDetailScreen() {
       }
     } catch (e: unknown) {
       logError('memory.detail.pickImage', e);
-      Alert.alert('Could not open gallery', e instanceof Error ? e.message : 'Please try again.');
+      alertCompat('Could not open gallery', e instanceof Error ? e.message : 'Please try again.');
     }
   }
 
@@ -101,7 +100,7 @@ export default function MemoryDetailScreen() {
     if (!memory || !user) return;
     const text = body.trim();
     if (!text) {
-      Alert.alert('Write something', 'Add a few words about the experience.');
+      alertCompat('Write something', 'Add a few words about the experience.');
       return;
     }
     try {

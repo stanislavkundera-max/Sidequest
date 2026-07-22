@@ -90,9 +90,20 @@ export default function SignInScreen() {
           router.replace('/');
           return;
         }
-        setFormInfo(
-          'Account created. Confirm your email via the link Supabase sent you, then sign in. (In Supabase: disable "Confirm email" for immediate access after sign-up.)'
-        );
+        // Supabase returns a "successful" empty-identities response instead of
+        // an error when the email is already registered (to avoid leaking
+        // which emails exist) — no new confirmation email is sent in that
+        // case, so surfacing the generic "check your email" message here
+        // would look identical to a working signup that quietly does nothing.
+        if (data.user && data.user.identities?.length === 0) {
+          setFormInfo(
+            'This email is already registered. If you already confirmed it, sign in instead. If not, check your inbox (including spam) for the original confirmation link.'
+          );
+        } else {
+          setFormInfo(
+            'Account created. Confirm your email via the link Supabase sent you, then sign in. (In Supabase: disable "Confirm email" for immediate access after sign-up.)'
+          );
+        }
       } else {
         const { data, error } = await supabase.auth.signInWithPassword({
           email: email.trim(),
