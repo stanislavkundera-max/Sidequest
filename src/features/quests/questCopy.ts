@@ -33,6 +33,8 @@ export const QUEST_COPY = {
   makeActive: 'Make active',
   startNow: 'Start now',
   continueQuest: 'Continue',
+  /** Liked/saved-for-later card — shown instead of `startNow` once a step is already done. */
+  resumeQuest: 'Resume',
   beginQuest: 'Begin',
   openQuest: 'Open',
 

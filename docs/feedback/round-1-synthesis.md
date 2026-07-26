@@ -13,6 +13,24 @@ session; his items are folded in here with the `Mar` tag.)
 
 ## ✅ Fixed this session (2026-07-26)
 
+- **Bug #8 ("Leave doesn't save progress") — real cause found, fixed.** Verified live via the
+  Supabase REST API that `moveActiveQuestToLater` (what Leave calls) never touches
+  `step_progress_v2` — no data is actually lost. The real bug: the "Liked" card a left quest
+  reappears on showed no progress indicator and a generic "Start now" button, so a quest with
+  steps already done looked exactly like a fresh one. Fixed: Liked cards now show "X/Y steps
+  done" and the button switches to "Resume" once progress exists
+  (`components/journey/JourneyQuestHub.tsx`).
+- **Bug #6 ("Quest doesn't disappear after completion") — investigated, not reproducible.**
+  Traced every status-based filter in the codebase (Explore/Journey/Progress/questHelpers) and
+  reproduced the exact assign→complete→refetch sequence live via the REST API — status correctly
+  flips to `completed` and every filter would exclude it. No bug found in code or data. Best guess:
+  the same symptom as the pre-2026-07-22 wrap-up navigation bug (completing used to route back to
+  quest detail instead of Journey), possibly already resolved as a side effect. Needs a live UI
+  retest to close for real — this is the limit of what static analysis + backend simulation can
+  confirm.
+- **Bugs #5 and #13 moved from "bugs" to "To decide"** — on reflection both are product-design
+  questions (what should the Explore "Recommended" refill behavior be; what are "Likes" even
+  for), not code defects. See the "To decide" section, items 6–7.
 - **🎯 Root cause found: live Supabase project was missing several migrations.** Diagnosed via
   live REST API testing against the actual tester-facing project (not just static code reading).
   `profiles`, `quests`, and `user_quests` were missing columns that `supabase/production_prep.sql`
@@ -136,16 +154,16 @@ session; his items are folded in here with the `Mar` tag.)
 
 ### High
 4. **Edit preferences doesn't work** — E. ✅ **Root cause fixed** — see schema-migration finding above. Preference writes now persist and verified end-to-end via API; UI retest still recommended.
-5. **Recommended quest disappears after you pick it → leaves a huge empty window** — E. Catalog has 5 active quests/category, ruling out "too few quests"; auto-refill logic (`ExploreQuestPanel`'s `recommended` useMemo) reads correctly in code. Needs live UI retest, now that schema is fixed.
-6. **Quest doesn't disappear after completion** (it should) — E, **Mar** (2 testers). Checked `completeUserQuest`'s fallback path (a live theory) — all referenced columns (`status`, `completed_at`, `note`, `photo_url`) exist, so that specific theory is ruled out. Root cause still unconfirmed; needs live UI retest.
+5. ~~Recommended quest disappears after you pick it → leaves a huge empty window~~ — **moved to "To decide" below** (it's a recommendation-behavior design question, not a pure bug — see decision #6 there).
+6. **Quest doesn't disappear after completion** (it should) — E, **Mar** (2 testers). 🔍 **Investigated, no bug found.** Traced every consumer of `user_quest.status` across Explore/Journey/Progress/questHelpers — all filter consistently. Reproduced the exact assign→complete→refetch sequence live via the Supabase REST API (not just code reading): status correctly flips to `completed` and every list-filter predicate in the codebase would exclude it. Best guess: this was the *same* symptom as the old wrap-up navigation bug (pre-2026-07-22 fix, completing a quest routed back to the quest **detail** screen instead of Journey) and may already be resolved as a side effect of that fix. Needs a live UI retest to actually close — could not reproduce further via static analysis or backend simulation alone.
 7. **Social / message quest**: moves to step 2 but stays on the same screen with the same text — E. 🔧 *Likely fixed as a side effect* — the matching quest (`q-w-05`, "Message someone...") had zero `action_steps` before the schema fix, so "step 2" had nothing to render; it now has real 3-step content. Needs live UI confirmation.
-8. **Leave doesn't save progress** (unlike the back arrow) — E; and **neither back arrow nor Leave returns to home** — D. 🔧 *"Returns to home" half fixed above; "doesn't save progress" half still open.*
+8. **Leave doesn't save progress** (unlike the back arrow) — E; and **neither back arrow nor Leave returns to home** — D. ✅ **Both halves fixed.** "Returns to home" fixed earlier (see 2026-07-22 above). For "doesn't save progress": verified via live API round-trip that `moveActiveQuestToLater` (what Leave calls) never touches `step_progress_v2` — the data was never actually lost. The **real bug** was that the "Liked" card (where a left quest reappears) showed zero progress indicator and a generic "Start now" button, so a quest with steps already done looked indistinguishable from a fresh one. Fixed: the Liked card now shows "X/Y steps done" and switches the button to "Resume" once any step is complete (`components/journey/JourneyQuestHub.tsx`).
 9. **Memory crops the image** — T. ✅ **Fixed** — see above.
 10. **Tab menu doesn't highlight** the active tab when switching — D. ✅ **Fixed** — see above.
 11. **Feedback form**: user doesn't know how to submit + it doesn't disappear after sending — E. ✅ **Fixed** — see above.
 12. **Can't go back a step in the quest runner** — from step 2 there is no way back to step 1 — Mar. ✅ **Fixed** — see above ("Back a step").
-13. **"Likes" may not work + unclear purpose** — Mar questions whether liking does anything at all and why it exists; E was also confused by likes. Needs repro. (See also the Explore "Likes" copy item.)
-14. **After leaving/closing a quest it's hard to find again, and looks different in Journey** — Mar closed a quest, didn't know where it went, later found it via Journey where it looked different from where he'd left it. Overlaps #6 and #8.
+13. ~~"Likes" may not work + unclear purpose~~ — **moved to "To decide" below** (decision #7 — what liking is even *for* needs settling before the mechanism can be judged working or broken).
+14. **After leaving/closing a quest it's hard to find again, and looks different in Journey** — Mar closed a quest, didn't know where it went, later found it via Journey where it looked different from where he'd left it. Overlaps #6 and #8. **On hold — needs a design decision first, see "To decide" #8.**
 
 ---
 
@@ -250,6 +268,27 @@ later product call; no decision made yet.
    Adventure feel very similar ("big difference? can they be merged?"); Relax — especially
    "do-nothing" activities — competes with digital-wellbeing apps and may not fit. Affects the
    4-category model and the Explore map. (Relates to resolved decision #1 above.)
+6. **Explore "Recommended" behavior after you pick one** (moved from bug #5, E) — today
+   `ExploreQuestPanel` shows exactly one recommended quest per category (`limit: 1`); claiming it
+   should make the *next*-best quest recompute into that slot automatically (confirmed intent:
+   "v momentě co si vybere doporučenej quest, tak by se tam měl objevit další doporučený quest").
+   Needs a decision on the actual shape before more fixing: single auto-refilling slot (current
+   code's apparent intent), or a small pool (3) the strongest tester signal already asks for (see
+   "🔥 Strongest signal" above) — those two designs overlap and shouldn't be built twice.
+7. **What are "Likes" actually for?** (moved from bug #13, E, Mar) — mechanically it's
+   `saveQuestForLater` (moves a quest to the "Liked" bucket in Journey) and the write path is
+   sound, but testers couldn't tell you what tapping the heart is *supposed* to accomplish or
+   confirm it did anything. Before touching the code, decide what liking should communicate to
+   the user (a bookmark? a preference signal? something else?) and how it should visibly confirm
+   itself.
+8. **What should "leaving/closing a quest" actually leave behind?** (moved from bug #14, Mar) —
+   he lost track of a quest after leaving it, then found it later in Journey looking different
+   from where he'd left it. Before fixing this as a bug, decide the intended model: should a
+   left/dismissed quest keep one single consistent representation everywhere it can surface
+   (Explore, Journey "Liked", Progress), or is some difference intentional (e.g. "Liked" is meant
+   to look lighter-weight than an in-progress card)? This also overlaps bug #6 (completed quests)
+   and the still-open half of bug #8 (Leave and progress-saving) — worth deciding all three
+   together rather than one at a time.
 
 ---
 

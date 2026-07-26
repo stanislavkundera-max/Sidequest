@@ -22,7 +22,7 @@ import { categoryAccentForCategoryId } from '@/lib/categoryAccent';
 import { alertCompat } from '@/lib/alertCompat';
 import { journeyBackgroundForTimeframe } from '@/src/features/journey/journeyTimeframeBackground';
 import { questDurationLabel, QUEST_COPY } from '@/src/features/quests/questCopy';
-import { activeQuestResumePath } from '@/src/features/quests/questHelpers';
+import { activeQuestResumePath, countCompletedJourneySteps } from '@/src/features/quests/questHelpers';
 import { useQuestDomainStore } from '@/src/features/quests/questStore';
 import type { Quest, UserQuest } from '@/src/types/quest';
 
@@ -249,6 +249,9 @@ export function JourneyQuestHub({ userId, hubHeight = 560 }: Props) {
       const uq = item.uq;
       const q = getQuestById(uq.questId);
       const accent = categoryAccentForCategoryId(rowCategoryId(uq, q));
+      const stepTotal = q?.actionSteps.length ?? 0;
+      const stepDone = q && stepTotal > 0 ? countCompletedJourneySteps(uq, q) : 0;
+      const hasProgress = stepDone > 0;
       return (
         <Pressable
           style={{ width: pageW, minHeight: likedH, paddingHorizontal: 16, justifyContent: 'center' }}
@@ -261,7 +264,10 @@ export function JourneyQuestHub({ userId, hubHeight = 560 }: Props) {
             ) : null}
             <View style={[styles.discoverQuestAccent, { backgroundColor: accent }]} />
             <View style={styles.likedCompactBody}>
-              <Text style={styles.questRowMeta}>{categoryLabel(rowCategoryId(uq, q))}</Text>
+              <Text style={styles.questRowMeta}>
+                {categoryLabel(rowCategoryId(uq, q))}
+                {hasProgress ? ` · ${stepDone}/${stepTotal} steps done` : ''}
+              </Text>
               <Text style={styles.questRowTitle} numberOfLines={2}>
                 {rowTitle(uq, q)}
               </Text>
@@ -277,7 +283,9 @@ export function JourneyQuestHub({ userId, hubHeight = 560 }: Props) {
                     pressed && !primaryBusy && styles.pressed,
                     primaryBusy && styles.disabled,
                   ]}>
-                  <Text style={styles.btnSubtleSolidText}>{QUEST_COPY.startNow}</Text>
+                  <Text style={styles.btnSubtleSolidText}>
+                    {hasProgress ? QUEST_COPY.resumeQuest : QUEST_COPY.startNow}
+                  </Text>
                 </Pressable>
               </View>
             </View>
