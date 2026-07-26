@@ -40,7 +40,7 @@ import {
   readPendingCalendarVerification,
   writePendingCalendarVerification,
 } from '@/src/features/quests/questRunnerPending';
-import { formatQuestDuration } from '@/src/features/quests/questCopy';
+import { formatQuestDuration, QUEST_COPY } from '@/src/features/quests/questCopy';
 import {
   countCompletedJourneySteps,
   getFirstIncompleteJourneyStep,
@@ -238,9 +238,12 @@ export default function QuestRunScreen() {
   }, [user, quest, activeUq, deactivateQuest, refreshUserQuests, router]);
 
   const confirmLeaveQuest = useCallback(() => {
+    const hasProgress = (journeySummary?.done ?? 0) > 0;
     alertTwoChoice(
       'Leave this quest?',
-      'It moves out of active motion; your progress stays saved — nothing is deleted. You will find it under Journey → Liked whenever you want to pick it back up.',
+      `It moves out of active motion; your progress stays saved — nothing is deleted. ${QUEST_COPY.leaveDestination(
+        hasProgress
+      )}`,
       {
         cancel: { text: 'Keep going' },
         confirm: {
@@ -251,7 +254,7 @@ export default function QuestRunScreen() {
         },
       }
     );
-  }, [leaveQuest]);
+  }, [leaveQuest, journeySummary]);
 
   useLayoutEffect(() => {
     navigation.setOptions({

@@ -13,6 +13,15 @@ session; his items are folded in here with the `Mar` tag.)
 
 ## ✅ Fixed this session (2026-07-26)
 
+- **Bug #14 ("left quest is hard to find, looks different") — design decided, built.** Root cause:
+  `Leave` sends a quest to `saved_for_later`, which surfaces as the **"Liked"** section — so a
+  quest you were 2/3 through landed in the same bucket as things you hearted but never started.
+  The app *did* say where it went and Mar still lost it, which points at the destination **name**
+  rather than the messaging. Split by whether progress exists (derived from step progress, **no
+  schema change**): **"Pick up where you left off"** section above **"Liked"**, same card identity
+  in both, only the action verb differs (Begin / Resume). Leave dialogs in quest detail and the
+  runner now name whichever destination actually applies.
+  (`JourneyQuestHub.tsx`, `questCopy.ts`, `quest/[id].tsx`, `quest/run/[id].tsx`.)
 - **Bug #8 ("Leave doesn't save progress") — real cause found, fixed.** Verified live via the
   Supabase REST API that `moveActiveQuestToLater` (what Leave calls) never touches
   `step_progress_v2` — no data is actually lost. The real bug: the "Liked" card a left quest
@@ -163,7 +172,7 @@ session; his items are folded in here with the `Mar` tag.)
 11. **Feedback form**: user doesn't know how to submit + it doesn't disappear after sending — E. ✅ **Fixed** — see above.
 12. **Can't go back a step in the quest runner** — from step 2 there is no way back to step 1 — Mar. ✅ **Fixed** — see above ("Back a step").
 13. ~~"Likes" may not work + unclear purpose~~ — **moved to "To decide" below** (decision #7 — what liking is even *for* needs settling before the mechanism can be judged working or broken).
-14. **After leaving/closing a quest it's hard to find again, and looks different in Journey** — Mar closed a quest, didn't know where it went, later found it via Journey where it looked different from where he'd left it. Overlaps #6 and #8. **On hold — needs a design decision first, see "To decide" #8.**
+14. **After leaving/closing a quest it's hard to find again, and looks different in Journey** — Mar closed a quest, didn't know where it went, later found it via Journey where it looked different from where he'd left it. ✅ **Fixed** — root cause was that leaving a half-done quest dumped it into the **"Liked"** wishlist bucket (`Leave` → `saved_for_later`), mixing "hearted, never started" with "was 2/3 through it". Note the app *did* tell him where it went ("You will find it under Journey → Liked") and he still lost it — the destination *name* was the problem, not the messaging. Now split into two sections: **"Pick up where you left off"** (has progress) above **"Liked"** (wishlist), same card identity in both with only the action verb changing (Begin / Resume). No schema change — the split is derived from step progress. Leave dialogs now name the correct destination.
 
 ---
 
@@ -281,14 +290,11 @@ later product call; no decision made yet.
    confirm it did anything. Before touching the code, decide what liking should communicate to
    the user (a bookmark? a preference signal? something else?) and how it should visibly confirm
    itself.
-8. **What should "leaving/closing a quest" actually leave behind?** (moved from bug #14, Mar) —
-   he lost track of a quest after leaving it, then found it later in Journey looking different
-   from where he'd left it. Before fixing this as a bug, decide the intended model: should a
-   left/dismissed quest keep one single consistent representation everywhere it can surface
-   (Explore, Journey "Liked", Progress), or is some difference intentional (e.g. "Liked" is meant
-   to look lighter-weight than an in-progress card)? This also overlaps bug #6 (completed quests)
-   and the still-open half of bug #8 (Leave and progress-saving) — worth deciding all three
-   together rather than one at a time.
+8. ~~What should "leaving/closing a quest" actually leave behind?~~ ✅ **Decided and built**
+   (2026-07-26). Decision: a left quest's resting place depends on whether it has progress —
+   quests with steps done go to a dedicated **"Pick up where you left off"** section, quests
+   with none stay in **"Liked"** (pure wishlist). One card identity across both; only the action
+   verb changes (Begin / Resume). Derived from step progress, so no schema change. See bug #14.
 
 ---
 

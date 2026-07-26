@@ -5,6 +5,18 @@ export const QUEST_COPY = {
   activePathFullBody:
     'You can have three quests in motion at once. Pause one that is already active, then try again.',
   forLaterSectionTitle: 'Liked',
+  /**
+   * Journey section for quests that were left mid-way. Kept separate from
+   * `forLaterSectionTitle` ("Liked"): a half-finished quest and a never-started
+   * wishlist quest are different things, and testers lost the former inside the
+   * latter. Wording is deliberately descriptive so it is findable at a glance.
+   */
+  pausedSectionTitle: 'Pick up where you left off',
+  /** Where a set-aside quest lands — depends on whether any step is already done. */
+  leaveDestination: (hasProgress: boolean): string =>
+    hasProgress
+      ? 'You will find it in Journey under "Pick up where you left off".'
+      : 'You will find it in Journey under Liked.',
   activePathSectionTitle: 'Your active path',
   suggestedSectionTitle: 'Discover',
   chooseCategoryTitle: 'Choose a category',

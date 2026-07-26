@@ -15,7 +15,11 @@ import { isSupabaseConfigured, SUPABASE_CONFIGURE_HELP } from '@/lib/supabase';
 import { QuestFeedbackCard } from '@/src/features/feedback/QuestFeedbackCard';
 import { useMemoryStore } from '@/src/features/memories/memoryStore';
 import { questDurationLabel, QUEST_COPY } from '@/src/features/quests/questCopy';
-import { canUserBeginQuest, incompleteJourneyStepsCount } from '@/src/features/quests/questHelpers';
+import {
+  canUserBeginQuest,
+  countCompletedJourneySteps,
+  incompleteJourneyStepsCount,
+} from '@/src/features/quests/questHelpers';
 import { useQuestDomainStore } from '@/src/features/quests/questStore';
 import { trackEvent } from '@/src/lib/analytics';
 import { logError } from '@/src/lib/monitoring/errorLogger';
@@ -182,6 +186,9 @@ export default function QuestDetailScreen() {
       alertCompat('Configuration', SUPABASE_CONFIGURE_HELP);
       return;
     }
+    // Capture before deactivating — it decides which Journey section the quest
+    // lands in, and so which one we point the user at.
+    const hadProgress = countCompletedJourneySteps(activeUq, quest) > 0;
     setActing(true);
     try {
       const r = await deactivateQuest(user.id, activeUq.id);
@@ -204,7 +211,9 @@ export default function QuestDetailScreen() {
       setAssignFeedback(null);
       alertCompat(
         'Set aside for now',
-        'It is off your active path for now. Your journey steps stay as you left them. Open Journey → Liked when you want to pick it up again.'
+        `It is off your active path for now. Your journey steps stay as you left them. ${QUEST_COPY.leaveDestination(
+          hadProgress
+        )}`
       );
     } catch (e: unknown) {
       logError('quest.detail.onDeactivate', e, {
@@ -219,9 +228,12 @@ export default function QuestDetailScreen() {
 
   function requestDeactivate() {
     if (!activeUq || !quest || !user) return;
+    const hasProgress = countCompletedJourneySteps(activeUq, quest) > 0;
     alertTwoChoice(
       'Let this quest wait?',
-      'It moves out of active motion; your progress stays saved — nothing is deleted. You will find it under Journey → Liked.',
+      `It moves out of active motion; your progress stays saved — nothing is deleted. ${QUEST_COPY.leaveDestination(
+        hasProgress
+      )}`,
       {
         cancel: { text: 'Keep it on the path' },
         confirm: {

@@ -131,7 +131,7 @@ export function JourneyQuestHub({ userId, hubHeight = 560 }: Props) {
     return TIMEFRAME_ORDER.reduce((n, tf) => n + questsByTimeframe[tf].length, 0);
   }, [activeCategoryId, questsByTimeframe]);
 
-  const likedList = useMemo(
+  const setAsideList = useMemo(
     () =>
       userQuests
         .filter((uq) => uq.status === 'saved_for_later')
@@ -139,9 +139,29 @@ export function JourneyQuestHub({ userId, hubHeight = 560 }: Props) {
     [userQuests]
   );
 
+  /**
+   * Split the set-aside bucket by whether real progress exists. Both share the
+   * `saved_for_later` status, but "left mid-way" and "hearted, never started"
+   * are different intents and testers lost the former inside the latter — so
+   * they get their own sections. No schema change needed: step progress is
+   * enough to tell them apart.
+   */
+  const questHasProgress = useCallback(
+    (uq: UserQuest) => {
+      const q = getQuestById(uq.questId);
+      return Boolean(q && q.actionSteps.length > 0 && countCompletedJourneySteps(uq, q) > 0);
+    },
+    [getQuestById]
+  );
+
+  const pausedRows: LikedRow[] = useMemo(
+    () => setAsideList.filter(questHasProgress).map((uq) => ({ key: uq.id, uq })),
+    [setAsideList, questHasProgress]
+  );
+
   const likedRows: LikedRow[] = useMemo(
-    () => likedList.map((uq) => ({ key: uq.id, uq })),
-    [likedList]
+    () => setAsideList.filter((uq) => !questHasProgress(uq)).map((uq) => ({ key: uq.id, uq })),
+    [setAsideList, questHasProgress]
   );
   const activeForModal = useMemo(
     () =>
@@ -425,6 +445,26 @@ export function JourneyQuestHub({ userId, hubHeight = 560 }: Props) {
           </>
         )}
       </View>
+
+      {pausedRows.length > 0 ? (
+        <View style={[styles.panel, { minHeight: likedH }]}>
+          <Text style={styles.likedSectionLabel}>{QUEST_COPY.pausedSectionTitle}</Text>
+          <FlatList
+            data={pausedRows}
+            keyExtractor={(r) => r.key}
+            renderItem={renderLiked}
+            horizontal
+            pagingEnabled
+            showsHorizontalScrollIndicator={false}
+            snapToInterval={pageW}
+            snapToAlignment="start"
+            disableIntervalMomentum
+            contentContainerStyle={styles.likedListContent}
+            extraData={`${pageW}:${likedH}`}
+            getItemLayout={(_, index) => ({ length: pageW, offset: pageW * index, index })}
+          />
+        </View>
+      ) : null}
 
       {likedRows.length > 0 ? (
         <View style={[styles.panel, { minHeight: likedH }]}>
