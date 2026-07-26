@@ -21,7 +21,7 @@ import { journeyHubStyles as styles } from '@/components/journey/journeyHubStyle
 import { categoryAccentForCategoryId } from '@/lib/categoryAccent';
 import { alertCompat } from '@/lib/alertCompat';
 import { journeyBackgroundForTimeframe } from '@/src/features/journey/journeyTimeframeBackground';
-import { QUEST_COPY } from '@/src/features/quests/questCopy';
+import { questDurationLabel, QUEST_COPY } from '@/src/features/quests/questCopy';
 import { activeQuestResumePath } from '@/src/features/quests/questHelpers';
 import { useQuestDomainStore } from '@/src/features/quests/questStore';
 import type { Quest, UserQuest } from '@/src/types/quest';
@@ -70,7 +70,9 @@ const TF_META: Record<Quest['timeframe'], string> = {
 };
 
 function questMetaLine(q: Quest): string {
-  return `${TF_META[q.timeframe]} · ~${q.estimatedDurationMinutes} min`;
+  return [TF_META[q.timeframe], questDurationLabel(q.estimatedDurationMinutes)]
+    .filter(Boolean)
+    .join(' · ');
 }
 
 export function JourneyQuestHub({ userId, hubHeight = 560 }: Props) {

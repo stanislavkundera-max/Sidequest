@@ -70,6 +70,12 @@ type QuestDomainState = {
     evidence: UserQuestStepEvidence,
     analytics?: { sourceScreen?: string }
   ) => Promise<{ ok: true } | { ok: false; reason: 'not_found' | 'not_active' | 'already_done' }>;
+  /** Undo a completed step so the user can step back and redo it. */
+  revertStep: (
+    userId: string,
+    userQuestId: string,
+    stepId: string
+  ) => Promise<{ ok: true } | { ok: false; reason: 'not_found' | 'not_active' | 'not_done' }>;
   completeQuest: (
     userId: string,
     userQuestId: string,
@@ -198,6 +204,47 @@ export const useQuestDomainStore = create<QuestDomainState>((set, get) => ({
         ),
         error: (() => {
           const message = formatUnknownError(e, 'Could not save step.');
+          return isSupabaseQuestProgressSetupError(message) ? null : message;
+        })(),
+      }));
+      throw e;
+    }
+  },
+
+  revertStep: async (userId, userQuestId, stepId) => {
+    const prev = get().userQuests.find((u) => u.id === userQuestId);
+    if (!prev) return { ok: false, reason: 'not_found' };
+    if (prev.status !== 'active') return { ok: false, reason: 'not_active' };
+    if (!prev.stepProgress[stepId]) return { ok: false, reason: 'not_done' };
+
+    const nextProgress = { ...prev.stepProgress };
+    delete nextProgress[stepId];
+
+    set((s) => ({
+      userQuests: s.userQuests.map((u) =>
+        u.id === userQuestId ? { ...u, stepProgress: nextProgress } : u
+      ),
+      error: null,
+    }));
+
+    try {
+      const updated = await updateUserQuestStepProgress({
+        userId,
+        userQuestId,
+        stepProgress: nextProgress,
+      });
+      if (updated) {
+        set((s) => ({
+          userQuests: s.userQuests.map((u) => (u.id === userQuestId ? updated : u)),
+        }));
+      }
+      return { ok: true };
+    } catch (e: unknown) {
+      logError('questStore.revertStep', e, { userId, userQuestId, stepId });
+      set((s) => ({
+        userQuests: s.userQuests.map((u) => (u.id === userQuestId ? prev : u)),
+        error: (() => {
+          const message = formatUnknownError(e, 'Could not step back.');
           return isSupabaseQuestProgressSetupError(message) ? null : message;
         })(),
       }));

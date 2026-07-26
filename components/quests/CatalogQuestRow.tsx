@@ -4,7 +4,7 @@ import { Pressable, Text, View } from 'react-native';
 import { journeyHubStyles as styles } from '@/components/journey/journeyHubStyles';
 import { Theme } from '@/constants/Theme';
 import { categoryAccentForCategoryId } from '@/lib/categoryAccent';
-import { QUEST_COPY } from '@/src/features/quests/questCopy';
+import { questDurationLabel, QUEST_COPY } from '@/src/features/quests/questCopy';
 import type { Quest } from '@/src/types/quest';
 
 const TF_META: Record<Quest['timeframe'], string> = {
@@ -14,7 +14,9 @@ const TF_META: Record<Quest['timeframe'], string> = {
 };
 
 function questMetaLine(q: Quest): string {
-  return `${TF_META[q.timeframe]} · ~${q.estimatedDurationMinutes} min`;
+  return [TF_META[q.timeframe], questDurationLabel(q.estimatedDurationMinutes)]
+    .filter(Boolean)
+    .join(' · ');
 }
 
 type Props = {

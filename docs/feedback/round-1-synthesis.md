@@ -1,12 +1,33 @@
 # Usability Feedback — Round 1 Synthesis
 
-Moderated usability sessions, 4 testers: **Mára (M)**, **Evka (E)**, **Dejv (D)**, **Terka (T)**.
+Moderated usability sessions, 5 testers: **Mára (M)**, **Evka (E)**, **Dejv (D)**, **Terka (T)**, **Martin (Mar)**.
 Method: [`docs/moderated-usability-session-guide.md`](../moderated-usability-session-guide.md).
 
 Items are tagged with the testers who raised them. Where multiple testers agree, that is
-the strongest prioritization signal and is called out inline.
+the strongest prioritization signal and is called out inline. (Martin was a later follow-up
+session; his items are folded in here with the `Mar` tag.)
 
-**NPS:** E 7 · D 6–7 · T 6 · M — no number ("not the target audience").
+**NPS:** E 7 · D 6–7 · T 6 · M — no number ("not the target audience") · Mar — no number given.
+
+---
+
+## ✅ Fixed this session (2026-07-26)
+
+- **Quest length reads as abstract ("720 min")** (fix-now — M, E, D, Mar) — added a
+  `formatQuestDuration` helper (`src/features/quests/questCopy.ts`) that switches to hours above an
+  hour (720 min → "12 h", 90 min → "1 h 30 min") and applied it everywhere a quest/step duration
+  shows (quest detail, Pick-quests, runner step, Journey hub, catalog row). *This fixes the abstract
+  **duration**; the separate weekly/monthly/yearly **cadence** labels — tied to the 3/2/1 limits —
+  are left as-is, that relabel needs a product call.*
+- **Wrap-up / calendar messages felt error-like** (fix-now — E, T) — warmed the completion title
+  ("Nice work — quest complete") and rewrote the calendar-step / calendar-hint copy to drop the
+  uncertain "stays on your calendar" phrasing. `app/quest/run/[id].tsx`.
+- **Can't go back a step in the quest runner** (bug #12, Mar) — added a `revertStep` store action
+  (mirrors `completeStepWithEvidence`) plus a "Back a step" control in the runner header, shown once
+  you're past step 1.
+- **Onboarding copy** — pace headline "How much time do you have?" → "…want to dedicate?" (D);
+  isolation question "isolated or disconnected from people" → "lonely or isolated" (Mar read
+  "disconnected" as "don't get *along* with people").
 
 ---
 
@@ -81,12 +102,15 @@ the strongest prioritization signal and is called out inline.
 ### High
 4. **Edit preferences doesn't work** — E.
 5. **Recommended quest disappears after you pick it → leaves a huge empty window** — E.
-6. **Quest doesn't disappear after completion** (it should) — E.
+6. **Quest doesn't disappear after completion** (it should) — E, **Mar** (2 testers).
 7. **Social / message quest**: moves to step 2 but stays on the same screen with the same text — E.
 8. **Leave doesn't save progress** (unlike the back arrow) — E; and **neither back arrow nor Leave returns to home** — D. 🔧 *"Returns to home" half fixed above; "doesn't save progress" half still open.*
 9. **Memory crops the image** — T. ✅ **Fixed** — see above.
 10. **Tab menu doesn't highlight** the active tab when switching — D. ✅ **Fixed** — see above.
 11. **Feedback form**: user doesn't know how to submit + it doesn't disappear after sending — E. ✅ **Fixed** — see above.
+12. **Can't go back a step in the quest runner** — from step 2 there is no way back to step 1 — Mar. ✅ **Fixed** — see above ("Back a step").
+13. **"Likes" may not work + unclear purpose** — Mar questions whether liking does anything at all and why it exists; E was also confused by likes. Needs repro. (See also the Explore "Likes" copy item.)
+14. **After leaving/closing a quest it's hard to find again, and looks different in Journey** — Mar closed a quest, didn't know where it went, later found it via Journey where it looked different from where he'd left it. Overlaps #6 and #8.
 
 ---
 
@@ -96,15 +120,20 @@ the strongest prioritization signal and is called out inline.
 - Nature + Adventure pre-selected with no "why" explanation — M. ✅ **Fixed** — categories start empty (prior commit).
 - "What are you after right now?" — confusing word order, can't picture anything — M. ✅ **Resolved** — that step (old `focus`) was replaced by the intensity question.
 - "How often do you feel isolated?" — too vague (generally vs. recently) — M. ✅ **Resolved** — current copy asks "recently felt isolated".
+- Nature-connection scale reads as "how much you *like* nature", not how much time you spend in it — Mar. (Ambiguity on the step-5 baseline scale.)
+- "disconnected from people" reads as "don't get *along* with people", not lonely/isolated — Mar. ✅ **Fixed** — reworded to "lonely or isolated".
+- "How it works" invites tapping — users try to click the rows even though they aren't interactive — Mar (D noted the same).
 - Quest frequency not explained with numbers — M.
 - Compass in the middle of the first-screen image is distracting — T. ✅ **Fixed** — removed the centered compass badge from the welcome hero.
-- "How much time do you have" → "how much time do you want to dedicate" — D.
+- "How much time do you have" → "how much time do you want to dedicate" — D. ✅ **Fixed**.
 - "Your map is ready" → rename to "Almost set"; bottom text too long — D. 🔧 *Bottom footnote shortened; headline kept as "Your map is ready" (rename to "Almost set" not done).*
 - "What pulls you" duplicates the category selection — T. ✅ **Fixed** — see above (Theme/Time/Intensity reframe).
 
 ### Quests / detail
-- **Quest length**: daily / weekly / monthly doesn't make sense → reframe as *how much time it takes* — M, E, D (3 testers).
-- Wrap-up message looks like an **error** / disliked notification — E, T.
+- **Quest length**: daily / weekly / monthly doesn't make sense → reframe as *how much time it takes* — M, E, D, Mar (4 testers). Mar's concrete example: an Adventure "monthly · 720 minutes" quest reads as hopelessly abstract. 🔧 *Duration humanized (720 min → "12 h") — see above. The weekly/monthly/yearly cadence relabel still open (needs product call, tied to limits).*
+- The in-quest **"Guide"** tip block is disliked / feels like extra noise — D, Mar.
+- Merge the "book / arrange" step with the calendar step so scheduling is a single action — Mar.
+- Wrap-up message looks like an **error** / disliked notification — E, T. ✅ **Fixed** — warmed the completion title + rewrote the error-like calendar copy (browser-native dialog chrome on web is unchanged).
 - "I scheduled it" → "let's schedule it" — D. ✅ **Fixed** — the web calendar-step button now reads "Let's schedule it" (the in-dialog confirm stays "I scheduled it" as a past-tense attestation).
 - "wrap up quest" unclear → "every step is done" — D. ✅ **Fixed** — see above.
 - Progress quest detail: too much text + duplicates the memory → split them, less text — T.
@@ -114,12 +143,14 @@ the strongest prioritization signal and is called out inline.
 
 ### Explore map
 - Question marks → prefer icons, smaller / cleaner — T, D.
-- "Likes" are confusing (what do they mean) — E.
+- "Likes" are confusing — what they mean, why they exist, and whether they even work — E, Mar. (See bug #13.)
 
 ### Memory
 - Remove the character limit — T.
 - **Communicate the photo up front** and **don't make it mandatory** at the end — T (raised twice).
 - Let the user add a note directly without an edit step — T.
+- Add a big, clear **green "Done"** state in Memories after finishing — Mar.
+- After finishing, don't strand the user on the memory page that shows **Delete**; make it easy to exit — Mar (reinforces T's wrap → memory → progress confusion).
 
 ---
 
@@ -149,18 +180,41 @@ the strongest prioritization signal and is called out inline.
 
 ---
 
+## ✅ Product decisions (resolved)
+
+1. **No "abstention / negation" quests.** Quests whose goal is to *not* do something
+   (don't use your phone after 8pm, don't sleep past midnight, don't eat after 8) do **not**
+   belong in this app — that's digital-wellbeing / restriction territory, and testers read the
+   framing as a mismatch (Mar). Quests must be about *doing* something real; if the intent is
+   "less phone", express it as a positive action instead. **Now the first rule in
+   [`docs/quest-content-guidelines.md`](../quest-content-guidelines.md)** (product-owner decision,
+   2026-07-26).
+
+---
+
 ## ⚠️ To decide — recorded only, not resolved
 
 These are either contradictory between testers or conflict with `AGENTS.md`. Logged for a
 later product call; no decision made yet.
 
-1. **Community / sharing / do a quest with someone / leaderboard** — requested by M and T.
-   But [`AGENTS.md`](../../AGENTS.md) explicitly lists social feeds, multiplayer, and
-   leaderboards under **"What not to build."** → Direction change, not an automatic yes.
+1. **Community / sharing / do a quest with someone / leaderboard / co-op** — requested by M, T,
+   and Mar. Mar's whole *pre-open* mental model was game-like and social: NPCs that hand out
+   quests, other users submitting quests, co-op play; he also expected a **public profile** (with
+   privacy / visibility settings). But [`AGENTS.md`](../../AGENTS.md) explicitly lists social
+   feeds, multiplayer, other-user profiles, and leaderboards under **"What not to build."**
+   → Direction change, not an automatic yes. He also noted community "is not the core of the app".
 2. **Scrollable / movable map** — M and E want it (path upward, completed steps visible);
    **T has no need to scroll.** Contradictory.
 3. **Notifications / pressure** — M wants a "you're not completing this quest" nudge;
    **D wants zero pressure, a quiet companion.** Contradictory, and touches product identity.
+4. **Gamification — levels, bonus points, stars** — Mar wants quests to carry levels / bonus
+   points, and a **star** for completing a bonus "side-quest within a quest" (framed like "win the
+   fight, don't lose a life"). `AGENTS.md` explicitly bans points, levels, and complex
+   gamification. → Direction change, not an automatic yes.
+5. **Category structure — merge Nature + Adventure? rework/remove Relax?** — Mar: Nature and
+   Adventure feel very similar ("big difference? can they be merged?"); Relax — especially
+   "do-nothing" activities — competes with digital-wellbeing apps and may not fit. Affects the
+   4-category model and the Explore map. (Relates to resolved decision #1 above.)
 
 ---
 
@@ -169,3 +223,5 @@ later product call; no decision made yet.
 - Would need "crazy shit" / a stronger hook to actually keep using it — M.
 - Target audience: not for everyone (M is not the target).
 - Should be a **quiet companion, zero pressure** — D.
+- Martin's pre-open mental model was **game-like and social** (NPC quest-givers, user-submitted
+  quests, co-op) — informs the community decision above — Mar.

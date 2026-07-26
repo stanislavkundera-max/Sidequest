@@ -49,3 +49,23 @@ export const QUEST_COPY = {
   progressEmptyCategoryTitle: 'Nothing in this category',
   progressEmptyCategorySub: 'Try another category chip above.',
 } as const;
+
+/**
+ * Human-readable quest length. Raw minutes ("720 min") read as abstract to
+ * testers, so switch to hours above an hour: 45 -> "45 min", 90 -> "1 h 30 min",
+ * 720 -> "12 h".
+ */
+export function formatQuestDuration(minutes: number): string {
+  const m = Math.round(minutes);
+  if (!Number.isFinite(m) || m <= 0) return '';
+  if (m < 60) return `${m} min`;
+  const hours = Math.floor(m / 60);
+  const rem = m % 60;
+  return rem === 0 ? `${hours} h` : `${hours} h ${rem} min`;
+}
+
+/** Meta-line duration ("~12 h"), or '' when the duration is unknown — safe to join with `·`. */
+export function questDurationLabel(minutes: number): string {
+  const d = formatQuestDuration(minutes);
+  return d ? `~${d}` : '';
+}

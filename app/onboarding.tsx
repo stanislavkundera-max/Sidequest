@@ -394,7 +394,7 @@ export default function OnboardingScreen() {
 
         {step === 3 ? (
           <View style={styles.stepWrap}>
-            <Text style={styles.headline}>How much time do you have?</Text>
+            <Text style={styles.headline}>How much time do you want to dedicate?</Text>
             <Text style={styles.subtext}>We&apos;ll match the length of your quests.</Text>
             <View style={styles.choiceWrap}>
               {PACE_OPTIONS.map((option) => (
@@ -451,7 +451,7 @@ export default function OnboardingScreen() {
                 onChange={setNatureConnection}
               />
               <ScaleQuestion
-                prompt="How often have you recently felt isolated or disconnected from people?"
+                prompt="How often have you recently felt lonely or isolated?"
                 lowLabel="Rarely"
                 highLabel="Very often"
                 value={isolation}

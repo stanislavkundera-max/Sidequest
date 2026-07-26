@@ -14,7 +14,7 @@ import { categoryAccentForCategoryId } from '@/lib/categoryAccent';
 import { isSupabaseConfigured, SUPABASE_CONFIGURE_HELP } from '@/lib/supabase';
 import { QuestFeedbackCard } from '@/src/features/feedback/QuestFeedbackCard';
 import { useMemoryStore } from '@/src/features/memories/memoryStore';
-import { QUEST_COPY } from '@/src/features/quests/questCopy';
+import { questDurationLabel, QUEST_COPY } from '@/src/features/quests/questCopy';
 import { canUserBeginQuest, incompleteJourneyStepsCount } from '@/src/features/quests/questHelpers';
 import { useQuestDomainStore } from '@/src/features/quests/questStore';
 import { trackEvent } from '@/src/lib/analytics';
@@ -313,8 +313,13 @@ export default function QuestDetailScreen() {
 
         <View style={styles.metaRow}>
           <Text style={styles.meta}>
-            {TF_LABEL[quest.timeframe]} · {quest.difficulty} · ~
-            {quest.estimatedDurationMinutes} min
+            {[
+              TF_LABEL[quest.timeframe],
+              quest.difficulty,
+              questDurationLabel(quest.estimatedDurationMinutes),
+            ]
+              .filter(Boolean)
+              .join(' · ')}
           </Text>
         </View>
 

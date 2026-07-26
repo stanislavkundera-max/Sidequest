@@ -40,6 +40,7 @@ import {
   readPendingCalendarVerification,
   writePendingCalendarVerification,
 } from '@/src/features/quests/questRunnerPending';
+import { formatQuestDuration } from '@/src/features/quests/questCopy';
 import {
   countCompletedJourneySteps,
   getFirstIncompleteJourneyStep,
@@ -122,6 +123,7 @@ export default function QuestRunScreen() {
   const assignQuestToUser = useQuestDomainStore((s) => s.assignQuestToUser);
   const refreshUserQuests = useQuestDomainStore((s) => s.refreshUserQuests);
   const completeStepWithEvidence = useQuestDomainStore((s) => s.completeStepWithEvidence);
+  const revertStep = useQuestDomainStore((s) => s.revertStep);
   const completeQuest = useQuestDomainStore((s) => s.completeQuest);
   const deactivateQuest = useQuestDomainStore((s) => s.deactivateQuest);
   const createMemoryForQuest = useMemoryStore((s) => s.createMemoryForQuest);
@@ -306,7 +308,7 @@ export default function QuestRunScreen() {
         nativeOk
       ) {
         setCalendarHint(
-          'We saved a calendar reminder. Once the event syncs and stays on your calendar, this step completes on its own.'
+          'Added to your calendar. This step finishes on its own once the event is saved.'
         );
       } else {
         setCalendarHint(null);
@@ -412,7 +414,7 @@ export default function QuestRunScreen() {
 
       router.replace('/(tabs)/journey');
       if (memoryId) {
-        alertTwoChoice('Quest complete', 'Saved to your memories.', {
+        alertTwoChoice('Nice work — quest complete', 'Saved to your memories.', {
           cancel: { text: 'OK' },
           confirm: {
             text: 'View memory',
@@ -466,7 +468,7 @@ export default function QuestRunScreen() {
         eventId,
       });
       setCalendarHint(
-        'We saved a calendar reminder. Once the event syncs and stays on your calendar, this step completes on its own.'
+        'Added to your calendar. This step finishes on its own once the event is saved.'
       );
       await tryVerifyCalendarPending();
     } catch (e: unknown) {
@@ -488,8 +490,8 @@ export default function QuestRunScreen() {
       alertTwoChoice(
         'Schedule this step',
         Platform.OS === 'web'
-          ? 'On iOS and Android we can add a dated reminder and confirm it is still on your calendar. On web, confirm after you have scheduled it yourself.'
-          : 'Calendar creation is not available on this device. Confirm after you have scheduled it yourself.',
+          ? 'On phone we can add a dated reminder for you. On web, add it to your own calendar, then tap to confirm.'
+          : 'We can\'t add a calendar event on this device. Add it yourself, then tap to confirm.',
         {
           cancel: { text: 'Not yet' },
           confirm: {
@@ -553,8 +555,25 @@ export default function QuestRunScreen() {
   const needsBegin = !activeUq;
   const steps = quest.actionSteps;
   const total = Math.max(1, steps.length);
-  const stepOrdinal = currentStep ? ordinalForStep(steps, currentStep) + 1 : total;
+  const currentIndex = currentStep ? ordinalForStep(steps, currentStep) : -1;
+  const stepOrdinal = currentStep ? currentIndex + 1 : total;
   const primaryBusy = acting || pendingStore;
+  const canStepBack = currentIndex > 0;
+
+  async function stepBack() {
+    if (!user || !activeUq || currentIndex <= 0 || primaryBusy) return;
+    const prevStep = steps[currentIndex - 1];
+    if (!prevStep) return;
+    setActing(true);
+    try {
+      await revertStep(user.id, activeUq.id, prevStep.id);
+      setCheer(null);
+    } catch {
+      // Store ErrorState reflects persistence errors.
+    } finally {
+      setActing(false);
+    }
+  }
 
   function renderInteraction(step: QuestActionStep) {
     if (!activeUq) return null;
@@ -677,9 +696,27 @@ export default function QuestRunScreen() {
         ) : currentStep ? (
           <>
             <View style={styles.progressHeader}>
-              <Text style={styles.progressLabel}>
-                Step {stepOrdinal} of {total}
-              </Text>
+              <View style={styles.progressLabelRow}>
+                <Text style={styles.progressLabel}>
+                  Step {stepOrdinal} of {total}
+                </Text>
+                {canStepBack ? (
+                  <Pressable
+                    accessibilityRole="button"
+                    accessibilityLabel="Go back to the previous step"
+                    disabled={primaryBusy}
+                    onPress={() => void stepBack()}
+                    hitSlop={8}
+                    style={({ pressed }) => [
+                      styles.stepBackLink,
+                      primaryBusy && { opacity: 0.4 },
+                      pressed && !primaryBusy && styles.linkPressed,
+                    ]}>
+                    <Ionicons name="arrow-back" size={14} color={Theme.textMuted} />
+                    <Text style={styles.stepBackText}>Back a step</Text>
+                  </Pressable>
+                ) : null}
+              </View>
               <View style={styles.segmentsRow}>
                 {steps.map((s) => {
                   const done = Boolean(activeUq?.stepProgress[s.id]);
@@ -710,7 +747,7 @@ export default function QuestRunScreen() {
                 <Ionicons name={stepKindIcon(currentStep)} size={20} color={accent} />
                 <Text style={[styles.stepIndex, { color: accent }]}>
                   {currentStep.estimateMinutes
-                    ? `~${currentStep.estimateMinutes} min`
+                    ? `~${formatQuestDuration(currentStep.estimateMinutes)}`
                     : 'Take your time'}
                 </Text>
               </View>
@@ -827,6 +864,11 @@ const styles = StyleSheet.create({
   stepOverviewRowTitle: { fontSize: 15, lineHeight: 21, color: Theme.text },
   preBeginNoteText: { fontSize: 13, lineHeight: 19, color: Theme.textMuted, marginTop: 4 },
   progressHeader: { gap: 8 },
+  progressLabelRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
   progressLabel: {
     fontSize: 13,
     fontWeight: '700',
@@ -834,6 +876,8 @@ const styles = StyleSheet.create({
     textTransform: 'uppercase',
     letterSpacing: 0.7,
   },
+  stepBackLink: { flexDirection: 'row', alignItems: 'center', gap: 4, paddingVertical: 2 },
+  stepBackText: { fontSize: 13, fontWeight: '600', color: Theme.textMuted },
   segmentsRow: { flexDirection: 'row', gap: 6 },
   segment: {
     flex: 1,

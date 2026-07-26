@@ -26,6 +26,7 @@ import {
   MAX_ACTIVE_QUESTS,
 } from '@/src/features/quests';
 import { useQuestDomainStore } from '@/src/features/quests';
+import { questDurationLabel } from '@/src/features/quests/questCopy';
 import {
   CATEGORY_TAB_ICON,
   CATEGORY_TAB_IDS,
@@ -295,8 +296,13 @@ export default function QuestSelectionScreen() {
                           </Pressable>
                           <View style={styles.cardFooter}>
                             <Text style={styles.cardHint}>
-                              {categoryName(quest.categoryId)} · {quest.difficulty} · ~
-                              {quest.estimatedDurationMinutes} min
+                              {[
+                                categoryName(quest.categoryId),
+                                quest.difficulty,
+                                questDurationLabel(quest.estimatedDurationMinutes),
+                              ]
+                                .filter(Boolean)
+                                .join(' · ')}
                             </Text>
                             <Pressable
                               onPress={() => {
