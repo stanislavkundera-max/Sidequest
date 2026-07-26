@@ -26,7 +26,10 @@ alter table if exists public.user_quests
   add column if not exists completed_at timestamptz,
   add column if not exists note text,
   add column if not exists photo_url text,
-  add column if not exists step_progress jsonb not null default '{}'::jsonb;
+  add column if not exists step_progress jsonb not null default '{}'::jsonb,
+  -- v2: stepId -> { completedAt, evidence } (schema.sql has this on fresh
+  -- installs via CREATE TABLE; existing tables need it added explicitly).
+  add column if not exists step_progress_v2 jsonb not null default '{}'::jsonb;
 
 alter table if exists public.quests
   add column if not exists journey_intro text,

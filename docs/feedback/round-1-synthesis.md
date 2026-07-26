@@ -13,6 +13,41 @@ session; his items are folded in here with the `Mar` tag.)
 
 ## ✅ Fixed this session (2026-07-26)
 
+- **🎯 Root cause found: live Supabase project was missing several migrations.** Diagnosed via
+  live REST API testing against the actual tester-facing project (not just static code reading).
+  `profiles`, `quests`, and `user_quests` were missing columns that `supabase/production_prep.sql`
+  is supposed to add:
+  - `profiles`: `pace_preference`, `nature_connection`, `isolation_score` missing →
+    `saveOnboardingStateForUser`'s fallback chain silently degraded to saving only
+    `intensity_preference`, with categories/pace/baseline scales never persisting. **This is the
+    confirmed root cause of bug #4 ("Edit preferences doesn't work")** — no error shown, so it
+    looked like a no-op bug rather than a schema gap.
+  - `quests`: `action_steps`, `journey_intro`, `suggested_group` missing entirely →
+    every quest had **zero guided steps**. The whole step-by-step runner (timers, calendar step,
+    "Guide" tips, step navigation) had no content to run on for any tester. Very likely a
+    contributing cause of **bug #7** ("social/message quest stays on the same screen") — with no
+    step data, the runner has nothing to advance to.
+  - `user_quests`: `step_progress_v2` **and** legacy `step_progress` both missing → even where
+    steps existed, completing one could never persist to the database (silently lost on refresh).
+  - **Extra find:** `step_progress_v2` was never in `production_prep.sql`'s column list at all —
+    only in `schema.sql`'s `CREATE TABLE IF NOT EXISTS`, which is a no-op on an existing table.
+    Fixed in `supabase/production_prep.sql` (added `add column if not exists step_progress_v2`) so
+    this doesn't recur on other environments.
+  - **Fix applied:** ran `production_prep.sql` (adds missing columns, idempotent) + the
+    `action_steps`/`journey_intro`/`suggested_group` backfill block from `seed.sql`, then the one
+    added `step_progress_v2` column. All verified end-to-end via direct REST calls (profile
+    preference write/read round-trip, quest step content present, step completion + revert
+    write/read round-trip) — not just "no error," actually confirmed the data persists correctly.
+  - **Not fully closed:** couldn't complete a live UI retest of #5/#6/#8b/#13/#14 in this session —
+    the sandboxed preview browser blocks the app's automatic anonymous sign-in (a tooling/sandbox
+    quirk, confirmed via direct API calls that the backend itself works fine). Recommend retesting
+    these five in a real browser (`npx expo start --web`, then a normal Chrome/Safari tab) now that
+    the schema is fixed — several may resolve on their own now that steps and preferences actually
+    persist.
+  - **Also noticed in passing:** seed quest `q-m-04` ("Digital sunset: no screens after 9 p.m.")
+    is an existing abstention-style quest that now violates the round-1 decision in
+    `docs/quest-content-guidelines.md` (rule #1, "no don't-do-X quests"). Content cleanup, not
+    urgent — flagging for a later pass.
 - **Quest length reads as abstract ("720 min")** (fix-now — M, E, D, Mar) — added a
   `formatQuestDuration` helper (`src/features/quests/questCopy.ts`) that switches to hours above an
   hour (720 min → "12 h", 90 min → "1 h 30 min") and applied it everywhere a quest/step duration
@@ -100,10 +135,10 @@ session; his items are folded in here with the `Mar` tag.)
 3. **Timer / stopwatch can't be stopped or reset** — M, D. (D started it by accident and couldn't stop it; M afraid of losing progress.) ✅ **Fixed** — see above.
 
 ### High
-4. **Edit preferences doesn't work** — E.
-5. **Recommended quest disappears after you pick it → leaves a huge empty window** — E.
-6. **Quest doesn't disappear after completion** (it should) — E, **Mar** (2 testers).
-7. **Social / message quest**: moves to step 2 but stays on the same screen with the same text — E.
+4. **Edit preferences doesn't work** — E. ✅ **Root cause fixed** — see schema-migration finding above. Preference writes now persist and verified end-to-end via API; UI retest still recommended.
+5. **Recommended quest disappears after you pick it → leaves a huge empty window** — E. Catalog has 5 active quests/category, ruling out "too few quests"; auto-refill logic (`ExploreQuestPanel`'s `recommended` useMemo) reads correctly in code. Needs live UI retest, now that schema is fixed.
+6. **Quest doesn't disappear after completion** (it should) — E, **Mar** (2 testers). Checked `completeUserQuest`'s fallback path (a live theory) — all referenced columns (`status`, `completed_at`, `note`, `photo_url`) exist, so that specific theory is ruled out. Root cause still unconfirmed; needs live UI retest.
+7. **Social / message quest**: moves to step 2 but stays on the same screen with the same text — E. 🔧 *Likely fixed as a side effect* — the matching quest (`q-w-05`, "Message someone...") had zero `action_steps` before the schema fix, so "step 2" had nothing to render; it now has real 3-step content. Needs live UI confirmation.
 8. **Leave doesn't save progress** (unlike the back arrow) — E; and **neither back arrow nor Leave returns to home** — D. 🔧 *"Returns to home" half fixed above; "doesn't save progress" half still open.*
 9. **Memory crops the image** — T. ✅ **Fixed** — see above.
 10. **Tab menu doesn't highlight** the active tab when switching — D. ✅ **Fixed** — see above.

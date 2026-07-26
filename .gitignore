@@ -37,6 +37,9 @@ yarn-error.*
 # local editor/dev tooling (machine-specific)
 .claude/
 
+# one-off manual SQL scripts (run once in Supabase SQL editor, then delete)
+RUN_ONCE_*.sql
+
 # typescript
 *.tsbuildinfo
 
