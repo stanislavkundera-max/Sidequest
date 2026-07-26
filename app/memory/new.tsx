@@ -110,7 +110,7 @@ export default function NewMemoryScreen() {
       // dialog: a multi-button Alert.alert never renders on web, so the button
       // re-enabled with no visible feedback and testers tapped Save repeatedly,
       // creating duplicate entries. The screen change is the confirmation.
-      router.replace(`/memory/${entry.id}`);
+      router.replace({ pathname: '/memory/[id]', params: { id: entry.id, justSaved: '1' } });
     } catch (e: unknown) {
       trackEvent('memory_creation_failed', {
         sourceScreen: 'memory_new',

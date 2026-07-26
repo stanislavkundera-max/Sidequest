@@ -9,7 +9,7 @@ export type MemoryDraft = {
 };
 
 /** Used when a run collected no written evidence (only confirm/timer steps). */
-const NO_EVIDENCE_NOTE = 'Completed — no notes captured for this run.';
+export const NO_EVIDENCE_NOTE = 'Completed — no notes captured for this run.';
 
 /** Builds a memory body from what the user wrote/collected during the run. */
 export function composeMemoryDraftFromRun(quest: Quest, uq: UserQuest): MemoryDraft {

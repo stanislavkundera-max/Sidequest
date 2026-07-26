@@ -13,6 +13,14 @@ session; his items are folded in here with the `Mar` tag.)
 
 ## ✅ Fixed this session (2026-07-26)
 
+- **Memory section fix-now batch (T, Mar).** Photo hint added to quest detail before starting
+  (when the quest usually ends with one); auto-created memories with no real evidence now open
+  straight into editing instead of forcing an Edit tap; a green "Saved to your memories" banner
+  plus a prominent "Done" button now appear on arrival (manual save and quest auto-save both),
+  replacing the destructive-looking Edit/Delete row as the obvious next action. Character limit
+  was already gone — could not find one anywhere in code.
+  (`app/quest/[id].tsx`, `app/memory/[id].tsx`, `app/memory/new.tsx`, `app/quest/run/[id].tsx`,
+  `src/features/memories/memoryDraft.ts`.)
 - **Bug #14 ("left quest is hard to find, looks different") — design decided, built.** Root cause:
   `Leave` sends a quest to `saved_for_later`, which surfaces as the **"Liked"** section — so a
   quest you were 2/3 through landed in the same bucket as things you hearted but never started.
@@ -208,11 +216,11 @@ session; his items are folded in here with the `Mar` tag.)
 - "Likes" are confusing — what they mean, why they exist, and whether they even work — E, Mar. (See bug #13.)
 
 ### Memory
-- Remove the character limit — T.
-- **Communicate the photo up front** and **don't make it mandatory** at the end — T (raised twice).
-- Let the user add a note directly without an edit step — T.
-- Add a big, clear **green "Done"** state in Memories after finishing — Mar.
-- After finishing, don't strand the user on the memory page that shows **Delete**; make it easy to exit — Mar (reinforces T's wrap → memory → progress confusion).
+- Remove the character limit — T. ✅ **Already satisfied** — no `maxLength` exists anywhere in the memory forms; could not reproduce in code, likely fixed in an earlier pass.
+- **Communicate the photo up front** and **don't make it mandatory** at the end — T (raised twice). ✅ **Fixed** — quest detail now shows a small camera hint ("This one usually ends with a photo...") before you begin, when `quest.suggestedProofType === 'photo'`. Photo was already optional at save time (`app/quest/[id].tsx`).
+- Let the user add a note directly without an edit step — T. ✅ **Fixed** — when the quest runner auto-creates a memory with no real evidence (only confirm/timer steps, so the body is just the generic placeholder), "View memory" now opens straight into editing instead of a read-only screen you'd have to tap Edit on first.
+- Add a big, clear **green "Done"** state in Memories after finishing — Mar. ✅ **Fixed** — a green "Saved to your memories" banner now shows on arrival, for both manual saves (`memory/new.tsx`) and quest auto-saves.
+- After finishing, don't strand the user on the memory page that shows **Delete**; make it easy to exit — Mar (reinforces T's wrap → memory → progress confusion). ✅ **Fixed** — a prominent "Done" button (→ Memories tab) now appears above the Edit/Delete row whenever you've just landed here from a save, so the obvious next action isn't a destructive one.
 
 ---
 

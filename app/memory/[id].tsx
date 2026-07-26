@@ -1,6 +1,7 @@
+import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import { useLocalSearchParams, useNavigation, useRouter } from 'expo-router';
-import { useLayoutEffect, useMemo, useState } from 'react';
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import {
   Image,
   Pressable,
@@ -17,6 +18,7 @@ import { LoadingState } from '@/components/ui/LoadingState';
 import { PrimaryButton } from '@/components/ui/PrimaryButton';
 import { Theme } from '@/constants/Theme';
 import { alertCompat, alertTwoChoice } from '@/lib/alertCompat';
+import { NO_EVIDENCE_NOTE } from '@/src/features/memories/memoryDraft';
 import { memoryTitleFromBody } from '@/src/features/memories/memoryTitle';
 import { useMemoryStore } from '@/src/features/memories/memoryStore';
 import { useQuestDomainStore } from '@/src/features/quests/questStore';
@@ -25,7 +27,11 @@ import { logError } from '@/src/lib/monitoring/errorLogger';
 import { useSessionStore } from '@/stores/session';
 
 export default function MemoryDetailScreen() {
-  const { id } = useLocalSearchParams<{ id: string }>();
+  const { id, justSaved, autoEdit } = useLocalSearchParams<{
+    id: string;
+    justSaved?: string;
+    autoEdit?: string;
+  }>();
   const navigation = useNavigation();
   const router = useRouter();
   const user = useSessionStore((s) => s.user);
@@ -47,6 +53,20 @@ export default function MemoryDetailScreen() {
   const [body, setBody] = useState('');
   const [localUri, setLocalUri] = useState<string | null>(null);
   const [deleting, setDeleting] = useState(false);
+  const isJustSaved = justSaved === '1';
+  const autoEditHandledRef = useRef(false);
+
+  // Auto-created memories with no real evidence land here with nothing
+  // personal in them — open straight into editing instead of making the
+  // user tap Edit first just to add the note they actually came to write.
+  useEffect(() => {
+    if (autoEditHandledRef.current || autoEdit !== '1' || !memory) return;
+    autoEditHandledRef.current = true;
+    setTitle(memory.title);
+    setBody(memory.body === NO_EVIDENCE_NOTE ? '' : memory.body);
+    setLocalUri(memory.photoUri);
+    setEditing(true);
+  }, [autoEdit, memory]);
 
   useLayoutEffect(() => {
     if (!memory) return;
@@ -218,6 +238,13 @@ export default function MemoryDetailScreen() {
   return (
     <SafeAreaView style={styles.safe} edges={['bottom']}>
       <ScrollView contentContainerStyle={styles.scroll}>
+        {isJustSaved ? (
+          <View style={styles.savedBanner}>
+            <Ionicons name="checkmark-circle" size={20} color={Theme.accent} />
+            <Text style={styles.savedBannerText}>Saved to your memories</Text>
+          </View>
+        ) : null}
+
         <Text style={styles.date}>
           {new Date(memory.createdAt).toLocaleString(undefined, {
             dateStyle: 'full',
@@ -232,6 +259,10 @@ export default function MemoryDetailScreen() {
           <Image source={{ uri: memory.photoUri }} style={styles.image} resizeMode="contain" />
         ) : null}
         <Text style={styles.body}>{memory.body}</Text>
+
+        {isJustSaved ? (
+          <PrimaryButton label="Done" onPress={() => router.replace('/(tabs)/memories')} />
+        ) : null}
 
         <View style={styles.actionsRow}>
           <Pressable
@@ -262,6 +293,17 @@ export default function MemoryDetailScreen() {
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: Theme.bg },
   scroll: { padding: 20, paddingBottom: 40 },
+  savedBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    backgroundColor: Theme.accentSoft,
+    borderRadius: 12,
+    paddingVertical: 12,
+    paddingHorizontal: 14,
+    marginBottom: 18,
+  },
+  savedBannerText: { fontSize: 15, fontWeight: '700', color: Theme.accent },
   date: { fontSize: 13, color: Theme.textMuted, marginBottom: 16 },
   title: {
     fontSize: 20,

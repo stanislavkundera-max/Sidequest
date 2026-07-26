@@ -28,7 +28,7 @@ import { alertCompat, alertTwoChoice } from '@/lib/alertCompat';
 import { categoryAccentForCategoryId } from '@/lib/categoryAccent';
 import { isSupabaseConfigured, SUPABASE_CONFIGURE_HELP } from '@/lib/supabase';
 import { DEFAULT_JOURNEY_STEP_TIP } from '@/src/constants/questJourneys';
-import { composeMemoryDraftFromRun } from '@/src/features/memories/memoryDraft';
+import { composeMemoryDraftFromRun, NO_EVIDENCE_NOTE } from '@/src/features/memories/memoryDraft';
 import { useMemoryStore } from '@/src/features/memories/memoryStore';
 import {
   calendarEventStillExists,
@@ -421,7 +421,18 @@ export default function QuestRunScreen() {
           cancel: { text: 'OK' },
           confirm: {
             text: 'View memory',
-            onPress: () => router.push(`/memory/${memoryId}`),
+            onPress: () =>
+              router.push({
+                pathname: '/memory/[id]',
+                params: {
+                  id: memoryId as string,
+                  justSaved: '1',
+                  // No real evidence was captured during the run — open
+                  // straight into editing instead of a view-only screen with
+                  // nothing personal in it, so adding a note takes no extra tap.
+                  ...(draft.body === NO_EVIDENCE_NOTE ? { autoEdit: '1' } : {}),
+                },
+              }),
           },
         });
       } else {
