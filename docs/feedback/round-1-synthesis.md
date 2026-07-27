@@ -181,6 +181,7 @@ session; his items are folded in here with the `Mar` tag.)
 12. **Can't go back a step in the quest runner** — from step 2 there is no way back to step 1 — Mar. ✅ **Fixed** — see above ("Back a step").
 13. ~~"Likes" may not work + unclear purpose~~ — **moved to "To decide" below** (decision #7 — what liking is even *for* needs settling before the mechanism can be judged working or broken).
 14. **After leaving/closing a quest it's hard to find again, and looks different in Journey** — Mar closed a quest, didn't know where it went, later found it via Journey where it looked different from where he'd left it. ✅ **Fixed** — root cause was that leaving a half-done quest dumped it into the **"Liked"** wishlist bucket (`Leave` → `saved_for_later`), mixing "hearted, never started" with "was 2/3 through it". Note the app *did* tell him where it went ("You will find it under Journey → Liked") and he still lost it — the destination *name* was the problem, not the messaging. Now split into two sections: **"Pick up where you left off"** (has progress) above **"Liked"** (wishlist), same card identity in both with only the action verb changing (Begin / Resume). No schema change — the split is derived from step progress. Leave dialogs now name the correct destination.
+15. **Pausing a quest with the stopwatch running "redirects" somewhere, and nothing shows up there** — reported by the mentor (2026-07-27), exact destination not yet confirmed even by Standa ("we need to find out where"). 🔍 **Needs reproduction.** Leading hypothesis, unconfirmed: the Leave-confirmation copy uses the word "progress" ("your progress stays saved") while pointing to the Journey tab — easy to misread as a promise that the main **Progress tab** will show something, when it never was designed to. The mentor also expected to see **Liked** quests in that same place. Until reproduced, treat as open — don't guess-fix.
 
 ---
 
@@ -222,6 +223,11 @@ session; his items are folded in here with the `Mar` tag.)
 - Add a big, clear **green "Done"** state in Memories after finishing — Mar. ✅ **Fixed** — a green "Saved to your memories" banner now shows on arrival, for both manual saves (`memory/new.tsx`) and quest auto-saves.
 - After finishing, don't strand the user on the memory page that shows **Delete**; make it easy to exit — Mar (reinforces T's wrap → memory → progress confusion). ✅ **Fixed** — a prominent "Done" button (→ Memories tab) now appears above the Edit/Delete row whenever you've just landed here from a save, so the obvious next action isn't a destructive one.
 
+### Notifications (new, from mentor decision #3)
+- Build a real **notification-intensity setting** the user controls, rather than picking a
+  single app-wide stance on nudges. Resolves the M-vs-D contradiction on pressure/nudges without
+  compromising the default "quiet companion" experience for people who never touch it.
+
 ---
 
 ## 💡 Features / variants (later — need a product decision)
@@ -239,7 +245,7 @@ session; his items are folded in here with the `Mar` tag.)
 - Edit preferences available to everyone + click straight through to a quest at the end — E, D (`tasks.md` #9).
 - "Your thoughts / feelings" reflection at wrap-up (à la Garmin Connect) + achievements — D, E.
 - Filters in memories — T.
-- Duolingo-style visual overview / progress screen — D, T.
+- Duolingo-style visual overview / progress screen — D, T. 🔸 On hold alongside decision #4 (gamification) — Duolingo's visual language is inseparable from its streak/points system, so this waits on the same philosophy question.
 - Guide / avatar in the app — D.
 - Link to the phone's focus mode — D.
 - Multiple-choice on "what do you want more of" — D.
@@ -247,6 +253,9 @@ session; his items are folded in here with the `Mar` tag.)
 
 ### Monetization signal
 - Nobody would pay for the app directly, but **via ads / a free month** E, D, and T would try it.
+  ✅ **Decided (mentor, 2026-07-27): ads are out** — conflicts with the product's own philosophy
+  (the "quiet companion, zero pressure" positioning). Monetization as a whole can wait — not
+  urgent, revisit later.
 
 ---
 
@@ -275,16 +284,24 @@ later product call; no decision made yet.
    → Direction change, not an automatic yes. He also noted community "is not the core of the app".
 2. **Scrollable / movable map** — M and E want it (path upward, completed steps visible);
    **T has no need to scroll.** Contradictory.
-3. **Notifications / pressure** — M wants a "you're not completing this quest" nudge;
-   **D wants zero pressure, a quiet companion.** Contradictory, and touches product identity.
+3. ~~Notifications / pressure~~ — M wants a "you're not completing this quest" nudge;
+   **D wants zero pressure, a quiet companion.** ✅ **Decided (mentor, 2026-07-27):** don't pick a
+   side — let the person set how much the app "bothers" them via a real notification-intensity
+   setting. Solves both without compromising the "quiet companion" default for people who never
+   touch the setting. **Not built yet** — added to the Part 2 plan below.
 4. **Gamification — levels, bonus points, stars** — Mar wants quests to carry levels / bonus
    points, and a **star** for completing a bonus "side-quest within a quest" (framed like "win the
    fight, don't lose a life"). `AGENTS.md` explicitly bans points, levels, and complex
-   gamification. → Direction change, not an automatic yes.
+   gamification. 🔸 **Mentor lean (2026-07-27), not a hard decision:** shelve this — "for now,
+   maybe forever" — pending whether any gamification fits the product's philosophy at all. Already
+   recurred once (Mar); per the ambiguity-handling rule, revisit only if it comes up independently
+   again rather than acting on this alone.
 5. **Category structure — merge Nature + Adventure? rework/remove Relax?** — Mar: Nature and
    Adventure feel very similar ("big difference? can they be merged?"); Relax — especially
    "do-nothing" activities — competes with digital-wellbeing apps and may not fit. Affects the
-   4-category model and the Explore map. (Relates to resolved decision #1 above.)
+   4-category model and the Explore map. (Relates to resolved decision #1 above.) ✅ **Decided
+   (mentor, 2026-07-27):** don't rework quests or merge categories now — wait for real usage data
+   on how people actually interact with the categories before deciding anything structural.
 6. **Explore "Recommended" behavior after you pick one** (moved from bug #5, E) — today
    `ExploreQuestPanel` shows exactly one recommended quest per category (`limit: 1`); claiming it
    should make the *next*-best quest recompute into that slot automatically (confirmed intent:
@@ -313,3 +330,14 @@ later product call; no decision made yet.
 - Should be a **quiet companion, zero pressure** — D.
 - Martin's pre-open mental model was **game-like and social** (NPC quest-givers, user-submitted
   quests, co-op) — informs the community decision above — Mar.
+
+## Mentor review (2026-07-27)
+The user's mentor reviewed this document and this round's fixes. His calls are folded into the
+relevant sections above (decisions #3, #4, #5; the monetization note; bug #15). Two standing
+notes from that review:
+- **Design work is confirmed tracked** in [`tasks.md`](../../tasks.md) — #6 (color palette),
+  #7 (branding/voice), #8 (Explore map art) — all deliberately deferred to post-MVP, not dropped.
+- Ambiguous or philosophically-open mentor guidance (like decision #4) is logged as a *leaning*,
+  not forced into an immediate roadmap change — see the memory note on handling this
+  (`feedback-mentor-ambiguity-handling`), so a recurring theme doesn't get lost but a single
+  mention also doesn't overturn the roadmap.
