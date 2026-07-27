@@ -3,8 +3,7 @@ import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from
 
 import { journeyHubStyles as hub } from '@/components/journey/journeyHubStyles';
 import { CatalogQuestRow } from '@/components/quests/CatalogQuestRow';
-import { PathFullModal } from '@/components/quests/PathFullModal';
-import { useQuestActions } from '@/components/quests/useQuestActions';
+import type { useQuestActions } from '@/components/quests/useQuestActions';
 import { Theme } from '@/constants/Theme';
 import { categoryAccentForCategoryId } from '@/lib/categoryAccent';
 import { useQuestDomainStore } from '@/src/features/quests/questStore';
@@ -17,17 +16,15 @@ const TIMEFRAME_RANK: Record<Quest['timeframe'], number> = {
 };
 
 type Props = {
-  userId: string;
   /** Preselects a category chip (e.g. arriving from Explore's "Discover more"). */
   initialCategoryId?: string | null;
+  actions: Pick<ReturnType<typeof useQuestActions>, 'primaryBusy' | 'onStartNow' | 'onLike' | 'openQuest'>;
 };
 
 /** Full catalog with category chip switching — one category shown at a time. */
-export function AllQuestsList({ userId, initialCategoryId }: Props) {
+export function AllQuestsList({ initialCategoryId, actions }: Props) {
   const quests = useQuestDomainStore((s) => s.quests);
   const categories = useQuestDomainStore((s) => s.categories);
-  const getQuestById = useQuestDomainStore((s) => s.getQuestById);
-  const actions = useQuestActions(userId);
 
   const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(
     initialCategoryId ?? null
@@ -131,14 +128,6 @@ export function AllQuestsList({ userId, initialCategoryId }: Props) {
           <ActivityIndicator color={Theme.accent} />
         </View>
       ) : null}
-
-      <PathFullModal
-        visible={actions.pathFullOpen}
-        activeForModal={actions.activeForModal}
-        getQuestById={getQuestById}
-        onLetWait={(id) => void actions.onLetWait(id)}
-        onClose={actions.closePathFull}
-      />
     </View>
   );
 }

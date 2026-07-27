@@ -15,6 +15,36 @@ mentor wrote them — are preserved in
 
 ---
 
+## ✅ Fixed this session (2026-07-27, continued further)
+
+- **Bug #15's real cause found — and it retroactively reopens #8 and #14.** Standa reproduced it
+  directly: leaving a quest mid-way (stopwatch running) popped the correct dialog — *"You will
+  find it in Journey under 'Pick up where you left off'"* — but he could never find that section.
+  Digging in: **the "Pick up where you left off" / "Liked" split I built earlier this session for
+  #8 and #14 lived entirely inside `components/journey/JourneyQuestHub.tsx` — a component nothing
+  in the app ever imports.** The real, live Journey tab (`app/(tabs)/journey.tsx`) renders
+  `AllQuestsList`, a plain full-catalog-by-category browser with no saved/liked section at all.
+  `git log` confirms both files were created together in the same big rework commit, before this
+  feedback round started — `AllQuestsList` got wired to the screen, `JourneyQuestHub` never did.
+  So every fix I made to it (the progress badge, the Resume/Begin split, the whole section) was
+  logically correct but **shipped to nothing** — testers could never have seen it, which is
+  exactly what #15 (and, in hindsight, #14) describes.
+  - **Fix:** extracted just the paused/liked logic and card into a new, focused
+    `components/journey/PausedAndLikedSections.tsx`, mounted directly in the real
+    `app/(tabs)/journey.tsx` above the catalog browser. `AllQuestsList` now takes its `actions`
+    (start/like/busy/path-full-modal) as a prop instead of creating its own, so the screen owns a
+    single shared action/modal instance instead of two independent ones.
+  - **Deleted `JourneyQuestHub.tsx`** — confirmed via `git grep` it had zero remaining references
+    anywhere (code, tests, docs) once the working logic was moved out; keeping a second,
+    identical-looking but non-rendering component around is exactly how this happened in the
+    first place.
+  - **Retracting the "✅ Fixed" status on #8 and #14 from earlier this session** — the underlying
+    logic/design was right and didn't need to change, but neither had actually reached a real
+    screen until now. Marking both fixed-for-real below, dated today.
+  - Still unverified live (same sandboxed-browser sign-in block as before) — confident in this one
+    though, since I can now point at the exact commit that created the orphaned component and
+    confirm nothing else in the codebase ever pointed to it.
+
 ## ✅ Fixed this session (2026-07-27, continued)
 
 - **Bugs #6 and #7 — actually fixed, not just verified.** Standa asked to keep pushing on these
@@ -57,6 +87,8 @@ mentor wrote them — are preserved in
   in both, only the action verb differs (Begin / Resume). Leave dialogs in quest detail and the
   runner now name whichever destination actually applies.
   (`JourneyQuestHub.tsx`, `questCopy.ts`, `quest/[id].tsx`, `quest/run/[id].tsx`.)
+  **Correction (2026-07-27): this design was right but never actually shipped** — it was built into
+  a component nothing in the app renders. See the 2026-07-27 finding above and bug #14 below.
 - **Bug #8 ("Leave doesn't save progress") — real cause found, fixed.** Verified live via the
   Supabase REST API that `moveActiveQuestToLater` (what Leave calls) never touches
   `step_progress_v2` — no data is actually lost. The real bug: the "Liked" card a left quest
@@ -64,6 +96,7 @@ mentor wrote them — are preserved in
   steps already done looked exactly like a fresh one. Fixed: Liked cards now show "X/Y steps
   done" and the button switches to "Resume" once progress exists
   (`components/journey/JourneyQuestHub.tsx`).
+  **Correction (2026-07-27): same as #14 above — see bug #8 below for the real fix.**
 - **Bug #6 ("Quest doesn't disappear after completion") — investigated, not reproducible.**
   Traced every status-based filter in the codebase (Explore/Journey/Progress/questHelpers) and
   reproduced the exact assign→complete→refetch sequence live via the REST API — status correctly
@@ -107,9 +140,10 @@ mentor wrote them — are preserved in
   - **Not fully closed at the time:** couldn't complete a live UI retest in this session — the
     sandboxed preview browser blocks the app's automatic anonymous sign-in (a tooling/sandbox
     quirk, confirmed via direct API calls that the backend itself works fine). Since then, #6 and
-    #7 (below) got real code-level root causes and fixes instead of waiting on that retest, and
-    #8b/#14 were already fixed the same way earlier. Only **#15** still needs a live repro — see
-    that entry for why (the reported destination doesn't yet match any confirmed code path).
+    #7 got real code-level root causes and fixes, and #8/#14/#15 turned out to be one connected
+    bug (the paused/liked section was built correctly but never mounted on a real screen) — now
+    fixed for real, see the 2026-07-27 finding above. None of this round's bugs are still open;
+    all fixes still want a live UI pass once the sandbox sign-in block is resolved.
   - **Also noticed in passing:** seed quest `q-m-04` ("Digital sunset: no screens after 9 p.m.")
     is an existing abstention-style quest that now violates the round-1 decision in
     `docs/quest-content-guidelines.md` (rule #1, "no don't-do-X quests"). Content cleanup, not
@@ -205,14 +239,14 @@ mentor wrote them — are preserved in
 5. ~~Recommended quest disappears after you pick it → leaves a huge empty window~~ — **moved to "To decide" below** (it's a recommendation-behavior design question, not a pure bug — see decision #6 there).
 6. **Quest doesn't disappear after completion** (it should) — E, **Mar** (2 testers). ✅ **Real cause found and fixed (2026-07-27).** Traced every status filter and the backend write path and found nothing wrong there (that part of the earlier investigation stands). The actual bug: on the "Every step is done" screen, the secondary exit link was labeled **"Back to journey"** — it does *not* complete the quest, but nothing said so. A tester who read "every step is done" as "I'm finished" and tapped that link (instead of the primary "Complete quest" button) would leave the quest permanently active, with no sign anything was skipped — exactly matching "doesn't disappear after completion." Relabeled to **"Not yet — keep this active"** (`app/quest/run/[id].tsx`), so the two exits are no longer easy to confuse.
 7. **Social / message quest**: moves to step 2 but stays on the same screen with the same text — E. ✅ **Real cause found and fixed (2026-07-27).** The earlier "likely fixed by the schema migration" note was wrong — I later found that `enrichQuestWithJourney` already backfills full step content from a local catalog whenever the database's `action_steps` is empty, so quests never actually had zero steps for testers. The real bug: the quest runner's interaction components (`InputStepAction`, `TimerStepAction`, etc.) weren't `key`-ed by step id, so when two consecutive steps share the same interaction kind — exactly the case for `q-w-05` ("Message someone"), whose first two steps are both text-input — React reused the same component instance instead of remounting it, leaking the previous step's typed text (and, for timers, its running state) into the next step. Fixed by adding `key={step.id}` to every interaction branch in `renderInteraction` (`app/quest/run/[id].tsx`).
-8. **Leave doesn't save progress** (unlike the back arrow) — E; and **neither back arrow nor Leave returns to home** — D. ✅ **Both halves fixed.** "Returns to home" fixed earlier (see 2026-07-22 above). For "doesn't save progress": verified via live API round-trip that `moveActiveQuestToLater` (what Leave calls) never touches `step_progress_v2` — the data was never actually lost. The **real bug** was that the "Liked" card (where a left quest reappears) showed zero progress indicator and a generic "Start now" button, so a quest with steps already done looked indistinguishable from a fresh one. Fixed: the Liked card now shows "X/Y steps done" and switches the button to "Resume" once any step is complete (`components/journey/JourneyQuestHub.tsx`).
+8. **Leave doesn't save progress** (unlike the back arrow) — E; and **neither back arrow nor Leave returns to home** — D. ✅ **Fixed for real (2026-07-27).** "Returns to home" fixed earlier (see 2026-07-22 above). For "doesn't save progress": verified via live API round-trip that `moveActiveQuestToLater` (what Leave calls) never touches `step_progress_v2` — the data was never actually lost. The **real bug** was that the "Liked" card (where a left quest reappears) showed zero progress indicator and a generic "Start now" button, so a quest with steps already done looked indistinguishable from a fresh one. Built the progress badge + Resume/Begin split, but into `JourneyQuestHub.tsx` — a component that turned out to never be mounted anywhere (see the finding above). Now moved into `components/journey/PausedAndLikedSections.tsx`, rendered on the actual live Journey tab.
 9. **Memory crops the image** — T. ✅ **Fixed** — see above.
 10. **Tab menu doesn't highlight** the active tab when switching — D. ✅ **Fixed** — see above.
 11. **Feedback form**: user doesn't know how to submit + it doesn't disappear after sending — E. ✅ **Fixed** — see above.
 12. **Can't go back a step in the quest runner** — from step 2 there is no way back to step 1 — Mar. ✅ **Fixed** — see above ("Back a step").
 13. ~~"Likes" may not work + unclear purpose~~ — **moved to "To decide" below** (decision #7 — what liking is even *for* needs settling before the mechanism can be judged working or broken).
-14. **After leaving/closing a quest it's hard to find again, and looks different in Journey** — Mar closed a quest, didn't know where it went, later found it via Journey where it looked different from where he'd left it. ✅ **Fixed** — root cause was that leaving a half-done quest dumped it into the **"Liked"** wishlist bucket (`Leave` → `saved_for_later`), mixing "hearted, never started" with "was 2/3 through it". Note the app *did* tell him where it went ("You will find it under Journey → Liked") and he still lost it — the destination *name* was the problem, not the messaging. Now split into two sections: **"Pick up where you left off"** (has progress) above **"Liked"** (wishlist), same card identity in both with only the action verb changing (Begin / Resume). No schema change — the split is derived from step progress. Leave dialogs now name the correct destination.
-15. **Pausing a quest with the stopwatch running "redirects" somewhere, and nothing shows up there** — reported by the mentor (2026-07-27), exact destination not yet confirmed even by Standa ("we need to find out where"). 🔍 **Still needs reproduction — exact destination unknown.** Leading hypothesis, unconfirmed: the Leave-confirmation copy uses the word "progress" ("your progress stays saved") while pointing to the Journey tab — easy to misread as a promise that the main **Progress tab** will show something, when it never was designed to. The mentor also expected to see **Liked** quests in that same place. 🔧 *Possibly related fix applied while investigating #6:* the "Every step is done" screen had the same class of bug — an exit link that silently didn't do what a reasonable person would assume — now relabeled from "Back to journey" to "Not yet — keep this active". If the mentor's "stopwatch → progress" moment happened via that same screen, this may already resolve it; still logged as open until confirmed, since the reported destination doesn't fully match this screen's actual behavior.
+14. **After leaving/closing a quest it's hard to find again, and looks different in Journey** — Mar closed a quest, didn't know where it went, later found it via Journey where it looked different from where he'd left it. ✅ **Fixed for real (2026-07-27).** Root cause was that leaving a half-done quest dumped it into the **"Liked"** wishlist bucket (`Leave` → `saved_for_later`), mixing "hearted, never started" with "was 2/3 through it". Designed the split ("Pick up where you left off" above "Liked", same card, Begin/Resume verb) on 2026-07-26, but built it into a component that was never mounted on any real screen (see the finding above) — so this never actually reached Mar or any tester. Now mounted on the real Journey tab via `components/journey/PausedAndLikedSections.tsx`.
+15. **Pausing a quest with the stopwatch running "redirects" somewhere, and nothing shows up there** — reported by the mentor (2026-07-27). ✅ **Real cause found and fixed (2026-07-27).** Standa reproduced it precisely: leaving mid-quest showed the correct dialog ("find it in Journey under 'Pick up where you left off'"), but that section didn't exist anywhere he could actually navigate to. Cause: the entire paused/liked-section UI (built for #8 and #14) lived in `components/journey/JourneyQuestHub.tsx`, a component `git grep` confirms was never imported by any screen — the real Journey tab has always rendered a different, plain catalog-browser component instead. Fixed by moving that logic into the live screen and deleting the orphaned component. Not independently live-verified (sandboxed browser still blocks automatic sign-in), but high confidence given the exact match to Standa's own repro and the concrete git-history proof of the orphaned component.
 
 ---
 
@@ -346,11 +380,12 @@ later product call; no decision made yet.
    confirm it did anything. Before touching the code, decide what liking should communicate to
    the user (a bookmark? a preference signal? something else?) and how it should visibly confirm
    itself.
-8. ~~What should "leaving/closing a quest" actually leave behind?~~ ✅ **Decided and built**
-   (2026-07-26). Decision: a left quest's resting place depends on whether it has progress —
-   quests with steps done go to a dedicated **"Pick up where you left off"** section, quests
-   with none stay in **"Liked"** (pure wishlist). One card identity across both; only the action
-   verb changes (Begin / Resume). Derived from step progress, so no schema change. See bug #14.
+8. ~~What should "leaving/closing a quest" actually leave behind?~~ ✅ **Decided (2026-07-26),
+   actually built and shipped (2026-07-27)** — the first build lived in a component the app never
+   rendered (see bug #14/#15). Decision: a left quest's resting place depends on whether it has
+   progress — quests with steps done go to a dedicated **"Pick up where you left off"** section,
+   quests with none stay in **"Liked"** (pure wishlist). One card identity across both; only the
+   action verb changes (Begin / Resume). Derived from step progress, so no schema change.
 
 ---
 
