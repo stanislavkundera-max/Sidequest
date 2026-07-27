@@ -7,6 +7,10 @@ Items are tagged with the testers who raised them. Where multiple testers agree,
 the strongest prioritization signal and is called out inline. (Martin was a later follow-up
 session; his items are folded in here with the `Mar` tag.)
 
+The verbatim, unedited original notes this document triages — exactly as each tester and the
+mentor wrote them — are preserved in
+[`round-1-raw-notes.md`](round-1-raw-notes.md) for independent verification later.
+
 **NPS:** E 7 · D 6–7 · T 6 · M — no number ("not the target audience") · Mar — no number given.
 
 ---
