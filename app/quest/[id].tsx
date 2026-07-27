@@ -353,10 +353,12 @@ export default function QuestDetailScreen() {
           accentColor={accent}
         />
 
-        <View style={[styles.reflection, { borderLeftColor: accent }]}>
-          <Text style={styles.reflectionLabel}>Reflection</Text>
-          <Text style={styles.reflectionBody}>{quest.promptForReflection}</Text>
-        </View>
+        {!existingMemory ? (
+          <View style={[styles.reflection, { borderLeftColor: accent }]}>
+            <Text style={styles.reflectionLabel}>Reflection</Text>
+            <Text style={styles.reflectionBody}>{quest.promptForReflection}</Text>
+          </View>
+        ) : null}
 
         {error ? (
           <ErrorState

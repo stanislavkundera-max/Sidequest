@@ -824,16 +824,27 @@ function shouldAddCalendarReminderStep(quest: Quest): boolean {
   return explicitPlanning;
 }
 
+/**
+ * A step that already books a real slot with an external provider ("Book a
+ * session with an instructor") fixes a date/time as part of that action — a
+ * separate "put it on your calendar" step right after is redundant busywork,
+ * not a distinct task (tester feedback, Mar).
+ */
+function isRealBookingAction(firstStepTitle: string): boolean {
+  return /\bbook(?:ing)?\s+(?:a|an|or)\b/i.test(firstStepTitle);
+}
+
 function insertCalendarReminderStep(steps: QuestActionStep[]): QuestActionStep[] {
   if (steps.length === 0) return [CALENDAR_REMINDER_STEP];
   if (hasCalendarReminderStep(steps)) return steps;
 
-  const firstText = `${steps[0]?.title ?? ''} ${steps[0]?.detail ?? ''}`.toLowerCase();
+  const firstTitle = steps[0]?.title ?? '';
+  if (isRealBookingAction(firstTitle)) return steps;
+
+  const firstText = `${firstTitle} ${steps[0]?.detail ?? ''}`.toLowerCase();
   const putAfterFirst =
     /\b(pick|choose|plan|book|schedule|arrange)\b/.test(firstText) ||
-    /\b(pick|choose|plan|book|schedule|arrange)\b/.test(
-      (steps[0]?.title ?? '').toLowerCase()
-    );
+    /\b(pick|choose|plan|book|schedule|arrange)\b/.test(firstTitle.toLowerCase());
 
   if (putAfterFirst) {
     return [steps[0], CALENDAR_REMINDER_STEP, ...steps.slice(1)];

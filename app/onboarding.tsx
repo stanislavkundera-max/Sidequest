@@ -129,6 +129,11 @@ const FEATURE_ROWS: FeatureRow[] = [
     title: 'Collect memories',
     body: 'Log a short reflection and a photo, and watch your journey grow.',
   },
+  {
+    icon: 'layers-outline',
+    title: 'Go at your own pace',
+    body: 'Up to 3 quests active at once — weekly, monthly, or yearly, whichever fits.',
+  },
 ];
 
 const SCALE_VALUES: OnboardingScaleAnswer[] = [1, 2, 3, 4, 5];
@@ -337,8 +342,13 @@ export default function OnboardingScreen() {
           <View style={styles.stepWrap}>
             <Text style={styles.headline}>How it works</Text>
             <View style={styles.featureList}>
-              {FEATURE_ROWS.map((row) => (
-                <View key={row.title} style={styles.featureRow}>
+              {FEATURE_ROWS.map((row, index) => (
+                <View
+                  key={row.title}
+                  style={[
+                    styles.featureRow,
+                    index === FEATURE_ROWS.length - 1 && styles.featureRowLast,
+                  ]}>
                   <View style={styles.featureIcon}>
                     <Ionicons name={row.icon} size={22} color={Theme.accent} />
                   </View>
@@ -444,9 +454,9 @@ export default function OnboardingScreen() {
             </Text>
             <View style={styles.choiceWrap}>
               <ScaleQuestion
-                prompt="How connected do you feel to nature right now?"
-                lowLabel="Not at all"
-                highLabel="Very connected"
+                prompt="How much time have you spent in nature lately?"
+                lowLabel="Rarely"
+                highLabel="Often"
                 value={natureConnection}
                 onChange={setNatureConnection}
               />
@@ -464,7 +474,7 @@ export default function OnboardingScreen() {
         {step === 6 ? (
           <View style={styles.stepWrap}>
             <Text style={styles.headline}>
-              {isEditMode ? 'Your updated map is ready.' : 'Your map is ready.'}
+              {isEditMode ? 'Updated and ready.' : 'Almost set.'}
             </Text>
             <Text style={styles.subtext}>
               Based on your answers, here&apos;s where we&apos;d start. You can always explore the
@@ -716,17 +726,16 @@ const styles = StyleSheet.create({
     fontSize: 14,
     lineHeight: 20,
   },
-  featureList: { gap: 14, marginTop: 4 },
+  featureList: { gap: 4, marginTop: 4 },
   featureRow: {
     flexDirection: 'row',
     gap: 14,
     alignItems: 'flex-start',
-    backgroundColor: Theme.surface,
-    borderWidth: 1,
-    borderColor: Theme.border,
-    borderRadius: 16,
-    padding: 16,
+    paddingVertical: 14,
+    borderBottomWidth: 1,
+    borderBottomColor: Theme.border,
   },
+  featureRowLast: { borderBottomWidth: 0 },
   featureIcon: {
     width: 44,
     height: 44,

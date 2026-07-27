@@ -1,6 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import { memo } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 
 import { categoryAccentForCategoryId } from '@/lib/categoryAccent';
 
@@ -27,9 +27,9 @@ export function categoryMarkerIcon(categoryId: string): keyof typeof Ionicons.gl
 }
 
 /**
- * Marker face: a themed question mark. The "?" wears the category accent and a
- * tiny icon badge whispers the theme; tapping (revealing) swaps it for the
- * full category icon.
+ * Marker face: a small sparkle hints something is here, and a tiny icon badge
+ * whispers the theme; tapping (revealing) swaps it for the full category icon.
+ * Previously a large "?" — testers found it big and noisy (T, D).
  */
 export const CategoryMapMarkerGlyph = memo(function CategoryMapMarkerGlyph({
   categoryId,
@@ -45,14 +45,7 @@ export const CategoryMapMarkerGlyph = memo(function CategoryMapMarkerGlyph({
 
   return (
     <View style={{ width: size, height: size, alignItems: 'center', justifyContent: 'center' }}>
-      <Text
-        style={[
-          styles.question,
-          { fontSize: size * 0.8, lineHeight: size, color: accent },
-        ]}
-        accessibilityElementsHidden>
-        ?
-      </Text>
+      <Ionicons name="sparkles-outline" size={size * 0.48} color={accent} />
       <View style={[styles.badge, { backgroundColor: accent }]}>
         <Ionicons name={icon} size={size * 0.32} color="#fff" />
       </View>
@@ -61,10 +54,6 @@ export const CategoryMapMarkerGlyph = memo(function CategoryMapMarkerGlyph({
 });
 
 const styles = StyleSheet.create({
-  question: {
-    fontWeight: '800',
-    textAlign: 'center',
-  },
   badge: {
     position: 'absolute',
     right: -7,

@@ -154,6 +154,10 @@ export default function QuestRunScreen() {
   const [cheer, setCheer] = useState<string | null>(null);
   const [calendarHint, setCalendarHint] = useState<string | null>(null);
   const [calendarDeviceOk, setCalendarDeviceOk] = useState<boolean>(() => Platform.OS !== 'web');
+  // Tracks which step's Guide tip is expanded — collapsed by default (testers
+  // found it noisy always-on), and keyed by step id so moving to a new step
+  // doesn't carry over the previous step's expanded state.
+  const [tipExpandedStepId, setTipExpandedStepId] = useState<string | null>(null);
   const appStateRef = useRef<AppStateStatus>(AppState.currentState);
 
   useEffect(() => {
@@ -784,12 +788,31 @@ export default function QuestRunScreen() {
                 <Text style={styles.stepDetail}>{currentStep.detail}</Text>
               ) : null}
 
-              <View style={[styles.stepTipBlock, { borderLeftColor: `${accent}55` }]}>
-                <Text style={styles.stepTipLabel}>Guide</Text>
-                <Text style={styles.stepTipText}>
-                  {currentStep.tip ?? DEFAULT_JOURNEY_STEP_TIP}
-                </Text>
-              </View>
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel={
+                  tipExpandedStepId === currentStep.id ? 'Hide guide' : 'Show guide'
+                }
+                onPress={() =>
+                  setTipExpandedStepId((prev) =>
+                    prev === currentStep.id ? null : currentStep.id
+                  )
+                }
+                style={[styles.stepTipBlock, { borderLeftColor: `${accent}55` }]}>
+                <View style={styles.stepTipHeadRow}>
+                  <Text style={styles.stepTipLabel}>Guide</Text>
+                  <Ionicons
+                    name={tipExpandedStepId === currentStep.id ? 'chevron-up' : 'chevron-down'}
+                    size={14}
+                    color={Theme.textMuted}
+                  />
+                </View>
+                {tipExpandedStepId === currentStep.id ? (
+                  <Text style={styles.stepTipText}>
+                    {currentStep.tip ?? DEFAULT_JOURNEY_STEP_TIP}
+                  </Text>
+                ) : null}
+              </Pressable>
 
               {renderInteraction(currentStep)}
             </View>
@@ -950,6 +973,11 @@ const styles = StyleSheet.create({
     paddingLeft: 12,
     borderLeftWidth: 3,
     gap: 4,
+  },
+  stepTipHeadRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
   },
   stepTipLabel: {
     fontSize: 11,

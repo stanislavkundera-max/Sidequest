@@ -256,29 +256,29 @@ mentor wrote them — are preserved in
 - Nature + Adventure pre-selected with no "why" explanation — M. ✅ **Fixed** — categories start empty (prior commit).
 - "What are you after right now?" — confusing word order, can't picture anything — M. ✅ **Resolved** — that step (old `focus`) was replaced by the intensity question.
 - "How often do you feel isolated?" — too vague (generally vs. recently) — M. ✅ **Resolved** — current copy asks "recently felt isolated".
-- Nature-connection scale reads as "how much you *like* nature", not how much time you spend in it — Mar. (Ambiguity on the step-5 baseline scale.)
+- Nature-connection scale reads as "how much you *like* nature", not how much time you spend in it — Mar. ✅ **Fixed (2026-07-27)** — reworded to "How much time have you spent in nature lately?" / Rarely ↔ Often.
 - "disconnected from people" reads as "don't get *along* with people", not lonely/isolated — Mar. ✅ **Fixed** — reworded to "lonely or isolated".
-- "How it works" invites tapping — users try to click the rows even though they aren't interactive — Mar (D noted the same).
-- Quest frequency not explained with numbers — M.
+- "How it works" invites tapping — users try to click the rows even though they aren't interactive — Mar (D noted the same). ✅ **Fixed (2026-07-27)** — those rows used the exact same card chrome (border, radius, background) as the genuinely-tappable option cards two steps later; stripped that to a plain row with a thin bottom divider so it no longer reads as a button.
+- Quest frequency not explained with numbers — M. ✅ **Fixed (2026-07-27)** — added a 4th "How it works" row: "Go at your own pace — Up to 3 quests active at once — weekly, monthly, or yearly, whichever fits."
 - Compass in the middle of the first-screen image is distracting — T. ✅ **Fixed** — removed the centered compass badge from the welcome hero.
 - "How much time do you have" → "how much time do you want to dedicate" — D. ✅ **Fixed**.
-- "Your map is ready" → rename to "Almost set"; bottom text too long — D. 🔧 *Bottom footnote shortened; headline kept as "Your map is ready" (rename to "Almost set" not done).*
+- "Your map is ready" → rename to "Almost set"; bottom text too long — D. ✅ **Fixed (2026-07-27)** — headline now "Almost set." (edit mode: "Updated and ready."); footnote was already shortened.
 - "What pulls you" duplicates the category selection — T. ✅ **Fixed** — see above (Theme/Time/Intensity reframe).
 
 ### Quests / detail
 - **Quest length**: daily / weekly / monthly doesn't make sense → reframe as *how much time it takes* — M, E, D, Mar (4 testers). Mar's concrete example: an Adventure "monthly · 720 minutes" quest reads as hopelessly abstract. 🔧 *Duration humanized (720 min → "12 h") — see above. The weekly/monthly/yearly cadence relabel still open (needs product call, tied to limits).*
-- The in-quest **"Guide"** tip block is disliked / feels like extra noise — D, Mar.
-- Merge the "book / arrange" step with the calendar step so scheduling is a single action — Mar.
+- The in-quest **"Guide"** tip block is disliked / feels like extra noise — D, Mar. ✅ **Fixed (2026-07-27)** — collapsed by default, with a small chevron to expand; was always-visible italic text pushed above the step's interaction.
+- Merge the "book / arrange" step with the calendar step so scheduling is a single action — Mar. ✅ **Fixed (2026-07-27)** — the 3 quests where step 1 books a real slot with a provider (`q-m-05`, `q-m-06`, `q-y-02`) no longer get the auto-inserted "put it on your calendar" step right after — booking with a provider already fixes a date/time, so the second step was pure busywork. Other quests that just say "pick a day" (no external provider) still get the calendar-reminder step, since those genuinely need a separate nudge to commit.
 - Wrap-up message looks like an **error** / disliked notification — E, T. ✅ **Fixed** — warmed the completion title + rewrote the error-like calendar copy (browser-native dialog chrome on web is unchanged).
 - "I scheduled it" → "let's schedule it" — D. ✅ **Fixed** — the web calendar-step button now reads "Let's schedule it" (the in-dialog confirm stays "I scheduled it" as a past-tense attestation).
 - "wrap up quest" unclear → "every step is done" — D. ✅ **Fixed** — see above.
-- Progress quest detail: too much text + duplicates the memory → split them, less text — T.
+- Progress quest detail: too much text + duplicates the memory → split them, less text — T. ✅ **Fixed (2026-07-27)** — the static "Reflection" prompt block on quest detail now hides once a memory already exists for that quest (the memory itself has the real content; repeating the same generic prompt next to "View memory" was the duplication).
 - Sort the activity list by completion time (newest first) — D. ✅ **Already satisfied** — the completed list sorts newest-first (`ProgressQuestHub.tsx`, `CompletedShowcase.tsx`). Active list is oldest-started-first by design.
-- "World???" as a category name is confusing — E. ⚠️ **Couldn't locate** — no "World" label in code; likely a Supabase-sourced category name (`categories.name`), so rename lives in the DB/dashboard, not the repo.
-- Progress tab icon disliked — T.
+- "World???" as a category name is confusing — E. ⚠️ **Couldn't locate** — no "World" label in code; likely a Supabase-sourced category name (`categories.name`), so rename lives in the DB/dashboard, not the repo — action item for Standa, not a code fix.
+- Progress tab icon disliked — T. ✅ **Fixed (2026-07-27)** — swapped the FontAwesome "user" (reads as Profile/Account) for "trophy", matching the tab's actual content (a showcase of completed quests).
 
 ### Explore map
-- Question marks → prefer icons, smaller / cleaner — T, D.
+- Question marks → prefer icons, smaller / cleaner — T, D. ✅ **Fixed (2026-07-27)** — unrevealed map markers no longer show a large "?" glyph; replaced with a small `sparkles-outline` icon, keeping the tiny category-accent badge in the corner.
 - "Likes" are confusing — what they mean, why they exist, and whether they even work — E, Mar. (See bug #13.)
 
 ### Memory
