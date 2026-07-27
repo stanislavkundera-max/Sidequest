@@ -45,18 +45,21 @@ few pre-existing ones surfaced along the way:
   only applies to completed quests with a real memory and un-hides itself if that memory is later
   deleted (reactive on the memories store); the Guide-tip collapse only hides supplementary text,
   never the step's title/detail.
-- **Pre-existing issues found, not caused by today's work — flagged, not touched:**
-  - `app/quest/active.tsx` is a full "Active path" screen that nothing in the app links to
-    (`git grep` confirms zero references) — same orphaned-screen pattern as the deleted
-    `JourneyQuestHub.tsx`, and its copy ("saved ideas live on the Journey tab") is now stale too.
-  - `components/progress/ProgressQuestHub.tsx` is also unused anywhere — and was cited in this
-    doc's bug #10 fix as contributing to the newest-first sort. Verified `CompletedShowcase.tsx`
-    alone genuinely does that sort correctly, so the fix still holds; only the citation of the
-    second file was misleading.
+- **Pre-existing issues found, not caused by today's work:**
   - Two alert strings told users to "use the Journey tab to let one wait" (`app/quest/select.tsx`,
     `app/quest/run/[id].tsx`) — inaccurate regardless of today's changes, since Journey (the plain
     catalog) has never had a "let it wait" control; that lives on a quest's own detail page.
     Corrected both to say that directly.
+  - Two more orphaned, never-mounted files found the same way `JourneyQuestHub.tsx` was: a full
+    "Active path" screen (`app/quest/active.tsx`, zero references anywhere — not even a Stack
+    registration in `app/_layout.tsx`) and `components/progress/ProgressQuestHub.tsx` (unused,
+    but wrongly cited below in bug #10's fix note as contributing to the sort order — verified
+    `CompletedShowcase.tsx` alone genuinely does that sort correctly). Standa confirmed neither
+    relates to anything on the roadmap — **deleted both**, and corrected the stale references to
+    `ProgressQuestHub.tsx` in `AGENTS.md` and `docs/journey-visual-style.md` (which described it as
+    the live Progress-tab UI). Also found `app/quest/completed.tsx` is orphaned the same way (has a
+    `Stack.Screen` registration but no actual navigation call anywhere) — flagged, not touched, since
+    it wasn't part of what was confirmed.
 
 ---
 
@@ -341,7 +344,7 @@ Standa tried the app after the fix-now batch above and reported two things direc
 - "I scheduled it" → "let's schedule it" — D. ✅ **Fixed** — the web calendar-step button now reads "Let's schedule it" (the in-dialog confirm stays "I scheduled it" as a past-tense attestation).
 - "wrap up quest" unclear → "every step is done" — D. ✅ **Fixed** — see above.
 - Progress quest detail: too much text + duplicates the memory → split them, less text — T. ✅ **Fixed (2026-07-27)** — the static "Reflection" prompt block on quest detail now hides once a memory already exists for that quest (the memory itself has the real content; repeating the same generic prompt next to "View memory" was the duplication).
-- Sort the activity list by completion time (newest first) — D. ✅ **Already satisfied** — the completed list sorts newest-first (`ProgressQuestHub.tsx`, `CompletedShowcase.tsx`). Active list is oldest-started-first by design.
+- Sort the activity list by completion time (newest first) — D. ✅ **Already satisfied** — the completed list sorts newest-first (`CompletedShowcase.tsx`). Active list is oldest-started-first by design. *(Correction 2026-07-27: originally also credited `ProgressQuestHub.tsx`, which turned out to be unused dead code — deleted; `CompletedShowcase.tsx` alone was always the real source of this behavior.)*
 - "World???" as a category name is confusing — E. ⚠️ **Couldn't locate** — no "World" label in code; likely a Supabase-sourced category name (`categories.name`), so rename lives in the DB/dashboard, not the repo — action item for Standa, not a code fix.
 - Progress tab icon disliked — T. ✅ **Fixed (2026-07-27)** — swapped the FontAwesome "user" (reads as Profile/Account) for "trophy", matching the tab's actual content (a showcase of completed quests).
 

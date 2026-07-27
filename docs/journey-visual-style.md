@@ -2,7 +2,7 @@
 
 **Audience:** Humans + AI agents implementing the Journey tab. These rules are **binding** for Journey work unless the product owner explicitly changes them.
 
-**Scope:** `app/(tabs)/journey.tsx`, `components/journey/**`, `src/features/journey/**`. Shared hub chrome in `components/journey/journeyHubStyles.ts` also applies to the Progress quest hub (`components/progress/ProgressQuestHub.tsx`); keep both aligned when changing chips, timeframe strips, or discover rows. Avoid unrelated screens unless wiring requires a minimal, justified touch.
+**Scope:** `app/(tabs)/journey.tsx`, `components/journey/**`, `src/features/journey/**`. Shared hub chrome lives in `components/journey/journeyHubStyles.ts`, reused by `components/journey/PausedAndLikedSections.tsx` (rendered on the Progress tab, `app/(tabs)/profile/ProgressOverview.tsx`) — keep both aligned when changing chips, timeframe strips, or discover rows. Avoid unrelated screens unless wiring requires a minimal, justified touch.
 
 ---
 
@@ -101,7 +101,7 @@ Do **not** block Journey UX on Rive/Lottie for the full scene; use them only for
 
 ## Progress tab — hub list parity
 
-The **Progress** tab (`components/progress/ProgressQuestHub.tsx`) reuses the **same hub discover chrome** as the Journey catalog hub (`components/journey/journeyHubStyles.ts`): horizontal chips, timeframe hero imagery (`journeyBackgroundForTimeframe`), and discover-style quest rows. It does **not** embed the Journey world scene, path spine, or lateral artifacts. When tuning hub visuals, update the shared stylesheet so Journey and Progress stay aligned unless the product intentionally diverges them.
+The **Progress** tab (`app/(tabs)/profile/ProgressOverview.tsx`) shows paused/liked quests via `components/journey/PausedAndLikedSections.tsx`, reusing the **same hub discover chrome** as the Journey catalog (`components/journey/journeyHubStyles.ts`): discover-style quest rows and card treatment. It does **not** embed the Journey world scene, path spine, chips, timeframe hero imagery, or lateral artifacts — that richer chrome was built once (`components/journey/JourneyQuestHub.tsx` and `components/progress/ProgressQuestHub.tsx`, both removed 2026-07-27 as unused dead code — see `docs/feedback/round-1-synthesis.md`) but never actually wired to a live screen. When tuning hub visuals, update the shared stylesheet so Journey and Progress stay aligned unless the product intentionally diverges them.
 
 ---
 

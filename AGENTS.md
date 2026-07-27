@@ -31,7 +31,7 @@ Repository language is **English** unless the user explicitly asks for another l
 - **Quests must be concrete and short:** Real-world executable, no vague “be mindful” filler. When writing quest content, follow **`docs/quest-content-guidelines.md`** (rule #1: quests are about *doing*, never *abstaining* — no "don't use your phone" restriction quests).
 - **Calm, grounded UI:** Earth/neutral palette and restrained typography—see `constants/Theme.ts` before changing colors or adding loud UI patterns.
 - **Journey tab visuals & motion:** Follow **`docs/journey-visual-style.md`** (path spine, markers, artifacts, taps, Reanimated tone). Do not drift Journey toward generic gamified UI without updating that doc intentionally.
-- **Progress tab list UI:** Reuses the **hub discover** chrome shared with the Journey catalog hub (`components/journey/journeyHubStyles.ts`, `components/progress/ProgressQuestHub.tsx`) — not the Journey world canvas. Keep list styling aligned with that pattern.
+- **Progress tab list UI:** Reuses the **hub discover** chrome shared with the Journey catalog (`components/journey/journeyHubStyles.ts`, `components/journey/PausedAndLikedSections.tsx`) — not the Journey world canvas. Keep list styling aligned with that pattern.
 - **No aggressive reward loops:** Avoid streak pressure, endless notifications, or instant-reward psychology dressed as “wellness.”
 
 ---
