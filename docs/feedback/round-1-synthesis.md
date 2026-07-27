@@ -15,6 +15,29 @@ mentor wrote them — are preserved in
 
 ---
 
+## ✅ Fixed this session (2026-07-27, continued)
+
+- **Bugs #6 and #7 — actually fixed, not just verified.** Standa asked to keep pushing on these
+  as real fixes rather than waiting on a live-UI retest, so I dug deeper instead of stopping at
+  "investigated, no bug found":
+  - **#6 (quest doesn't disappear after completion):** found it — the "Every step is done" screen's
+    secondary exit was labeled "Back to journey" with no indication it *doesn't* complete the
+    quest. Reading "every step is done" as "I'm finished" and tapping that instead of "Complete
+    quest" leaves the quest active forever, invisibly. Relabeled to "Not yet — keep this active".
+  - **#7 (social/message quest stuck on step 2):** the earlier "fixed by the schema migration"
+    claim in this doc was wrong — corrected below. The real cause: quest-runner interaction
+    components had no `key={step.id}`, so React reused the same component instance across two
+    consecutive steps of the same kind (exactly `q-w-05`'s first two steps, both text-input),
+    leaking the previous step's typed text into the next one. Fixed with a `key` prop on every
+    interaction branch.
+  - Both required re-reading `src/constants/questJourneys.ts` and `enrichQuestWithJourney`
+    closely enough to realize the DB migration's "every quest had zero steps" framing was
+    incorrect — a richly-detailed local fallback was always active regardless of the DB state.
+    The migration itself is still correctly applied and still matters for `step_progress`
+    persistence and profile preferences; only the *step-content* part of that claim is retracted.
+
+---
+
 ## ✅ Fixed this session (2026-07-26)
 
 - **Memory section fix-now batch (T, Mar).** Photo hint added to quest detail before starting
@@ -61,13 +84,17 @@ mentor wrote them — are preserved in
     `intensity_preference`, with categories/pace/baseline scales never persisting. **This is the
     confirmed root cause of bug #4 ("Edit preferences doesn't work")** — no error shown, so it
     looked like a no-op bug rather than a schema gap.
-  - `quests`: `action_steps`, `journey_intro`, `suggested_group` missing entirely →
-    every quest had **zero guided steps**. The whole step-by-step runner (timers, calendar step,
-    "Guide" tips, step navigation) had no content to run on for any tester. Very likely a
-    contributing cause of **bug #7** ("social/message quest stays on the same screen") — with no
-    step data, the runner has nothing to advance to.
+  - `quests`: `action_steps`, `journey_intro`, `suggested_group` missing entirely from the DB.
+    **Correction (2026-07-27):** this turned out *not* to mean testers saw empty quests — I was
+    wrong to claim that originally. `enrichQuestWithJourney` (`src/constants/questJourneys.ts`)
+    already falls back to a full, richly-interactive step catalog whenever the DB's
+    `action_steps` is empty, and that fallback was always active. The migration still matters
+    (it's what makes the DB the real source of truth instead of silently relying on a hardcoded
+    fallback forever), but it is **not** the explanation for bug #7 — see the real cause found
+    below instead.
   - `user_quests`: `step_progress_v2` **and** legacy `step_progress` both missing → even where
     steps existed, completing one could never persist to the database (silently lost on refresh).
+    This part of the finding stands as originally described.
   - **Extra find:** `step_progress_v2` was never in `production_prep.sql`'s column list at all —
     only in `schema.sql`'s `CREATE TABLE IF NOT EXISTS`, which is a no-op on an existing table.
     Fixed in `supabase/production_prep.sql` (added `add column if not exists step_progress_v2`) so
@@ -77,12 +104,12 @@ mentor wrote them — are preserved in
     added `step_progress_v2` column. All verified end-to-end via direct REST calls (profile
     preference write/read round-trip, quest step content present, step completion + revert
     write/read round-trip) — not just "no error," actually confirmed the data persists correctly.
-  - **Not fully closed:** couldn't complete a live UI retest of #5/#6/#8b/#13/#14 in this session —
-    the sandboxed preview browser blocks the app's automatic anonymous sign-in (a tooling/sandbox
-    quirk, confirmed via direct API calls that the backend itself works fine). Recommend retesting
-    these five in a real browser (`npx expo start --web`, then a normal Chrome/Safari tab) now that
-    the schema is fixed — several may resolve on their own now that steps and preferences actually
-    persist.
+  - **Not fully closed at the time:** couldn't complete a live UI retest in this session — the
+    sandboxed preview browser blocks the app's automatic anonymous sign-in (a tooling/sandbox
+    quirk, confirmed via direct API calls that the backend itself works fine). Since then, #6 and
+    #7 (below) got real code-level root causes and fixes instead of waiting on that retest, and
+    #8b/#14 were already fixed the same way earlier. Only **#15** still needs a live repro — see
+    that entry for why (the reported destination doesn't yet match any confirmed code path).
   - **Also noticed in passing:** seed quest `q-m-04` ("Digital sunset: no screens after 9 p.m.")
     is an existing abstention-style quest that now violates the round-1 decision in
     `docs/quest-content-guidelines.md` (rule #1, "no don't-do-X quests"). Content cleanup, not
@@ -176,8 +203,8 @@ mentor wrote them — are preserved in
 ### High
 4. **Edit preferences doesn't work** — E. ✅ **Root cause fixed** — see schema-migration finding above. Preference writes now persist and verified end-to-end via API; UI retest still recommended.
 5. ~~Recommended quest disappears after you pick it → leaves a huge empty window~~ — **moved to "To decide" below** (it's a recommendation-behavior design question, not a pure bug — see decision #6 there).
-6. **Quest doesn't disappear after completion** (it should) — E, **Mar** (2 testers). 🔍 **Investigated, no bug found.** Traced every consumer of `user_quest.status` across Explore/Journey/Progress/questHelpers — all filter consistently. Reproduced the exact assign→complete→refetch sequence live via the Supabase REST API (not just code reading): status correctly flips to `completed` and every list-filter predicate in the codebase would exclude it. Best guess: this was the *same* symptom as the old wrap-up navigation bug (pre-2026-07-22 fix, completing a quest routed back to the quest **detail** screen instead of Journey) and may already be resolved as a side effect of that fix. Needs a live UI retest to actually close — could not reproduce further via static analysis or backend simulation alone.
-7. **Social / message quest**: moves to step 2 but stays on the same screen with the same text — E. 🔧 *Likely fixed as a side effect* — the matching quest (`q-w-05`, "Message someone...") had zero `action_steps` before the schema fix, so "step 2" had nothing to render; it now has real 3-step content. Needs live UI confirmation.
+6. **Quest doesn't disappear after completion** (it should) — E, **Mar** (2 testers). ✅ **Real cause found and fixed (2026-07-27).** Traced every status filter and the backend write path and found nothing wrong there (that part of the earlier investigation stands). The actual bug: on the "Every step is done" screen, the secondary exit link was labeled **"Back to journey"** — it does *not* complete the quest, but nothing said so. A tester who read "every step is done" as "I'm finished" and tapped that link (instead of the primary "Complete quest" button) would leave the quest permanently active, with no sign anything was skipped — exactly matching "doesn't disappear after completion." Relabeled to **"Not yet — keep this active"** (`app/quest/run/[id].tsx`), so the two exits are no longer easy to confuse.
+7. **Social / message quest**: moves to step 2 but stays on the same screen with the same text — E. ✅ **Real cause found and fixed (2026-07-27).** The earlier "likely fixed by the schema migration" note was wrong — I later found that `enrichQuestWithJourney` already backfills full step content from a local catalog whenever the database's `action_steps` is empty, so quests never actually had zero steps for testers. The real bug: the quest runner's interaction components (`InputStepAction`, `TimerStepAction`, etc.) weren't `key`-ed by step id, so when two consecutive steps share the same interaction kind — exactly the case for `q-w-05` ("Message someone"), whose first two steps are both text-input — React reused the same component instance instead of remounting it, leaking the previous step's typed text (and, for timers, its running state) into the next step. Fixed by adding `key={step.id}` to every interaction branch in `renderInteraction` (`app/quest/run/[id].tsx`).
 8. **Leave doesn't save progress** (unlike the back arrow) — E; and **neither back arrow nor Leave returns to home** — D. ✅ **Both halves fixed.** "Returns to home" fixed earlier (see 2026-07-22 above). For "doesn't save progress": verified via live API round-trip that `moveActiveQuestToLater` (what Leave calls) never touches `step_progress_v2` — the data was never actually lost. The **real bug** was that the "Liked" card (where a left quest reappears) showed zero progress indicator and a generic "Start now" button, so a quest with steps already done looked indistinguishable from a fresh one. Fixed: the Liked card now shows "X/Y steps done" and switches the button to "Resume" once any step is complete (`components/journey/JourneyQuestHub.tsx`).
 9. **Memory crops the image** — T. ✅ **Fixed** — see above.
 10. **Tab menu doesn't highlight** the active tab when switching — D. ✅ **Fixed** — see above.
@@ -185,7 +212,7 @@ mentor wrote them — are preserved in
 12. **Can't go back a step in the quest runner** — from step 2 there is no way back to step 1 — Mar. ✅ **Fixed** — see above ("Back a step").
 13. ~~"Likes" may not work + unclear purpose~~ — **moved to "To decide" below** (decision #7 — what liking is even *for* needs settling before the mechanism can be judged working or broken).
 14. **After leaving/closing a quest it's hard to find again, and looks different in Journey** — Mar closed a quest, didn't know where it went, later found it via Journey where it looked different from where he'd left it. ✅ **Fixed** — root cause was that leaving a half-done quest dumped it into the **"Liked"** wishlist bucket (`Leave` → `saved_for_later`), mixing "hearted, never started" with "was 2/3 through it". Note the app *did* tell him where it went ("You will find it under Journey → Liked") and he still lost it — the destination *name* was the problem, not the messaging. Now split into two sections: **"Pick up where you left off"** (has progress) above **"Liked"** (wishlist), same card identity in both with only the action verb changing (Begin / Resume). No schema change — the split is derived from step progress. Leave dialogs now name the correct destination.
-15. **Pausing a quest with the stopwatch running "redirects" somewhere, and nothing shows up there** — reported by the mentor (2026-07-27), exact destination not yet confirmed even by Standa ("we need to find out where"). 🔍 **Needs reproduction.** Leading hypothesis, unconfirmed: the Leave-confirmation copy uses the word "progress" ("your progress stays saved") while pointing to the Journey tab — easy to misread as a promise that the main **Progress tab** will show something, when it never was designed to. The mentor also expected to see **Liked** quests in that same place. Until reproduced, treat as open — don't guess-fix.
+15. **Pausing a quest with the stopwatch running "redirects" somewhere, and nothing shows up there** — reported by the mentor (2026-07-27), exact destination not yet confirmed even by Standa ("we need to find out where"). 🔍 **Still needs reproduction — exact destination unknown.** Leading hypothesis, unconfirmed: the Leave-confirmation copy uses the word "progress" ("your progress stays saved") while pointing to the Journey tab — easy to misread as a promise that the main **Progress tab** will show something, when it never was designed to. The mentor also expected to see **Liked** quests in that same place. 🔧 *Possibly related fix applied while investigating #6:* the "Every step is done" screen had the same class of bug — an exit link that silently didn't do what a reasonable person would assume — now relabeled from "Back to journey" to "Not yet — keep this active". If the mentor's "stopwatch → progress" moment happened via that same screen, this may already resolve it; still logged as open until confirmed, since the reported destination doesn't fully match this screen's actual behavior.
 
 ---
 

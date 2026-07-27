@@ -594,7 +594,7 @@ export default function QuestRunScreen() {
 
     if (step.action?.kind === 'calendar') {
       return (
-        <View style={styles.calendarBlock}>
+        <View key={step.id} style={styles.calendarBlock}>
           <PrimaryButton
             label={calendarDeviceOk ? 'Add to calendar' : "Let's schedule it"}
             loading={primaryBusy}
@@ -616,11 +616,18 @@ export default function QuestRunScreen() {
       );
     }
 
+    // Every branch below is keyed by step.id — without it, React reuses the
+    // same component instance whenever two consecutive steps share an
+    // interaction kind (e.g. two "input" steps in a row), leaking the
+    // previous step's local state (typed text, timer start, counter count)
+    // into the next one instead of resetting it. Reported by a tester as
+    // "moves to step 2 but the same screen with the same text stays".
     const interaction = step.interaction ?? { kind: 'confirm' as const };
     switch (interaction.kind) {
       case 'timer':
         return (
           <TimerStepAction
+            key={step.id}
             userQuestId={activeUq.id}
             stepId={step.id}
             minSeconds={interaction.minSeconds}
@@ -633,6 +640,7 @@ export default function QuestRunScreen() {
       case 'input':
         return (
           <InputStepAction
+            key={step.id}
             prompt={interaction.prompt}
             minChars={interaction.minChars}
             placeholder={interaction.placeholder}
@@ -643,6 +651,7 @@ export default function QuestRunScreen() {
       case 'counter':
         return (
           <CounterStepAction
+            key={step.id}
             prompt={interaction.prompt}
             count={interaction.count}
             itemLabel={interaction.itemLabel}
@@ -654,6 +663,7 @@ export default function QuestRunScreen() {
       case 'photo':
         return (
           <PhotoStepAction
+            key={step.id}
             prompt={interaction.prompt}
             busy={primaryBusy}
             onComplete={(ev) => void finishStep(step.id, ev)}
@@ -661,7 +671,11 @@ export default function QuestRunScreen() {
         );
       default:
         return (
-          <ConfirmStepAction busy={primaryBusy} onComplete={(ev) => void finishStep(step.id, ev)} />
+          <ConfirmStepAction
+            key={step.id}
+            busy={primaryBusy}
+            onComplete={(ev) => void finishStep(step.id, ev)}
+          />
         );
     }
   }
@@ -815,7 +829,7 @@ export default function QuestRunScreen() {
             />
             <Pressable
               accessibilityRole="button"
-              accessibilityLabel="Back to quest without completing"
+              accessibilityLabel="Not yet — keep this quest active without completing it"
               disabled={primaryBusy}
               onPress={() => router.replace('/(tabs)/journey')}
               style={({ pressed }) => [
@@ -823,7 +837,7 @@ export default function QuestRunScreen() {
                 primaryBusy && { opacity: 0.45 },
                 pressed && !primaryBusy && { opacity: 0.75 },
               ]}>
-              <Text style={styles.doneBackLinkText}>Back to journey</Text>
+              <Text style={styles.doneBackLinkText}>Not yet — keep this active</Text>
             </Pressable>
           </View>
         )}
