@@ -175,14 +175,6 @@ function RootLayoutNav() {
             }}
           />
           <Stack.Screen
-            name="quest/completed"
-            options={{
-              title: 'Completed',
-              headerBackTitle: 'Back',
-              presentation: 'card',
-            }}
-          />
-          <Stack.Screen
             name="memory/new"
             options={{
               title: 'New memory',

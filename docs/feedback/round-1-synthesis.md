@@ -50,16 +50,18 @@ few pre-existing ones surfaced along the way:
     `app/quest/run/[id].tsx`) — inaccurate regardless of today's changes, since Journey (the plain
     catalog) has never had a "let it wait" control; that lives on a quest's own detail page.
     Corrected both to say that directly.
-  - Two more orphaned, never-mounted files found the same way `JourneyQuestHub.tsx` was: a full
+  - Three more orphaned, never-mounted files found the same way `JourneyQuestHub.tsx` was: a full
     "Active path" screen (`app/quest/active.tsx`, zero references anywhere — not even a Stack
-    registration in `app/_layout.tsx`) and `components/progress/ProgressQuestHub.tsx` (unused,
-    but wrongly cited below in bug #10's fix note as contributing to the sort order — verified
-    `CompletedShowcase.tsx` alone genuinely does that sort correctly). Standa confirmed neither
-    relates to anything on the roadmap — **deleted both**, and corrected the stale references to
+    registration in `app/_layout.tsx`), `components/progress/ProgressQuestHub.tsx` (unused, but
+    wrongly cited below in bug #10's fix note as contributing to the sort order — verified
+    `CompletedShowcase.tsx` alone genuinely does that sort correctly), and a full "Completed
+    quests" screen (`app/quest/completed.tsx` — had a `Stack.Screen` registration in
+    `app/_layout.tsx` giving it a header, but no actual navigation call anywhere reaches it; `git
+    log` shows it predates even the Journey/Progress rework, from the app's earlier flat-list era).
+    Standa confirmed none relate to anything on the roadmap — **deleted all three**, removed the
+    dangling `quest/completed` Stack registration, and corrected the stale references to
     `ProgressQuestHub.tsx` in `AGENTS.md` and `docs/journey-visual-style.md` (which described it as
-    the live Progress-tab UI). Also found `app/quest/completed.tsx` is orphaned the same way (has a
-    `Stack.Screen` registration but no actual navigation call anywhere) — flagged, not touched, since
-    it wasn't part of what was confirmed.
+    the live Progress-tab UI).
 
 ---
 
