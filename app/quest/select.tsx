@@ -176,7 +176,7 @@ export default function QuestSelectionScreen() {
         <Text style={styles.title}>Pick your quests</Text>
         <Text style={styles.sub}>
           Choose a category, then browse by cadence. Your active path fits up to {MAX_ACTIVE_QUESTS}{' '}
-          quests at once — use the Journey tab to let one wait or tap the heart on a new pick when you want room.
+          quests at once — open one and let it wait, or tap the heart on a new pick when you want room.
         </Text>
         <Text style={styles.pathLine}>
           On your active path now: {activePathCount} / {MAX_ACTIVE_QUESTS}

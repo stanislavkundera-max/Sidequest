@@ -232,7 +232,9 @@ export default function QuestRunScreen() {
         timeframe: quest.timeframe,
         category: quest.categoryId,
       }).catch(() => undefined);
-      router.replace('/(tabs)/journey');
+      // The Leave dialog promises "find it in Progress" (paused/liked live
+      // there, not on the Journey catalog) — land where that's actually true.
+      router.replace('/(tabs)/profile');
     } catch (e: unknown) {
       logError('quest.runner.leaveQuest', e, { questId: quest.id, userQuestId: activeUq.id });
       alertCompat('Error', e instanceof Error ? e.message : 'Could not leave this quest.');
@@ -338,7 +340,7 @@ export default function QuestRunScreen() {
         alertCompat(
           'Cannot begin',
           r.reason === 'active_path_full'
-            ? 'Your active path is full. Let one quest wait on the Journey tab, then try again.'
+            ? 'Your active path is full. Open one of your active quests and let it wait, then try again.'
             : 'Could not begin quest.'
         );
         return;
@@ -419,7 +421,9 @@ export default function QuestRunScreen() {
         logError('quest.runner.autoMemory', memoryError, { questId: quest.id });
       }
 
-      router.replace('/(tabs)/journey');
+      // Completed quests show up in Progress (the completed-quests showcase),
+      // not the plain Journey catalog — land where the result is visible.
+      router.replace('/(tabs)/profile');
       if (memoryId) {
         alertTwoChoice('Nice work — quest complete', 'Saved to your memories.', {
           cancel: { text: 'OK' },
@@ -854,7 +858,10 @@ export default function QuestRunScreen() {
               accessibilityRole="button"
               accessibilityLabel="Not yet — keep this quest active without completing it"
               disabled={primaryBusy}
-              onPress={() => router.replace('/(tabs)/journey')}
+              // The quest stays active here — Journey is just the plain
+              // catalog now, with no trace of it. The quest's own detail page
+              // always shows "Continue quest" for whatever is still active.
+              onPress={() => router.replace(`/quest/${quest.id}`)}
               style={({ pressed }) => [
                 styles.doneBackLink,
                 primaryBusy && { opacity: 0.45 },

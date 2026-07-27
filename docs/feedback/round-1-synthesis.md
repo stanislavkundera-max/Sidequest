@@ -15,6 +15,51 @@ mentor wrote them — are preserved in
 
 ---
 
+## 🔍 Self-audit (2026-07-27) — Standa asked me to check my own work the same way
+
+Standa asked me to re-check everything from today with the same "can I undo it, does it lead
+somewhere correct" logic used for the unlike fix. Found two real problems in my own work and a
+few pre-existing ones surfaced along the way:
+
+- **Bug I introduced: the calendar-step merge (item 6 in Fix-now) silently deleted real
+  functionality instead of merging it — reverted.** The 3 "book a slot/instructor/night away"
+  quests I "fixed" have their first step ask a plain text question ("which organization, and
+  when's your shift?") — not an actual device-calendar action. The calendar-reminder step I
+  suppressed was the *only* thing that ever added a real event to the user's phone calendar for
+  these quests. Checked the runner code: a step's UI is chosen by `action.kind === 'calendar'`
+  first, falling back to `interaction.kind` — the two can't coexist on one step today, so there
+  was no way to actually merge them without a runner change I hadn't scoped or asked about.
+  Reverted `src/constants/questJourneys.ts` to its pre-fix state; these 3 quests keep their
+  separate calendar-reminder step. A real merge (if still wanted) needs a proper follow-up, not a
+  quick regex change.
+- **Bug I introduced: 3 navigation destinations in the runner still pointed at Journey after
+  today's Progress-tab move, contradicting the promised destination.** `app/quest/run/[id].tsx`
+  had `router.replace('/(tabs)/journey')` after Leave, after completing a quest, and on "Not yet —
+  keep this active" — all stale once paused/liked quests moved to Progress. Fixed: Leave and
+  quest-completion now land on `/(tabs)/profile` (where the result is actually visible); "Not yet —
+  keep this active" (quest stays active, not paused) now goes to the quest's own detail page
+  instead, since neither Journey nor Progress highlights a specific active quest.
+- **Verified as correct, no changes needed:** Unlike deletes the row and makes the quest
+  re-eligible for Recommended/Liked; Resume/Begin correctly reactivates the same row via
+  `assignQuestToUser`'s "reopen" branch without touching step progress; the Reflection-hide fix
+  only applies to completed quests with a real memory and un-hides itself if that memory is later
+  deleted (reactive on the memories store); the Guide-tip collapse only hides supplementary text,
+  never the step's title/detail.
+- **Pre-existing issues found, not caused by today's work — flagged, not touched:**
+  - `app/quest/active.tsx` is a full "Active path" screen that nothing in the app links to
+    (`git grep` confirms zero references) — same orphaned-screen pattern as the deleted
+    `JourneyQuestHub.tsx`, and its copy ("saved ideas live on the Journey tab") is now stale too.
+  - `components/progress/ProgressQuestHub.tsx` is also unused anywhere — and was cited in this
+    doc's bug #10 fix as contributing to the newest-first sort. Verified `CompletedShowcase.tsx`
+    alone genuinely does that sort correctly, so the fix still holds; only the citation of the
+    second file was misleading.
+  - Two alert strings told users to "use the Journey tab to let one wait" (`app/quest/select.tsx`,
+    `app/quest/run/[id].tsx`) — inaccurate regardless of today's changes, since Journey (the plain
+    catalog) has never had a "let it wait" control; that lives on a quest's own detail page.
+    Corrected both to say that directly.
+
+---
+
 ## ✅ Fixed this session (2026-07-27, after live use)
 
 Standa tried the app after the fix-now batch above and reported two things directly:
