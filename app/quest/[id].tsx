@@ -389,7 +389,7 @@ export default function QuestDetailScreen() {
             />
             <Pressable
               accessibilityRole="button"
-              accessibilityLabel="Let this quest wait; find it under Journey Liked"
+              accessibilityLabel="Let this quest wait; find it under Progress Liked"
               onPress={requestDeactivate}
               disabled={acting || pending}
               style={({ pressed }) => [

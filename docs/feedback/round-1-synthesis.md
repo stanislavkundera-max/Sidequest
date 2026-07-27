@@ -15,6 +15,29 @@ mentor wrote them — are preserved in
 
 ---
 
+## ✅ Fixed this session (2026-07-27, after live use)
+
+Standa tried the app after the fix-now batch above and reported two things directly:
+
+- **Bug: no way to unlike a quest.** The heart/"Like" action only ever wrote
+  `saved_for_later` — there was no reverse action anywhere in the codebase (`git grep` confirmed
+  zero "unlike"/remove call sites). Once liked, a quest was stuck in "Liked" forever with no exit
+  besides starting it for real. Added a real unlike: `removeSavedForLaterQuest` (repository) +
+  `unlikeQuest` (store) delete the row outright — safe because a zero-progress "Liked" row only
+  ever existed to record the like, there is no data to preserve. Surfaced as an "Unlike" button
+  next to Begin, shown only on zero-progress Liked cards (`components/journey/PausedAndLikedSections.tsx`)
+  — paused ("Pick up where you left off") cards keep Resume only, since removing those would
+  silently drop real step progress.
+- **"Pick up where you left off" and "Liked" moved from Journey to Progress (for now).** Standa's
+  own call: these felt like they belonged under Progress, not mixed into the full quest catalog.
+  Moved `PausedAndLikedSections` from `app/(tabs)/journey.tsx` to
+  `app/(tabs)/profile/ProgressOverview.tsx`, above the completed-quests showcase; Journey is back
+  to being just the catalog browser. Updated `QUEST_COPY.leaveDestination` and the Leave-dialog
+  accessibility label to say "Progress" instead of "Journey" so the promised destination matches
+  reality again. Marked "for now" per Standa — revisit if it doesn't feel right after more use.
+
+---
+
 ## ✅ Fixed this session (2026-07-27, continued further)
 
 - **Bug #15's real cause found — and it retroactively reopens #8 and #14.** Standa reproduced it

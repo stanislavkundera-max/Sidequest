@@ -16,6 +16,7 @@ import {
   dismissSuggestedQuest as dismissSuggestedQuestRemote,
   fetchUserQuests,
   moveActiveQuestToLater,
+  removeSavedForLaterQuest,
   saveQuestForLater as saveQuestForLaterRemote,
   updateUserQuestStepProgress,
   type AssignQuestResult,
@@ -92,6 +93,11 @@ type QuestDomainState = {
     userId: string,
     questId: string
   ) => Promise<{ ok: true } | { ok: false; reason: string }>;
+  /** Un-like a wishlist quest (no progress) — removes the row entirely. */
+  unlikeQuest: (
+    userId: string,
+    userQuestId: string
+  ) => Promise<{ ok: true } | { ok: false; reason: 'not_found' | 'not_saved_for_later' }>;
   dismissSuggestedQuest: (
     userId: string,
     questId: string
@@ -349,6 +355,24 @@ export const useQuestDomainStore = create<QuestDomainState>((set, get) => ({
     } catch (e: unknown) {
       logError('questStore.saveQuestForLater', e, { userId, questId });
       const message = formatUnknownError(e, 'Could not save quest.');
+      set({ error: isSupabaseQuestProgressSetupError(message) ? null : message });
+      throw e;
+    } finally {
+      set({ pending: false });
+    }
+  },
+
+  unlikeQuest: async (userId, userQuestId) => {
+    set({ pending: true, error: null });
+    try {
+      const result = await removeSavedForLaterQuest({ userId, userQuestId });
+      if (result.ok) {
+        set((s) => ({ userQuests: s.userQuests.filter((u) => u.id !== userQuestId) }));
+      }
+      return result;
+    } catch (e: unknown) {
+      logError('questStore.unlikeQuest', e, { userId, userQuestId });
+      const message = formatUnknownError(e, 'Could not remove this quest.');
       set({ error: isSupabaseQuestProgressSetupError(message) ? null : message });
       throw e;
     } finally {

@@ -19,6 +19,7 @@ export function useQuestActions(userId: string) {
   const assignQuestToUser = useQuestDomainStore((s) => s.assignQuestToUser);
   const saveQuestForLater = useQuestDomainStore((s) => s.saveQuestForLater);
   const deactivateQuest = useQuestDomainStore((s) => s.deactivateQuest);
+  const unlikeQuest = useQuestDomainStore((s) => s.unlikeQuest);
 
   const [pathFullOpen, setPathFullOpen] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -112,6 +113,23 @@ export function useQuestActions(userId: string) {
     [getQuestById, router]
   );
 
+  const onUnlike = useCallback(
+    async (userQuestId: string) => {
+      setBusy(true);
+      try {
+        const r = await unlikeQuest(userId, userQuestId);
+        if (!r.ok) {
+          alertCompat('Could not remove', 'Try again in a moment.');
+          return;
+        }
+        await refreshUserQuests(userId);
+      } finally {
+        setBusy(false);
+      }
+    },
+    [refreshUserQuests, unlikeQuest, userId]
+  );
+
   const onLetWait = useCallback(
     async (userQuestId: string) => {
       setBusy(true);
@@ -147,6 +165,7 @@ export function useQuestActions(userId: string) {
     getQuestById,
     onStartNow,
     onLike,
+    onUnlike,
     onContinue,
     onLetWait,
     closePathFull,

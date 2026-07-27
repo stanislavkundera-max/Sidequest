@@ -3,7 +3,6 @@ import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { AllQuestsList } from '@/components/journey/AllQuestsList';
-import { PausedAndLikedSections } from '@/components/journey/PausedAndLikedSections';
 import { PathFullModal } from '@/components/quests/PathFullModal';
 import { useQuestActions } from '@/components/quests/useQuestActions';
 import { EmptyState } from '@/components/ui/EmptyState';
@@ -41,7 +40,6 @@ export default function JourneyScreen() {
         keyboardShouldPersistTaps="handled">
         <Text style={styles.pageTitle}>Journey</Text>
         <Text style={styles.pageSub}>Every quest in the world — pick anything that calls to you.</Text>
-        <PausedAndLikedSections actions={actions} />
         <AllQuestsList initialCategoryId={params.category ?? null} actions={actions} />
       </ScrollView>
       <PathFullModal

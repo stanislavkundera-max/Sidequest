@@ -534,6 +534,37 @@ export async function saveQuestForLater(params: {
   throw ins.error;
 }
 
+/** Un-like: removes a `saved_for_later` row outright (it only ever existed to record the like). */
+export async function removeSavedForLaterQuest(params: {
+  userId: string;
+  userQuestId: string;
+}): Promise<{ ok: true } | { ok: false; reason: 'not_found' | 'not_saved_for_later' }> {
+  const { data: current, error: findError } = await runUserQuestQuery((table) =>
+    supabase
+      .from(table)
+      .select('id, status')
+      .eq('user_id', params.userId)
+      .eq('id', params.userQuestId)
+      .maybeSingle()
+  );
+  if (findError) {
+    if (!isAnyUserQuestTableMissingError(findError)) throw findError;
+    throw missingUserQuestTableError();
+  }
+  if (!current) return { ok: false, reason: 'not_found' };
+  const row = current as { status?: string | null };
+  if (row.status !== 'saved_for_later') return { ok: false, reason: 'not_saved_for_later' };
+
+  const del = await runUserQuestQuery((table) =>
+    supabase.from(table).delete().eq('user_id', params.userId).eq('id', params.userQuestId)
+  );
+  if (del.error) {
+    if (isAnyUserQuestTableMissingError(del.error)) throw missingUserQuestTableError();
+    throw del.error;
+  }
+  return { ok: true };
+}
+
 export async function dismissSuggestedQuest(params: {
   userId: string;
   questId: string;

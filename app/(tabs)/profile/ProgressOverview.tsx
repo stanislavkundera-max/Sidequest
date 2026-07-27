@@ -3,20 +3,30 @@ import { useCallback } from 'react';
 import { ActivityIndicator, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { PausedAndLikedSections } from '@/components/journey/PausedAndLikedSections';
 import { AccountCard } from '@/components/progress/AccountCard';
 import { CompletedShowcase } from '@/components/progress/CompletedShowcase';
+import { PathFullModal } from '@/components/quests/PathFullModal';
+import { useQuestActions } from '@/components/quests/useQuestActions';
 import { ErrorState } from '@/components/ui/ErrorState';
 import { Theme } from '@/constants/Theme';
 import { useQuestDomainStore } from '@/src/features/quests/questStore';
 import { trackEvent } from '@/src/lib/analytics';
 import { useSessionStore } from '@/stores/session';
 
-/** Progress tab — a celebratory showcase of every completed quest. */
+/**
+ * Progress tab — active/paused/liked quests, then a celebratory showcase of
+ * everything finished. The paused/liked split moved here from Journey (for
+ * now) since testers expected it under Progress, not the full quest catalog.
+ */
 export function ProgressOverview() {
   const user = useSessionStore((s) => s.user);
   const loadingQuests = useQuestDomainStore((s) => s.loading);
   const questError = useQuestDomainStore((s) => s.error);
   const refreshUserQuests = useQuestDomainStore((s) => s.refreshUserQuests);
+  // Called unconditionally (rules of hooks) — harmless with an empty userId;
+  // this screen only renders past sign-in anyway.
+  const actions = useQuestActions(user?.id ?? '');
 
   useFocusEffect(
     useCallback(() => {
@@ -50,8 +60,16 @@ export function ProgressOverview() {
           </View>
         ) : null}
 
+        {!loadingQuests ? <PausedAndLikedSections actions={actions} /> : null}
         {!loadingQuests ? <CompletedShowcase /> : null}
       </ScrollView>
+      <PathFullModal
+        visible={actions.pathFullOpen}
+        activeForModal={actions.activeForModal}
+        getQuestById={actions.getQuestById}
+        onLetWait={(id) => void actions.onLetWait(id)}
+        onClose={actions.closePathFull}
+      />
     </SafeAreaView>
   );
 }

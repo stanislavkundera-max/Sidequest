@@ -13,7 +13,7 @@ import { useQuestDomainStore } from '@/src/features/quests/questStore';
 import type { Quest, UserQuest } from '@/src/types/quest';
 
 type Props = {
-  actions: Pick<ReturnType<typeof useQuestActions>, 'primaryBusy' | 'onStartNow'>;
+  actions: Pick<ReturnType<typeof useQuestActions>, 'primaryBusy' | 'onStartNow' | 'onUnlike'>;
 };
 
 function rowTitle(uq: UserQuest, quest?: Quest): string {
@@ -113,6 +113,21 @@ export function PausedAndLikedSections({ actions }: Props) {
                   {hasProgress ? QUEST_COPY.resumeQuest : QUEST_COPY.startNow}
                 </Text>
               </Pressable>
+              {!hasProgress ? (
+                <Pressable
+                  disabled={actions.primaryBusy}
+                  onPress={() => void actions.onUnlike(uq.id)}
+                  accessibilityRole="button"
+                  accessibilityLabel={`Unlike ${rowTitle(uq, q)}`}
+                  style={({ pressed }) => [
+                    hub.btnSubtleLight,
+                    pressed && !actions.primaryBusy && hub.pressed,
+                    actions.primaryBusy && hub.disabled,
+                  ]}>
+                  <Ionicons name="heart-dislike-outline" size={13} color={Theme.textMuted} />
+                  <Text style={[hub.btnSubtleLightText, { color: Theme.textMuted }]}>Unlike</Text>
+                </Pressable>
+              ) : null}
             </View>
           </View>
         </Pressable>
