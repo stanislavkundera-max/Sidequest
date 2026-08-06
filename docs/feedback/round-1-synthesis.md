@@ -489,7 +489,10 @@ later product call; no decision made yet.
    He also noted community "is not the core of the app". ✅ **Decided (Standa, 2026-08-06): not
    MVP, deferred to a later version.** Not a rejection of the idea — just off the table for now.
 2. **Scrollable / movable map** — M and E want it (path upward, completed steps visible);
-   **T has no need to scroll.** Contradictory.
+   **T has no need to scroll.** Contradictory. 🔸 **Deprioritized (Standa, 2026-08-06):** wait for
+   more feedback before deciding — 2-for/1-against isn't a strong enough signal either way yet.
+   Revisit once another round of feedback exists (same ambiguity-handling rule as mentor leanings —
+   see `[[feedback-mentor-ambiguity-handling]]`).
 3. ~~Notifications / pressure~~ — M wants a "you're not completing this quest" nudge;
    **D wants zero pressure, a quiet companion.** ✅ **Decided (mentor, 2026-07-27):** don't pick a
    side — let the person set how much the app "bothers" them via a real notification-intensity
@@ -509,19 +512,21 @@ later product call; no decision made yet.
    4-category model and the Explore map. (Relates to resolved decision #1 above.) ✅ **Decided
    (mentor, 2026-07-27):** don't rework quests or merge categories now — wait for real usage data
    on how people actually interact with the categories before deciding anything structural.
-6. **Explore "Recommended" behavior after you pick one** (moved from bug #5, E) — today
+6. ~~Explore "Recommended" behavior after you pick one~~ (moved from bug #5, E) — today
    `ExploreQuestPanel` shows exactly one recommended quest per category (`limit: 1`); claiming it
    should make the *next*-best quest recompute into that slot automatically (confirmed intent:
    "v momentě co si vybere doporučenej quest, tak by se tam měl objevit další doporučený quest").
-   Needs a decision on the actual shape before more fixing: single auto-refilling slot (current
-   code's apparent intent), or a small pool (3) the strongest tester signal already asks for (see
-   "🔥 Strongest signal" above) — those two designs overlap and shouldn't be built twice.
+   ✅ **Decided and built (2026-08-06)** — same fix as the pool-of-3 "Strongest signal" item above,
+   these two were always the same underlying decision. Solved by the pool (not a single
+   auto-refilling slot): 3 recommended quests per category, recomputed from the full catalog minus
+   claimed quests, so the pool never sits empty.
 7. **What are "Likes" actually for?** (moved from bug #13, E, Mar) — mechanically it's
    `saveQuestForLater` (moves a quest to the "Liked" bucket in Journey) and the write path is
    sound, but testers couldn't tell you what tapping the heart is *supposed* to accomplish or
-   confirm it did anything. Before touching the code, decide what liking should communicate to
-   the user (a bookmark? a preference signal? something else?) and how it should visibly confirm
-   itself.
+   confirm it did anything. ✅ **Decided (Standa, 2026-08-06): keep the mechanic as-is.** No
+   redesign of what liking means or how it confirms itself — the underlying behavior stays; this
+   was purely a "does it even work" concern, now covered by the unlike fix (2026-08-06, see above)
+   giving it a real, visible two-way action.
 8. ~~What should "leaving/closing a quest" actually leave behind?~~ ✅ **Decided (2026-07-26),
    actually built and shipped (2026-07-27)** — the first build lived in a component the app never
    rendered (see bug #14/#15). Decision: a left quest's resting place depends on whether it has
