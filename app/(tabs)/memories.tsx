@@ -1,10 +1,11 @@
 import { useRouter } from 'expo-router';
-import { useCallback, useMemo } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { useFocusEffect } from '@react-navigation/native';
 import {
   FlatList,
   Image,
   Pressable,
+  ScrollView,
   StyleSheet,
   Text,
   View,
@@ -15,10 +16,19 @@ import { EmptyState } from '@/components/ui/EmptyState';
 import { ErrorState } from '@/components/ui/ErrorState';
 import { LoadingState } from '@/components/ui/LoadingState';
 import { Theme } from '@/constants/Theme';
+import { categoryAccentForCategoryId } from '@/lib/categoryAccent';
 import { useMemoryStore } from '@/src/features/memories/memoryStore';
 import { useQuestDomainStore } from '@/src/features/quests/questStore';
 import { trackEvent } from '@/src/lib/analytics';
 import { useSessionStore } from '@/stores/session';
+
+const DATE_RANGE_OPTIONS: { value: DateRange; label: string }[] = [
+  { value: 'all', label: 'All time' },
+  { value: '7d', label: 'Last 7 days' },
+  { value: '30d', label: 'Last 30 days' },
+];
+type DateRange = 'all' | '7d' | '30d';
+const DATE_RANGE_DAYS: Record<DateRange, number | null> = { all: null, '7d': 7, '30d': 30 };
 
 export default function MemoriesScreen() {
   const router = useRouter();
@@ -27,6 +37,11 @@ export default function MemoriesScreen() {
   const loading = useMemoryStore((s) => s.loading);
   const error = useMemoryStore((s) => s.error);
   const refresh = useMemoryStore((s) => s.refresh);
+  const categories = useQuestDomainStore((s) => s.categories);
+  const getQuestById = useQuestDomainStore((s) => s.getQuestById);
+
+  const [categoryFilter, setCategoryFilter] = useState<string | null>(null);
+  const [dateFilter, setDateFilter] = useState<DateRange>('all');
 
   useFocusEffect(
     useCallback(() => {
@@ -43,6 +58,32 @@ export default function MemoriesScreen() {
       ),
     [memories]
   );
+
+  const usedCategoryIds = useMemo(() => {
+    const ids = new Set<string>();
+    for (const m of ordered) {
+      const cid = m.questId ? getQuestById(m.questId)?.categoryId : undefined;
+      if (cid) ids.add(cid);
+    }
+    return ids;
+  }, [ordered, getQuestById]);
+  const filterableCategories = useMemo(
+    () => categories.filter((c) => usedCategoryIds.has(c.id)),
+    [categories, usedCategoryIds]
+  );
+
+  const filtered = useMemo(() => {
+    const days = DATE_RANGE_DAYS[dateFilter];
+    const cutoff = days != null ? Date.now() - days * 24 * 60 * 60 * 1000 : null;
+    return ordered.filter((m) => {
+      if (categoryFilter) {
+        const cid = m.questId ? getQuestById(m.questId)?.categoryId : undefined;
+        if (cid !== categoryFilter) return false;
+      }
+      if (cutoff != null && new Date(m.createdAt).getTime() < cutoff) return false;
+      return true;
+    });
+  }, [ordered, categoryFilter, dateFilter, getQuestById]);
 
   if (!user) {
     return (
@@ -85,6 +126,57 @@ export default function MemoriesScreen() {
       <Text style={styles.sub}>
         Your reflections in reverse chronological order.
       </Text>
+
+      {ordered.length > 0 ? (
+        <>
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.filterRow}>
+            <Pressable
+              onPress={() => setCategoryFilter(null)}
+              style={[styles.chip, !categoryFilter && styles.chipSelected]}>
+              <Text style={[styles.chipText, !categoryFilter && styles.chipTextSelected]}>
+                All categories
+              </Text>
+            </Pressable>
+            {filterableCategories.map((c) => {
+              const selected = categoryFilter === c.id;
+              const accent = categoryAccentForCategoryId(c.id);
+              return (
+                <Pressable
+                  key={c.id}
+                  onPress={() => setCategoryFilter(selected ? null : c.id)}
+                  style={[
+                    styles.chip,
+                    selected && { backgroundColor: `${accent}22`, borderColor: accent },
+                  ]}>
+                  <Text style={[styles.chipText, selected && { color: accent }]}>{c.name}</Text>
+                </Pressable>
+              );
+            })}
+          </ScrollView>
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.filterRow}>
+            {DATE_RANGE_OPTIONS.map((opt) => {
+              const selected = dateFilter === opt.value;
+              return (
+                <Pressable
+                  key={opt.value}
+                  onPress={() => setDateFilter(opt.value)}
+                  style={[styles.chip, selected && styles.chipSelected]}>
+                  <Text style={[styles.chipText, selected && styles.chipTextSelected]}>
+                    {opt.label}
+                  </Text>
+                </Pressable>
+              );
+            })}
+          </ScrollView>
+        </>
+      ) : null}
+
       {error ? (
         <View style={{ paddingHorizontal: 20, marginBottom: 12 }}>
           <ErrorState
@@ -101,18 +193,30 @@ export default function MemoriesScreen() {
       ) : null}
 
       <FlatList
-        data={ordered}
+        data={filtered}
         keyExtractor={(m) => m.id}
         contentContainerStyle={
-          ordered.length === 0 ? styles.emptyContainer : styles.list
+          filtered.length === 0 ? styles.emptyContainer : styles.list
         }
         ListEmptyComponent={
-          <EmptyState
-            title="No memories yet"
-            message="Complete a quest or add a short reflection to begin your timeline."
-            actionLabel="Pick a quest"
-            onAction={() => router.push('/quest/select' as never)}
-          />
+          ordered.length === 0 ? (
+            <EmptyState
+              title="No memories yet"
+              message="Complete a quest or add a short reflection to begin your timeline."
+              actionLabel="Pick a quest"
+              onAction={() => router.push('/quest/select' as never)}
+            />
+          ) : (
+            <EmptyState
+              title="Nothing matches those filters"
+              message="Try a different category or time range."
+              actionLabel="Clear filters"
+              onAction={() => {
+                setCategoryFilter(null);
+                setDateFilter('all');
+              }}
+            />
+          )
         }
         renderItem={({ item }) => (
           <MemoryRow id={item.id} onPress={(id) => router.push(`/memory/${id}`)} />
@@ -182,10 +286,26 @@ const styles = StyleSheet.create({
   sub: {
     paddingHorizontal: 20,
     marginTop: 6,
-    marginBottom: 16,
+    marginBottom: 12,
     color: Theme.textMuted,
     fontSize: 15,
   },
+  filterRow: {
+    gap: 8,
+    paddingHorizontal: 20,
+    paddingBottom: 10,
+  },
+  chip: {
+    borderWidth: 1,
+    borderColor: Theme.border,
+    borderRadius: 999,
+    paddingVertical: 7,
+    paddingHorizontal: 13,
+    backgroundColor: Theme.surface,
+  },
+  chipSelected: { backgroundColor: Theme.accentSoft, borderColor: Theme.accent },
+  chipText: { fontSize: 13, fontWeight: '600', color: Theme.textMuted },
+  chipTextSelected: { color: Theme.accent },
   list: { paddingHorizontal: 20, paddingBottom: 32, gap: 12 },
   emptyContainer: {
     flexGrow: 1,
