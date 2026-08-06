@@ -436,20 +436,21 @@ Standa tried the app after the fix-now batch above and reported two things direc
   (decision #4 below).
 - ~~Filters in memories — T.~~ ✅ **Built (2026-08-06).** Category and date-range (7/30 days/all
   time) chip filters on the Memories tab, with a distinct "nothing matches" empty state.
-- Duolingo-style visual overview / progress screen — D, T. 🔸 **Still on hold (Standa's call,
-  2026-08-06)** alongside decision #4 (gamification) — Duolingo's visual language is inseparable
-  from its streak/points system, so this waits on the same philosophy question.
+- ~~Duolingo-style visual overview / progress screen — D, T.~~ ❌ **Decided against (mentor +
+  Standa, 2026-08-06)** — not on hold anymore, a real no. Same decision as gamification below;
+  Duolingo's visual language is inseparable from its streak/points system.
 - ~~3-month re-ask of the onboarding question (`tasks.md` #1).~~ ✅ **Built (2026-08-06).** A
   `baseline_updated_at` timestamp on `profiles`, bumped whenever the nature-connection/isolation
   scales are saved; a Progress-tab banner nudges a re-answer once it's ≥90 days old, linking into
   the existing edit-onboarding flow.
-- **Guide / avatar in the app — D.** 🔍 **Flagged, not built.** No concrete design exists for
-  this (a persistent character/mascot? a tips sidebar? something else?) — genuinely needs product
-  definition before any code, not something to invent unilaterally.
-- **Link to the phone's focus mode — D.** 🔍 **Flagged, not built.** Expo's managed workflow has no
-  API to read or toggle the OS Focus/Do-Not-Disturb mode — this can only ever be a soft copy
-  hint ("consider turning on Focus mode"), not real automation. Needs a decision on whether that
-  reduced scope is still worth building.
+- ~~Guide / avatar in the app — D.~~ ❌ **Not MVP (mentor, 2026-08-06)** — shelved for now, no
+  design work needed until it resurfaces post-MVP.
+- ~~Link to the phone's focus mode — D.~~ ❌ **Decided against (mentor, 2026-08-06)** — not a
+  scoping question after all. Standa's mentor's framing: *"We're not building an app that competes
+  with focus-mode apps and screen-time-restriction apps via notification changes etc. This app
+  forces people to do things, not just to not-do things."* Any focus-mode integration, however
+  scoped down, would push the app toward being a restriction tool — off-identity, not just
+  technically awkward. See `[[sidequest-mentor-philosophy]]` memory.
 - **Multiple-choice on "what do you want more of" — D.** 🔍 **Flagged, likely moot.** This referred
   to the old single-select `focus` onboarding step, which the Theme/Time/Intensity reframe
   (2026-07-22, see above) already replaced with the intensity question — the step this request
@@ -494,13 +495,13 @@ later product call; no decision made yet.
    setting. Solves both without compromising the "quiet companion" default for people who never
    touch the setting. ✅ **Built (2026-08-06)** — see the Fix-now section above. Preference-only
    for now (no real notification sending exists to control yet).
-4. **Gamification — levels, bonus points, stars** — Mar wants quests to carry levels / bonus
+4. ~~Gamification — levels, bonus points, stars~~ — Mar wants quests to carry levels / bonus
    points, and a **star** for completing a bonus "side-quest within a quest" (framed like "win the
    fight, don't lose a life"). `AGENTS.md` explicitly bans points, levels, and complex
-   gamification. 🔸 **Mentor lean (2026-07-27), not a hard decision:** shelve this — "for now,
-   maybe forever" — pending whether any gamification fits the product's philosophy at all. Already
-   recurred once (Mar); per the ambiguity-handling rule, revisit only if it comes up independently
-   again rather than acting on this alone.
+   gamification. ❌ **Decided against (mentor + Standa, 2026-08-06)** — escalated from the
+   2026-07-27 "leaning" to an actual decision after a second mentor pass ("duolingo styl dělat
+   rozhodně nebudeme"). Covers points/levels/streaks and the Duolingo-style progress screen
+   request above.
 5. **Category structure — merge Nature + Adventure? rework/remove Relax?** — Mar: Nature and
    Adventure feel very similar ("big difference? can they be merged?"); Relax — especially
    "do-nothing" activities — competes with digital-wellbeing apps and may not fit. Affects the
@@ -547,3 +548,17 @@ notes from that review:
   not forced into an immediate roadmap change — see the memory note on handling this
   (`feedback-mentor-ambiguity-handling`), so a recurring theme doesn't get lost but a single
   mention also doesn't overturn the roadmap.
+
+## Mentor review, second pass (2026-08-06)
+Standa's notes from a follow-up mentor session, folded into the relevant sections above
+(gamification/Duolingo now a real decision, not a leaning; Guide/avatar not MVP; focus-mode link
+decided against). The one new standing principle, worth restating since it explains *why* several
+of the above got a "no":
+- **The app pushes people to *do* things — never just to *not do* things.** Standa's exact
+  framing: *"We're not building an app that competes with focus-mode apps and screen-time-
+  restriction apps via notification changes etc."* This is the reasoning behind the existing
+  "no abstention/negation quests" rule (`docs/quest-content-guidelines.md` rule #1) — it's the
+  product's actual identity, not just a content-writing style note. Any future feature idea that
+  nudges toward restricting/blocking phone use, screen time, or notifications as its mechanism is
+  off-identity by default, not a case-by-case judgment call. See `[[sidequest-mentor-philosophy]]`
+  memory.
