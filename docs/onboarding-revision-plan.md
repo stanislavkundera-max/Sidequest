@@ -1,4 +1,7 @@
-# Onboarding revision plan (plan only — not yet implemented)
+# Onboarding revision plan
+
+**Status (2026-08-06): §1, §2, and §4 are done.** Only §3's history-vs-overwrite question remains
+open — see the note inline below.
 
 Current onboarding is 7 steps: welcome → how it works → categories → pace →
 intensity → baseline scales → summary (`app/onboarding.tsx`). Answers are stored
@@ -17,47 +20,31 @@ them. That fact isn't communicated anywhere in the UI right now.
 
 ## What this revision needs to add
 
-### 1. Copy: "these are just recommendations, you still have access to everything"
-- Where: the **summary step** (step 5, "Your map is ready") is the natural
-  spot — it's already showing the recommended quests, so a line right there
-  ("These are just a starting point — every quest in Journey is open to
-  you") lands at the moment it's most relevant.
-- Possibly reinforce lightly on the **Explore** recommendation card too
-  (small caption under "Recommended for you"), since that's the other place
-  the recommendation logic is visible.
+### 1. ✅ Done — Copy: "these are just recommendations, you still have access to everything"
+- Onboarding's summary step footnote: "Just a starting point — every quest stays open, and you
+  can update your answers anytime." (`app/onboarding.tsx`)
+- Explore's recommended section: "Based on your answers — every quest is still yours to try."
+  (`components/explore/ExploreQuestPanel.tsx`)
 
-### 2. Copy: "you can change these answers later"
-- Same summary step is the right spot to set the expectation before they
-  even finish.
-- Needs a real feature to point to (see §3) — don't promise it without the
-  entry point existing.
+### 2. ✅ Done — Copy: "you can change these answers later"
+- Same footnote as §1 covers both messages in one line.
 
-### 3. Feature: let any user (not just admin) edit their answers later
-- Right now only the **admin account** can redo onboarding
-  (`resetOnboardingComplete` + `/onboarding`), gated by `isAdminEmail`.
-- Plan: add a non-destructive "Edit preferences" entry point for everyone —
-  likely from the Progress tab's account area — that reopens the
-  categories/pace/intensity steps (steps 2–4) without replaying welcome/how-it-
-  works, and without wiping quest/memory history the way the admin
-  "Delete all progress" does.
-- Data model question to settle at implementation time: overwrite in place,
-  or keep a history (baseline vs. latest)? Backlog item #1 (3-month re-ask)
-  already wants historical answers for progress comparison — these two
-  should share one design instead of building answer-versioning twice.
+### 3. ✅ Done (edit entry point + reopen flow) — 🔍 history-vs-overwrite still unresolved
+- "Edit preferences" is a real, non-admin-gated entry point on the Progress tab's account card,
+  reopening the categories/pace/intensity/baseline steps without replaying welcome/how-it-works,
+  and without touching quest/memory history.
+- **Still open:** answers are overwritten in place, not versioned. The 3-month re-ask banner
+  (built 2026-08-06, `components/progress/BaselineReaskBanner.tsx`) nudges a re-answer but the
+  *previous* nature-connection/isolation values are lost on save — so "compare baseline vs. 3
+  months later" (backlog #1's actual ask, including the marketing-aggregate use case) isn't
+  possible yet. Needs a real decision: keep a small history table, or accept overwrite-only and
+  drop the comparison ask.
 
-### 4. New questions: loneliness / disconnection from nature
-- Add to the existing question set (not replacing categories/pace/focus):
-  - How connected do you feel to nature right now? (scale)
-  - How often do you feel isolated / disconnected from people? (scale)
-- These map to the value-proposition outcomes (`docs/value-proposition.md`)
-  — peace/aliveness (nature) and social relationships (isolation) — so they
-  double as a baseline for measuring whether the app actually moves those
-  numbers over time, not just a recommendation input.
-- Needs: new fields on `OnboardingPreferences` (or a separate
-  `OnboardingBaseline` type, if these are meant for the 3-month re-ask
-  comparison rather than recommendation scoring), plus a new step in the
-  flow and a Supabase column pair (or a small history table if we go with
-  the "keep history" answer from §3).
+### 4. ✅ Done — New questions: loneliness / disconnection from nature
+- Both scales exist in onboarding step 5 (`natureConnection`, `isolation` on
+  `OnboardingPreferences`), feeding the 3-month re-ask above. They currently do **not** affect
+  recommendation scoring — pure baseline metrics, per the "purely a baseline metric" option this
+  plan called out as an open question.
 
 ## Suggested step order once all of this lands
 
@@ -70,10 +57,11 @@ them. That fact isn't communicated anywhere in the UI right now.
 6. Summary — recommended quests + "just a starting point, always editable"
    copy
 
-## Open decisions before building (revisit when there's time to start)
+## Open decisions
 
-- Overwrite vs. version onboarding answers (ties to backlog #1).
-- Do the new nature/isolation questions feed recommendation scoring at all,
-  or are they purely a baseline metric?
-- Exact wording/placement of the "still have access to everything" and
-  "editable later" copy — draft once this moves from plan to build.
+- **Overwrite vs. version onboarding answers (ties to backlog #1) — still unresolved,** the one
+  real gap left in this plan. Everything else below is settled/built.
+- ~~Do the new nature/isolation questions feed recommendation scoring at all, or are they purely a
+  baseline metric?~~ Decided by how it was built: purely a baseline metric, no scoring impact.
+- ~~Exact wording/placement of the "still have access to everything" and "editable later"
+  copy~~ — done, see §1/§2 above.
