@@ -189,6 +189,20 @@ function RootLayoutNav() {
               headerBackTitle: 'Back',
             }}
           />
+          <Stack.Screen
+            name="legal/privacy"
+            options={{
+              title: 'Privacy Policy',
+              headerBackTitle: 'Back',
+            }}
+          />
+          <Stack.Screen
+            name="legal/terms"
+            options={{
+              title: 'Terms of Service',
+              headerBackTitle: 'Back',
+            }}
+          />
         </Stack>
       </NavigationThemeProvider>
     </PaperProvider>

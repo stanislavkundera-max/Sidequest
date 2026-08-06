@@ -1,0 +1,101 @@
+import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+
+import { Theme } from '@/constants/Theme';
+
+const LAST_UPDATED = 'August 2026';
+
+/**
+ * DRAFT — has a bracketed placeholder (governing-law entity/jurisdiction)
+ * that needs a real value before this ships. See docs/launch-plan.md, Pillar 1.
+ */
+const SECTIONS: { heading: string; body: string }[] = [
+  {
+    heading: 'Agreement',
+    body:
+      'By using Side Quest Life ("the app"), you agree to these terms. If you do not agree, please ' +
+      "don't use the app.",
+  },
+  {
+    heading: 'What the app is',
+    body:
+      'Side Quest Life suggests small real-world activities ("quests") and helps you keep a record ' +
+      "of them. It's a personal companion, not a safety, medical, or professional service — quests " +
+      'happen in the real world, and you take part in them at your own judgment and risk.',
+  },
+  {
+    heading: 'Your account',
+    body:
+      "You're responsible for whatever happens under your account. If you create an account with an " +
+      'email and password, keep that password to yourself.',
+  },
+  {
+    heading: 'Your content',
+    body:
+      'Notes, photos, and anything else you add stay yours. By adding them, you give us a limited ' +
+      "license to store and show that content back to you within the app — that's it, we don't use " +
+      'it for anything else, and we don’t publish it anywhere.',
+  },
+  {
+    heading: 'Acceptable use',
+    body:
+      "Don't use the app to do anything illegal, to harass anyone, or to try to break, reverse-" +
+      'engineer, or abuse the service.',
+  },
+  {
+    heading: 'Ending your use',
+    body:
+      'You can stop using the app any time, and you can permanently delete your account from ' +
+      'Progress → Delete account in the app. We may suspend or terminate access for a violation of ' +
+      'these terms.',
+  },
+  {
+    heading: 'No warranty',
+    body:
+      'The app is provided "as is." We don’t guarantee it will be uninterrupted, error-free, or ' +
+      'fit for a particular purpose, and quest suggestions are exactly that — suggestions, not ' +
+      'advice.',
+  },
+  {
+    heading: 'Limitation of liability',
+    body:
+      "To the extent allowed by law, we aren't liable for indirect, incidental, or consequential " +
+      'damages arising from your use of the app, including anything that happens while doing a ' +
+      'quest in the real world.',
+  },
+  {
+    heading: 'Governing law',
+    body: 'These terms are governed by the laws of [jurisdiction — confirm before publishing].',
+  },
+  {
+    heading: 'Changes',
+    body: `We'll update the date below if these terms change in a meaningful way. Last updated: ${LAST_UPDATED}.`,
+  },
+];
+
+export default function TermsOfServiceScreen() {
+  return (
+    <SafeAreaView style={styles.safe} edges={['top', 'bottom']}>
+      <ScrollView contentContainerStyle={styles.scroll}>
+        <Text style={styles.title}>Terms of Service</Text>
+        <Text style={styles.updated}>Last updated: {LAST_UPDATED}</Text>
+        {SECTIONS.map((s) => (
+          <View key={s.heading} style={styles.section}>
+            <Text style={styles.heading}>{s.heading}</Text>
+            <Text style={styles.body}>{s.body}</Text>
+          </View>
+        ))}
+      </ScrollView>
+    </SafeAreaView>
+  );
+}
+
+const styles = StyleSheet.create({
+  safe: { flex: 1, backgroundColor: Theme.bg },
+  scroll: { padding: 20, paddingBottom: 48, gap: 20 },
+  title: { fontSize: 26, fontWeight: '700', color: Theme.text },
+  updated: { fontSize: 13, color: Theme.textMuted, marginTop: -12 },
+  section: { gap: 6 },
+  heading: { fontSize: 16, fontWeight: '700', color: Theme.text },
+  body: { fontSize: 14, lineHeight: 21, color: Theme.textMuted },
+});

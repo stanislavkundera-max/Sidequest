@@ -7,6 +7,7 @@ import { Theme } from '@/constants/Theme';
 import { alertCompat, alertTwoChoice } from '@/lib/alertCompat';
 import { resetOnboardingComplete } from '@/lib/onboarding';
 import { supabase } from '@/lib/supabase';
+import { deleteOwnAccount } from '@/src/repositories/accountRepository';
 import { getAdminPreviewAsUser, setAdminPreviewAsUser } from '@/src/features/admin/adminPreview';
 import { isAdminEmail } from '@/src/constants/admin';
 import { useMemoryStore } from '@/src/features/memories/memoryStore';
@@ -182,6 +183,38 @@ export function AccountCard() {
     );
   }
 
+  function deleteAccount() {
+    if (!user) return;
+    alertTwoChoice(
+      'Delete your account?',
+      'This permanently deletes your account, quests, and memories. Unlike "Delete all progress," there is no undo and no restarting onboarding afterward — the account itself is gone.',
+      {
+        cancel: { text: 'Cancel' },
+        confirm: {
+          text: 'Delete account',
+          onPress: () => {
+            void (async () => {
+              setBusy(true);
+              try {
+                await deleteOwnAccount();
+                await supabase.auth.signOut();
+                router.replace('/(auth)/sign-in');
+              } catch (e: unknown) {
+                logError('account.deleteAccount', e, { userId: user.id });
+                alertCompat(
+                  'Error',
+                  e instanceof Error ? e.message : 'Could not delete your account.'
+                );
+              } finally {
+                setBusy(false);
+              }
+            })();
+          },
+        },
+      }
+    );
+  }
+
   const showAdminTools = admin && !previewAsUser;
 
   return (
@@ -288,6 +321,32 @@ export function AccountCard() {
           <Text style={styles.exitPreviewLinkText}>Admin preview mode · Exit</Text>
         </Pressable>
       ) : null}
+
+      <View style={styles.legalRow}>
+        <Pressable
+          accessibilityRole="link"
+          accessibilityLabel="Privacy Policy"
+          onPress={() => router.push('/legal/privacy')}>
+          <Text style={styles.legalLinkText}>Privacy Policy</Text>
+        </Pressable>
+        <Text style={styles.legalDivider}>·</Text>
+        <Pressable
+          accessibilityRole="link"
+          accessibilityLabel="Terms of Service"
+          onPress={() => router.push('/legal/terms')}>
+          <Text style={styles.legalLinkText}>Terms of Service</Text>
+        </Pressable>
+      </View>
+
+      {!busy ? (
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel="Delete your account permanently"
+          onPress={deleteAccount}
+          style={({ pressed }) => [styles.deleteAccountLink, pressed && styles.pressed]}>
+          <Text style={styles.deleteAccountLinkText}>Delete account</Text>
+        </Pressable>
+      ) : null}
     </View>
   );
 }
@@ -376,6 +435,21 @@ const styles = StyleSheet.create({
     fontSize: 11,
     fontWeight: '600',
     color: Theme.textMuted,
+    textDecorationLine: 'underline',
+  },
+  legalRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  legalLinkText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: Theme.textMuted,
+    textDecorationLine: 'underline',
+  },
+  legalDivider: { fontSize: 12, color: Theme.border },
+  deleteAccountLink: { alignSelf: 'flex-start', paddingVertical: 2 },
+  deleteAccountLinkText: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: Theme.danger,
     textDecorationLine: 'underline',
   },
   pressed: { opacity: 0.85 },

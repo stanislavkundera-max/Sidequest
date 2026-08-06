@@ -227,6 +227,38 @@ create trigger on_auth_user_created_profile
 after insert on auth.users
 for each row execute function public.handle_new_user_profile();
 
+-- Self-service account deletion (App Store Guideline 5.1.1(v) / Google Play
+-- account deletion policy — both require an in-app option, not just a
+-- "deactivate" toggle). Operates on auth.uid() only, never a parameter, so a
+-- caller can only ever delete their own account. profiles/user_quests/
+-- memory_entries/future_goals all cascade automatically via their existing
+-- "on delete cascade" FK to auth.users; analytics_events.user_id is
+-- "on delete set null" by design, so aggregate analytics survive without PII.
+-- Storage objects don't cascade, so they're removed explicitly first.
+create or replace function public.delete_own_account()
+returns void
+language plpgsql
+security definer
+set search_path = public, auth, storage
+as $$
+declare
+  uid uuid := auth.uid();
+begin
+  if uid is null then
+    raise exception 'Not authenticated';
+  end if;
+
+  delete from storage.objects
+    where bucket_id = 'quest-memory-photos'
+      and (storage.foldername(name))[1] = uid::text;
+
+  delete from auth.users where id = uid;
+end;
+$$;
+
+revoke all on function public.delete_own_account() from public;
+grant execute on function public.delete_own_account() to authenticated;
+
 insert into storage.buckets (id, name, public)
 values ('quest-memory-photos', 'quest-memory-photos', false)
 on conflict (id) do nothing;
