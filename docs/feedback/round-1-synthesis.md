@@ -481,12 +481,13 @@ Standa tried the app after the fix-now batch above and reported two things direc
 These are either contradictory between testers or conflict with `AGENTS.md`. Logged for a
 later product call; no decision made yet.
 
-1. **Community / sharing / do a quest with someone / leaderboard / co-op** — requested by M, T,
+1. ~~Community / sharing / do a quest with someone / leaderboard / co-op~~ — requested by M, T,
    and Mar. Mar's whole *pre-open* mental model was game-like and social: NPCs that hand out
    quests, other users submitting quests, co-op play; he also expected a **public profile** (with
-   privacy / visibility settings). But [`AGENTS.md`](../../AGENTS.md) explicitly lists social
+   privacy / visibility settings). [`AGENTS.md`](../../AGENTS.md) explicitly lists social
    feeds, multiplayer, other-user profiles, and leaderboards under **"What not to build."**
-   → Direction change, not an automatic yes. He also noted community "is not the core of the app".
+   He also noted community "is not the core of the app". ✅ **Decided (Standa, 2026-08-06): not
+   MVP, deferred to a later version.** Not a rejection of the idea — just off the table for now.
 2. **Scrollable / movable map** — M and E want it (path upward, completed steps visible);
    **T has no need to scroll.** Contradictory.
 3. ~~Notifications / pressure~~ — M wants a "you're not completing this quest" nudge;
