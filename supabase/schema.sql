@@ -17,7 +17,11 @@ create table if not exists public.profiles (
   nature_connection smallint not null default 3
     check (nature_connection between 1 and 5),
   isolation_score smallint not null default 3
-    check (isolation_score between 1 and 5)
+    check (isolation_score between 1 and 5),
+  -- How much the app "bothers" the user — settings-only, not asked during
+  -- onboarding. No real notification sending is wired up to this yet.
+  notification_intensity text not null default 'occasional'
+    check (notification_intensity in ('quiet', 'occasional', 'chatty'))
 );
 
 create table if not exists public.categories (

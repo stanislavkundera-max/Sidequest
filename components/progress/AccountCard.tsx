@@ -12,7 +12,18 @@ import { isAdminEmail } from '@/src/constants/admin';
 import { useMemoryStore } from '@/src/features/memories/memoryStore';
 import { useQuestDomainStore } from '@/src/features/quests/questStore';
 import { logError } from '@/src/lib/monitoring/errorLogger';
+import {
+  getProfile,
+  updateNotificationIntensity,
+  type NotificationIntensity,
+} from '@/src/repositories/profilesRepository';
 import { useSessionStore } from '@/stores/session';
+
+const NOTIFICATION_OPTIONS: { value: NotificationIntensity; label: string }[] = [
+  { value: 'quiet', label: 'Quiet' },
+  { value: 'occasional', label: 'Occasional' },
+  { value: 'chatty', label: 'Chatty' },
+];
 
 /**
  * Account controls.
@@ -28,6 +39,9 @@ export function AccountCard() {
   const deleteAllMemories = useMemoryStore((s) => s.deleteAllMemories);
   const [busy, setBusy] = useState(false);
   const [previewAsUser, setPreviewAsUser] = useState(false);
+  const [notificationIntensity, setNotificationIntensity] =
+    useState<NotificationIntensity | null>(null);
+  const [notificationBusy, setNotificationBusy] = useState(false);
 
   const email = user?.email ?? null;
   const admin = isAdminEmail(email);
@@ -42,6 +56,38 @@ export function AccountCard() {
       alive = false;
     };
   }, [admin]);
+
+  useEffect(() => {
+    if (!user) return;
+    let alive = true;
+    getProfile(user.id)
+      .then((profile) => {
+        if (alive && profile) setNotificationIntensity(profile.notificationIntensity);
+      })
+      .catch((e: unknown) => {
+        logError('account.loadNotificationIntensity', e, { userId: user.id });
+      });
+    return () => {
+      alive = false;
+    };
+  }, [user]);
+
+  function changeNotificationIntensity(value: NotificationIntensity) {
+    if (!user || value === notificationIntensity) return;
+    const previous = notificationIntensity;
+    setNotificationIntensity(value);
+    setNotificationBusy(true);
+    void updateNotificationIntensity(user.id, value)
+      .catch((e: unknown) => {
+        setNotificationIntensity(previous);
+        logError('account.updateNotificationIntensity', e, { userId: user.id });
+        alertCompat(
+          'Could not save',
+          e instanceof Error ? e.message : 'Try again in a moment.'
+        );
+      })
+      .finally(() => setNotificationBusy(false));
+  }
 
   function togglePreview(next: boolean) {
     setPreviewAsUser(next);
@@ -147,6 +193,40 @@ export function AccountCard() {
         </Text>
       </View>
 
+      {notificationIntensity ? (
+        <View style={styles.notificationBlock}>
+          <Text style={styles.notificationLabel}>How much should the app bother you?</Text>
+          <View style={styles.notificationPills}>
+            {NOTIFICATION_OPTIONS.map((opt) => {
+              const selected = opt.value === notificationIntensity;
+              return (
+                <Pressable
+                  key={opt.value}
+                  disabled={notificationBusy}
+                  accessibilityRole="button"
+                  accessibilityLabel={`Notifications: ${opt.label}`}
+                  accessibilityState={{ selected }}
+                  onPress={() => changeNotificationIntensity(opt.value)}
+                  style={({ pressed }) => [
+                    styles.notificationPill,
+                    selected && styles.notificationPillSelected,
+                    pressed && !notificationBusy && styles.pressed,
+                    notificationBusy && styles.notificationPillDisabled,
+                  ]}>
+                  <Text
+                    style={[
+                      styles.notificationPillText,
+                      selected && styles.notificationPillTextSelected,
+                    ]}>
+                    {opt.label}
+                  </Text>
+                </Pressable>
+              );
+            })}
+          </View>
+        </View>
+      ) : null}
+
       {busy ? (
         <View style={styles.busyRow}>
           <ActivityIndicator color={Theme.accent} />
@@ -225,6 +305,25 @@ const styles = StyleSheet.create({
   },
   row: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   email: { flex: 1, fontSize: 14, fontWeight: '600', color: Theme.text },
+  notificationBlock: { gap: 8 },
+  notificationLabel: { fontSize: 13, fontWeight: '600', color: Theme.textMuted },
+  notificationPills: { flexDirection: 'row', gap: 8 },
+  notificationPill: {
+    flex: 1,
+    alignItems: 'center',
+    borderRadius: 999,
+    paddingVertical: 8,
+    borderWidth: 1,
+    borderColor: Theme.border,
+    backgroundColor: Theme.bg,
+  },
+  notificationPillSelected: {
+    borderColor: Theme.accent,
+    backgroundColor: Theme.accentSoft,
+  },
+  notificationPillDisabled: { opacity: 0.6 },
+  notificationPillText: { fontSize: 13, fontWeight: '700', color: Theme.textMuted },
+  notificationPillTextSelected: { color: Theme.accent },
   actionsRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   busyRow: { alignItems: 'center', paddingVertical: 4 },
   editBtn: {

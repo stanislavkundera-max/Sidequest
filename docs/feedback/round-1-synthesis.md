@@ -36,10 +36,16 @@ mentor wrote them — are preserved in
   H2–H4), never cleaned up. Harmless for real users (the local debug server doesn't exist outside
   that one dev session, so the fetch just silently fails), but dead weight firing on every resize.
   Removed all three, plus the now-unused `LayoutChangeEvent` import and handler-only code paths.
-- **Notification-intensity setting (mentor decision #3) — scoped, not yet built.** Confirmed the
-  app has zero notification infrastructure today (no `expo-notifications` usage anywhere). Standa
-  chose to scope this as *preference field + UI control only* for now (no real notification
-  sending yet) — still to build.
+- **Notification-intensity setting (mentor decision #3) — built.** Confirmed the app has zero
+  notification infrastructure today (no `expo-notifications` usage anywhere), so scoped this as
+  *preference field + UI control only* — no real notification sending yet, but the choice is now
+  captured so it isn't lost once that infrastructure exists. Added `notification_intensity`
+  (`quiet` / `occasional` / `chatty`, default `occasional`) to `profiles`
+  (`supabase/schema.sql`, `supabase/production_prep.sql` §8 — Standa ran the migration live,
+  verified via an authenticated REST query). `profilesRepository.ts` gets
+  `NotificationIntensity` + `updateNotificationIntensity`. UI: a 3-pill control on the Progress
+  tab's account card (`components/progress/AccountCard.tsx`), independent of onboarding since
+  it's a settings preference, not a one-time setup question.
 - **Cadence relabel (weekly/monthly/yearly)** — Standa's call: leave as-is for now. Duration
   humanizing already addressed the main complaint; the cadence rename itself stays parked.
 
@@ -395,6 +401,7 @@ Standa tried the app after the fix-now batch above and reported two things direc
 - Build a real **notification-intensity setting** the user controls, rather than picking a
   single app-wide stance on nudges. Resolves the M-vs-D contradiction on pressure/nudges without
   compromising the default "quiet companion" experience for people who never touch it.
+  ✅ **Built (2026-08-06)** — see the Fix-now section above.
 
 ---
 
@@ -456,7 +463,8 @@ later product call; no decision made yet.
    **D wants zero pressure, a quiet companion.** ✅ **Decided (mentor, 2026-07-27):** don't pick a
    side — let the person set how much the app "bothers" them via a real notification-intensity
    setting. Solves both without compromising the "quiet companion" default for people who never
-   touch the setting. **Not built yet** — added to the Part 2 plan below.
+   touch the setting. ✅ **Built (2026-08-06)** — see the Fix-now section above. Preference-only
+   for now (no real notification sending exists to control yet).
 4. **Gamification — levels, bonus points, stars** — Mar wants quests to carry levels / bonus
    points, and a **star** for completing a bonus "side-quest within a quest" (framed like "win the
    fight, don't lose a life"). `AGENTS.md` explicitly bans points, levels, and complex

@@ -211,6 +211,25 @@ begin
   end if;
 end $$;
 
+-- 8) Notification-intensity preference — settings-only (not asked during
+-- onboarding). How much the app "bothers" the user; no real notification
+-- sending is wired up to this yet (mentor decision #3, round-1 feedback).
+alter table if exists public.profiles
+  add column if not exists notification_intensity text not null default 'occasional';
+
+do $$
+begin
+  if not exists (
+    select 1 from pg_constraint c
+    join pg_class t on t.oid = c.conrelid
+    where t.relname = 'profiles' and c.conname = 'profiles_notification_intensity_chk'
+  ) then
+    alter table public.profiles
+      add constraint profiles_notification_intensity_chk
+      check (notification_intensity in ('quiet', 'occasional', 'chatty'));
+  end if;
+end $$;
+
 -- 4) Sanity check output.
 select
   exists (

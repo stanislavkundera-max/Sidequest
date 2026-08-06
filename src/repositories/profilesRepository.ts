@@ -13,6 +13,16 @@ const DEFAULT_INTENSITY: OnboardingIntensity = 'balanced';
 const DEFAULT_PACE: OnboardingPace = 'steady';
 const DEFAULT_SCALE_ANSWER: OnboardingScaleAnswer = 3;
 
+/**
+ * How much the app "bothers" the user — a settings-only preference (not
+ * asked during onboarding). Resolves the round-1 M-vs-D nudges contradiction
+ * via user control instead of one app-wide stance (mentor decision #3).
+ * No real notification sending is wired up to this yet — the field exists so
+ * the preference isn't lost once that infrastructure is built.
+ */
+export type NotificationIntensity = 'quiet' | 'occasional' | 'chatty';
+const DEFAULT_NOTIFICATION_INTENSITY: NotificationIntensity = 'occasional';
+
 export type Profile = {
   id: string;
   createdAt: string;
@@ -23,6 +33,7 @@ export type Profile = {
   pacePreference: OnboardingPace;
   natureConnection: OnboardingScaleAnswer;
   isolation: OnboardingScaleAnswer;
+  notificationIntensity: NotificationIntensity;
 };
 
 function normalizeIntensity(value: unknown): OnboardingIntensity {
@@ -45,6 +56,13 @@ function normalizeScaleAnswer(value: unknown): OnboardingScaleAnswer {
     return n as OnboardingScaleAnswer;
   }
   return DEFAULT_SCALE_ANSWER;
+}
+
+function normalizeNotificationIntensity(value: unknown): NotificationIntensity {
+  if (value === 'quiet' || value === 'occasional' || value === 'chatty') {
+    return value;
+  }
+  return DEFAULT_NOTIFICATION_INTENSITY;
 }
 
 function normalizeCategories(value: unknown): OnboardingCategory[] {
@@ -70,6 +88,7 @@ function mapProfileRow(row: any): Profile {
     pacePreference: normalizePace(row.pace_preference),
     natureConnection: normalizeScaleAnswer(row.nature_connection),
     isolation: normalizeScaleAnswer(row.isolation_score),
+    notificationIntensity: normalizeNotificationIntensity(row.notification_intensity),
   };
 }
 
@@ -198,6 +217,28 @@ export async function saveOnboardingStateForUser(
   };
 }
 
+/** Settings-only preference, edited independently of onboarding. */
+export async function updateNotificationIntensity(
+  userId: string,
+  value: NotificationIntensity
+): Promise<NotificationIntensity> {
+  const { data, error } = await supabase
+    .from('profiles')
+    .update({ notification_intensity: value })
+    .eq('id', userId)
+    .select('notification_intensity')
+    .single();
+  if (error) {
+    if (isMissingColumnError(error.message)) {
+      throw new Error(
+        'Notification settings need a database migration (production_prep.sql) before they can be saved.'
+      );
+    }
+    throw error;
+  }
+  return normalizeNotificationIntensity(data.notification_intensity);
+}
+
 /** Admin tool: clears the completed flag so `/onboarding` runs again from step one. */
 export async function resetOnboardingForUser(userId: string): Promise<void> {
   const { error } = await supabase
@@ -213,6 +254,7 @@ function isMissingColumnError(message?: string): boolean {
     message.includes('preferred_categories') ||
     message.includes('pace_preference') ||
     message.includes('nature_connection') ||
-    message.includes('isolation_score')
+    message.includes('isolation_score') ||
+    message.includes('notification_intensity')
   );
 }
