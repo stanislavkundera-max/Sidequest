@@ -60,7 +60,18 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   extra: {
     supabaseUrl: envTrim('EXPO_PUBLIC_SUPABASE_URL'),
     supabaseAnonKey: envTrim('EXPO_PUBLIC_SUPABASE_ANON_KEY'),
-    devLoginEmail: envTrim('EXPO_PUBLIC_DEV_LOGIN_EMAIL'),
-    devLoginPassword: envTrim('EXPO_PUBLIC_DEV_LOGIN_PASSWORD'),
+    // Dev-only auto-login credentials. `lib/devAuth.ts` already gates their
+    // use behind `__DEV__`, but that only stops the *behavior* — the literal
+    // string values still land in `extra` (and so in the shipped JS bundle)
+    // regardless of `__DEV__` unless stripped here too. Belt-and-suspenders:
+    // never include them at all outside a non-production build, so setting
+    // these env vars for a `production` EAS build profile by mistake can't
+    // leak real credentials into a release build.
+    ...(process.env.NODE_ENV === 'production'
+      ? {}
+      : {
+          devLoginEmail: envTrim('EXPO_PUBLIC_DEV_LOGIN_EMAIL'),
+          devLoginPassword: envTrim('EXPO_PUBLIC_DEV_LOGIN_PASSWORD'),
+        }),
   },
 });
