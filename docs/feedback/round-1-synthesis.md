@@ -15,6 +15,36 @@ mentor wrote them — are preserved in
 
 ---
 
+## ✅ Fixed this session (2026-08-06) — remaining Fix-now batch
+
+- **Supabase project pause/resume, false alarm resolved.** The Supabase free-tier project had
+  auto-paused from inactivity; Standa resumed it. Direct REST queries with only the publishable
+  anon key still came back with `categories`/`quests`/`profiles` all empty (`Content-Range: */0`)
+  — looked like data loss. It wasn't: `schema.sql`'s RLS policies correctly require the
+  `authenticated` role, not bare `anon` — my test calls weren't actually signed in. Verified by
+  calling `/auth/v1/signup` for a real anonymous session and re-querying with that token: all 4
+  categories (Nature/Adventure/Social/Relax) and the expected quest/profile counts came back fine.
+  The live app (which does sign in properly) was never affected.
+- **"World???" (E) — found and fixed.** Same investigation surfaced the real source: no Supabase
+  category is named "World" — the confusion came from `AllQuestsList.tsx`'s catalog count line,
+  "X quests **in this world**" (the app's map metaphor), which reads as a nonsense label next to a
+  category picker. Changed to "X quests in this category".
+- **Found in passing: leftover debug-instrumentation `fetch()` calls, removed.** 3 spots in
+  `components/journey/JourneyWorldScene.tsx` and `components/journey/JourneyAtmosphere.tsx` had
+  `// #region agent log` blocks POSTing layout telemetry to `http://127.0.0.1:7500/ingest/...` on
+  every layout event — leftover from an earlier automated debugging session (hypothesis IDs
+  H2–H4), never cleaned up. Harmless for real users (the local debug server doesn't exist outside
+  that one dev session, so the fetch just silently fails), but dead weight firing on every resize.
+  Removed all three, plus the now-unused `LayoutChangeEvent` import and handler-only code paths.
+- **Notification-intensity setting (mentor decision #3) — scoped, not yet built.** Confirmed the
+  app has zero notification infrastructure today (no `expo-notifications` usage anywhere). Standa
+  chose to scope this as *preference field + UI control only* for now (no real notification
+  sending yet) — still to build.
+- **Cadence relabel (weekly/monthly/yearly)** — Standa's call: leave as-is for now. Duration
+  humanizing already addressed the main complaint; the cadence rename itself stays parked.
+
+---
+
 ## 🔍 Self-audit (2026-07-27) — Standa asked me to check my own work the same way
 
 Standa asked me to re-check everything from today with the same "can I undo it, does it lead
@@ -295,8 +325,8 @@ Standa tried the app after the fix-now batch above and reported two things direc
   "Let's schedule it" (D); (2) removed the distracting centered compass badge from the onboarding
   welcome hero (T); (3) shortened the over-long "Your map is ready" footnote (D). Also confirmed
   already-resolved: category pre-selection, the old "What are you after" step, the isolation copy,
-  and the completed-list newest-first sort. "World???" (E) couldn't be located in code — likely a
-  Supabase-sourced category name.
+  and the completed-list newest-first sort. "World???" (E) — see the 2026-08-06 fix above; it
+  wasn't a Supabase category, it was the Journey catalog's "X quests in this world" count line.
 
 ---
 
@@ -347,7 +377,7 @@ Standa tried the app after the fix-now batch above and reported two things direc
 - "wrap up quest" unclear → "every step is done" — D. ✅ **Fixed** — see above.
 - Progress quest detail: too much text + duplicates the memory → split them, less text — T. ✅ **Fixed (2026-07-27)** — the static "Reflection" prompt block on quest detail now hides once a memory already exists for that quest (the memory itself has the real content; repeating the same generic prompt next to "View memory" was the duplication).
 - Sort the activity list by completion time (newest first) — D. ✅ **Already satisfied** — the completed list sorts newest-first (`CompletedShowcase.tsx`). Active list is oldest-started-first by design. *(Correction 2026-07-27: originally also credited `ProgressQuestHub.tsx`, which turned out to be unused dead code — deleted; `CompletedShowcase.tsx` alone was always the real source of this behavior.)*
-- "World???" as a category name is confusing — E. ⚠️ **Couldn't locate** — no "World" label in code; likely a Supabase-sourced category name (`categories.name`), so rename lives in the DB/dashboard, not the repo — action item for Standa, not a code fix.
+- "World???" as a category name is confusing — E. ✅ **Found and fixed (2026-08-06)** — not a Supabase category after all (the DB's 4 categories are Nature/Adventure/Social/Relax, confirmed live via an authenticated REST query). The real source: the Journey tab's category-catalog count line read "X quests **in this world**" (`components/journey/AllQuestsList.tsx`) — the app's map/world metaphor, but out of context next to a category picker it reads exactly like a nonsense label. Changed to "X quests in this category".
 - Progress tab icon disliked — T. ✅ **Fixed (2026-07-27)** — swapped the FontAwesome "user" (reads as Profile/Account) for "trophy", matching the tab's actual content (a showcase of completed quests).
 
 ### Explore map

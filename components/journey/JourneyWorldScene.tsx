@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useRef } from 'react';
 import { Animated, Easing, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
-import type { LayoutChangeEvent } from 'react-native';
 import { useAnimatedStyle, useSharedValue, withSequence, withTiming } from 'react-native-reanimated';
 
 import { JourneyArtifactLayer } from '@/components/journey/JourneyArtifactLayer';
@@ -183,20 +182,10 @@ export function JourneyWorldScene({
   );
 
   const timelineTextSize = Math.round(11 + 2 * uiScale);
-  const onSceneLayout = useMemo(
-    () => (e: LayoutChangeEvent) => {
-      const { width: sceneWidth, height: sceneHeight } = e.nativeEvent.layout;
-      // #region agent log
-      fetch('http://127.0.0.1:7500/ingest/3d411866-325f-41a4-a403-81f0aa743cd9',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'cab87e'},body:JSON.stringify({sessionId:'cab87e',runId:'pre-fix-1',hypothesisId:'H2',location:'components/journey/JourneyWorldScene.tsx:onSceneLayout',message:'JourneyWorldScene root layout',data:{sceneWidth,sceneHeight,layoutWidth,layoutHeight,platform:Platform.OS},timestamp:Date.now()})}).catch(()=>{});
-      // #endregion
-    },
-    [layoutWidth, layoutHeight]
-  );
 
   return (
     <View
       style={styles.wrap}
-      onLayout={onSceneLayout}
       accessibilityRole="image"
       accessibilityLabel="Your journey landscape">
       <JourneyAtmosphere mood={mood} visual={visual} animatedStyle={atmoStyle} />

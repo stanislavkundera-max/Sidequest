@@ -104,8 +104,8 @@ export function AllQuestsList({ initialCategoryId, actions }: Props) {
       {activeCategoryId ? (
         <Text style={styles.countLine}>
           {categoryQuests.length === 1
-            ? '1 quest in this world'
-            : `${categoryQuests.length} quests in this world`}
+            ? '1 quest in this category'
+            : `${categoryQuests.length} quests in this category`}
         </Text>
       ) : null}
 
