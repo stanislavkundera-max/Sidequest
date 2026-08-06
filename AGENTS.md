@@ -63,10 +63,12 @@ Keep the **MVP scope narrow**; prefer removing or deferring scope over cramming 
 | Area | Responsibility |
 |------|----------------|
 | `app/` | Screens, route groups `(tabs)`, `(auth)`, dynamic routes `quest/[id]`, `memory/new`, `memory/[id]` |
-| `lib/` | Supabase client (`lib/supabase.ts`), period keys (`lib/period.ts`), quest loading/completion (`lib/questData.ts`), onboarding key (`lib/onboarding.ts`) |
-| `stores/` | Zustand stores (`session`, `quests`) |
+| `lib/` | Supabase client (`lib/supabase.ts`), period keys (`lib/period.ts`), onboarding key (`lib/onboarding.ts`) |
+| `src/features/quests/` | Quest domain state and logic — `questStore.ts` (Zustand, `useQuestDomainStore`), `questHelpers.ts`, `suggestedQuests.ts` |
+| `src/repositories/` | Supabase queries — `questsRepository.ts`, `userQuestsRepository.ts`, `profilesRepository.ts` |
+| `stores/` | App-level Zustand stores — currently just `session` |
 | `types/` | Hand-written types aligned with DB rows (`types/database.ts`) |
-| `supabase/` | `schema.sql` (tables, RLS, storage policies), `seed.sql` (example quests) |
+| `supabase/` | `schema.sql` (tables, RLS, storage policies), `seed.sql` (example quests), `production_prep.sql` (idempotent migrations) |
 | `components/` | Shared UI; do not hide business rules here—keep data access in `lib/` or screens |
 
 **Data flow:** UI calls **plain functions** in `lib/` and Supabase client methods. **Do not** duplicate query logic across many screens—extract to `lib/` when the second caller appears.
