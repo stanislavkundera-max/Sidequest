@@ -413,18 +413,47 @@ Standa tried the app after the fix-now batch above and reported two things direc
   - A pool at the top, then progress up the path (M).
   - D agrees with M; E hit the same friction (recommended quest vanished).
   - Ties directly into [`tasks.md`](../../tasks.md) #5 and #9.
+  ✅ **Built (2026-08-06), pool-of-3 variant (Standa's call).** `ExploreQuestPanel`'s "Recommended
+  for you" now shows 3 quests per category instead of 1 (`recommendQuestsInCategory` limit 1 → 3).
+  This also covers "quests refill after completed" below — the pool recomputes from the full
+  catalog minus claimed quests every time, so it never sits empty as long as the category has more
+  than 3 quests.
 
 ### Other
-- Quests **refill** after a completed one disappears — E.
-- More interactive final onboarding screen; pick 0–3 quests at the end — D, T.
-- Edit preferences available to everyone + click straight through to a quest at the end — E, D (`tasks.md` #9).
-- "Your thoughts / feelings" reflection at wrap-up (à la Garmin Connect) + achievements — D, E.
-- Filters in memories — T.
-- Duolingo-style visual overview / progress screen — D, T. 🔸 On hold alongside decision #4 (gamification) — Duolingo's visual language is inseparable from its streak/points system, so this waits on the same philosophy question.
-- Guide / avatar in the app — D.
-- Link to the phone's focus mode — D.
-- Multiple-choice on "what do you want more of" — D.
-- 3-month re-ask of the onboarding question (`tasks.md` #1).
+- ~~Quests **refill** after a completed one disappears — E.~~ ✅ **Built** — see the pool-of-3 fix above.
+- ~~More interactive final onboarding screen; pick 0–3 quests at the end — D, T.~~ ✅ **Built
+  (2026-08-06).** Onboarding step 6 (both fresh onboarding and edit mode) is now interactive:
+  recommend cards are tappable to select 0–3 quests to start immediately, CTA reflects the count
+  ("Start with 2 quests"). Picking exactly one routes straight into its runner.
+- ~~Edit preferences available to everyone + click straight through to a quest at the end — E, D.~~
+  ✅ **Built (2026-08-06).** "Edit preferences" was already unconditional on the Progress tab's
+  account card (not admin-gated). The "click straight through to a quest" half is covered by the
+  same interactive step-6 change above — edit mode uses the identical finish screen.
+- ~~"Your thoughts / feelings" reflection at wrap-up (à la Garmin Connect) + achievements — D, E.~~
+  ✅ **Built (2026-08-06), reflection half only.** A "How did that feel? (optional)" field on the
+  quest-runner done card, folded into the auto-created memory. **Skipped "+ achievements"
+  deliberately** — that's gamification-adjacent and conflicts with the standing gamification hold
+  (decision #4 below).
+- ~~Filters in memories — T.~~ ✅ **Built (2026-08-06).** Category and date-range (7/30 days/all
+  time) chip filters on the Memories tab, with a distinct "nothing matches" empty state.
+- Duolingo-style visual overview / progress screen — D, T. 🔸 **Still on hold (Standa's call,
+  2026-08-06)** alongside decision #4 (gamification) — Duolingo's visual language is inseparable
+  from its streak/points system, so this waits on the same philosophy question.
+- ~~3-month re-ask of the onboarding question (`tasks.md` #1).~~ ✅ **Built (2026-08-06).** A
+  `baseline_updated_at` timestamp on `profiles`, bumped whenever the nature-connection/isolation
+  scales are saved; a Progress-tab banner nudges a re-answer once it's ≥90 days old, linking into
+  the existing edit-onboarding flow.
+- **Guide / avatar in the app — D.** 🔍 **Flagged, not built.** No concrete design exists for
+  this (a persistent character/mascot? a tips sidebar? something else?) — genuinely needs product
+  definition before any code, not something to invent unilaterally.
+- **Link to the phone's focus mode — D.** 🔍 **Flagged, not built.** Expo's managed workflow has no
+  API to read or toggle the OS Focus/Do-Not-Disturb mode — this can only ever be a soft copy
+  hint ("consider turning on Focus mode"), not real automation. Needs a decision on whether that
+  reduced scope is still worth building.
+- **Multiple-choice on "what do you want more of" — D.** 🔍 **Flagged, likely moot.** This referred
+  to the old single-select `focus` onboarding step, which the Theme/Time/Intensity reframe
+  (2026-07-22, see above) already replaced with the intensity question — the step this request
+  wanted to change no longer exists in that form.
 
 ### Monetization signal
 - Nobody would pay for the app directly, but **via ads / a free month** E, D, and T would try it.
