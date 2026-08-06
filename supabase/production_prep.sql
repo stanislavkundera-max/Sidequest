@@ -235,6 +235,13 @@ end $$;
 alter table if exists public.profiles
   add column if not exists baseline_updated_at timestamptz not null default now();
 
+-- 10) First-ever nature_connection/isolation answer, set once and never
+-- overwritten (application-layer, not a DB trigger) — lets a re-ask compare
+-- "now" against "day one" instead of against whatever was last saved.
+alter table if exists public.profiles
+  add column if not exists nature_connection_baseline smallint,
+  add column if not exists isolation_baseline smallint;
+
 -- 4) Sanity check output.
 select
   exists (

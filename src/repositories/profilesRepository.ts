@@ -36,6 +36,15 @@ export type Profile = {
   notificationIntensity: NotificationIntensity;
   /** Bumped whenever nature_connection/isolation are (re-)saved — drives the 3-month re-ask nudge. */
   baselineUpdatedAt: string;
+  /**
+   * The user's FIRST-ever nature_connection/isolation answer — set once,
+   * never overwritten. Null until the first onboarding save. Lets a re-ask
+   * compare "now" against "day one" rather than against whatever was last
+   * saved, which only becomes meaningful once someone has used the app for
+   * a while — no history table needed for that, just the one snapshot.
+   */
+  natureConnectionBaseline: OnboardingScaleAnswer | null;
+  isolationBaseline: OnboardingScaleAnswer | null;
 };
 
 function normalizeIntensity(value: unknown): OnboardingIntensity {
@@ -58,6 +67,16 @@ function normalizeScaleAnswer(value: unknown): OnboardingScaleAnswer {
     return n as OnboardingScaleAnswer;
   }
   return DEFAULT_SCALE_ANSWER;
+}
+
+/** Unlike `normalizeScaleAnswer`, no default — null means "not set yet". */
+function normalizeScaleAnswerOrNull(value: unknown): OnboardingScaleAnswer | null {
+  if (value === null || value === undefined) return null;
+  const n = typeof value === 'number' ? value : Number(value);
+  if (Number.isInteger(n) && n >= 1 && n <= 5) {
+    return n as OnboardingScaleAnswer;
+  }
+  return null;
 }
 
 function normalizeNotificationIntensity(value: unknown): NotificationIntensity {
@@ -92,6 +111,8 @@ function mapProfileRow(row: any): Profile {
     isolation: normalizeScaleAnswer(row.isolation_score),
     notificationIntensity: normalizeNotificationIntensity(row.notification_intensity),
     baselineUpdatedAt: (row.baseline_updated_at as string | null) ?? (row.created_at as string),
+    natureConnectionBaseline: normalizeScaleAnswerOrNull(row.nature_connection_baseline),
+    isolationBaseline: normalizeScaleAnswerOrNull(row.isolation_baseline),
   };
 }
 
@@ -184,6 +205,20 @@ export async function saveOnboardingStateForUser(
   preferences: OnboardingPreferences
 ): Promise<OnboardingState> {
   const nowIso = new Date().toISOString();
+
+  // Baseline snapshot is set once and never overwritten — only include it in
+  // the payload the first time (existing profile has no baseline yet).
+  // A fresh/missing profile also counts as "first time".
+  const existing = await getProfile(userId).catch(() => null);
+  const isFirstBaseline =
+    !existing || (existing.natureConnectionBaseline == null && existing.isolationBaseline == null);
+  const baselinePayload = isFirstBaseline
+    ? {
+        nature_connection_baseline: preferences.natureConnection,
+        isolation_baseline: preferences.isolation,
+      }
+    : {};
+
   const data = await updateProfileWithFallback(userId, [
     {
       onboarding_completed: true,
@@ -193,8 +228,9 @@ export async function saveOnboardingStateForUser(
       nature_connection: preferences.natureConnection,
       isolation_score: preferences.isolation,
       baseline_updated_at: nowIso,
+      ...baselinePayload,
     },
-    // Fallback: baseline_updated_at column not migrated yet.
+    // Fallback: baseline_updated_at/baseline snapshot columns not migrated yet.
     {
       onboarding_completed: true,
       intensity_preference: preferences.intensity,
@@ -270,6 +306,8 @@ function isMissingColumnError(message?: string): boolean {
     message.includes('nature_connection') ||
     message.includes('isolation_score') ||
     message.includes('notification_intensity') ||
-    message.includes('baseline_updated_at')
+    message.includes('baseline_updated_at') ||
+    message.includes('nature_connection_baseline') ||
+    message.includes('isolation_baseline')
   );
 }

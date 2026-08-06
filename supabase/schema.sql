@@ -24,7 +24,13 @@ create table if not exists public.profiles (
     check (notification_intensity in ('quiet', 'occasional', 'chatty')),
   -- Bumped whenever nature_connection/isolation are (re-)saved — drives the
   -- 3-month re-ask nudge, not a general profile "last edited" timestamp.
-  baseline_updated_at timestamptz not null default now()
+  baseline_updated_at timestamptz not null default now(),
+  -- The user's FIRST-ever nature_connection/isolation answer, set once and
+  -- never overwritten — lets a future re-ask compare "now" against "day
+  -- one" instead of against whatever was last saved. Null until the first
+  -- onboarding save populates it.
+  nature_connection_baseline smallint,
+  isolation_baseline smallint
 );
 
 create table if not exists public.categories (
