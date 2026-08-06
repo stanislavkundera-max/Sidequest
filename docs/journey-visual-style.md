@@ -4,6 +4,15 @@
 
 **Scope:** `app/(tabs)/journey.tsx`, `components/journey/**`, `src/features/journey/**`. Shared hub chrome lives in `components/journey/journeyHubStyles.ts`, reused by `components/journey/PausedAndLikedSections.tsx` (rendered on the Progress tab, `app/(tabs)/profile/ProgressOverview.tsx`) — keep both aligned when changing chips, timeframe strips, or discover rows. Avoid unrelated screens unless wiring requires a minimal, justified touch.
 
+> **Reality check (2026-08-06):** the rich "world scene" system this doc describes below — path
+> spine, artifacts, atmosphere/mood layers, `JourneyWorldScene`/`JourneyAtmosphere` etc. — was
+> never wired into the live Journey tab. `app/(tabs)/journey.tsx` has only ever rendered
+> `AllQuestsList`, a plain category catalog (same discovery as `JourneyQuestHub.tsx`, see
+> `docs/feedback/round-1-synthesis.md`). The implementation files (~2,900 lines, zero live
+> references) were deleted as dead code in this pass. Read the rest of this doc as an **unrealized
+> design vision**, not current behavior — useful if this direction gets picked back up, not a
+> description of what ships today.
+
 ---
 
 ## North star

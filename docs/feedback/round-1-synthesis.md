@@ -324,9 +324,11 @@ Standa tried the app after the fix-now batch above and reported two things direc
   logs (`quest.runner.autoMemory` in the error logger) to diagnose further. **E's separate "saves
   10× on web" complaint is a different root cause (raw `Alert.alert` not showing on web in
   `memory/new.tsx`) and is still open.**
-- **"Wrap up quest" copy unclear** (fix-now item, D) — renamed to "Complete quest" (button),
-  "open to finish" (`questHelpers.ts` hint), and "finish it" (`ProgressOverviewBlocks.tsx`) across
-  all user-facing spots.
+- **"Wrap up quest" copy unclear** (fix-now item, D) — renamed to "Complete quest" (button) and
+  "open to finish" (`questHelpers.ts` hint) across user-facing spots. *(Note 2026-08-06:
+  `ProgressOverviewBlocks.tsx`, cited here originally for the "finish it" copy, turned out to be
+  unused dead code by the time of the cleanup pass — deleted. The Progress tab it once served was
+  superseded by `ProgressOverview.tsx`/`CompletedShowcase.tsx` at some point after this fix.)*
 - **Quick copy/UX batch** (fix-now items) — (1) web calendar-step button "I scheduled it" →
   "Let's schedule it" (D); (2) removed the distracting centered compass badge from the onboarding
   welcome hero (T); (3) shortened the over-long "Your map is ready" footnote (D). Also confirmed

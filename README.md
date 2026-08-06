@@ -171,15 +171,6 @@ Stage 6 adds the minimum instrumentation to test product value with real users, 
   - D2 return rate
   - D7 return rate
 
-### Feature flags groundwork
-
-- Flags live in `src/lib/featureFlags/index.ts`.
-- Initial flags:
-  - `enablePaywallPlaceholder`
-  - `enableMonthlyYearlySelectionPolish`
-  - `enableAdvancedProgress`
-  - `enableExperimentalQuestSuggestions`
-
 ### Product questions this stage answers
 
 - Do users take action in the first session (activate quests)?
