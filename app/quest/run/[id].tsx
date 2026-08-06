@@ -10,6 +10,7 @@ import {
   ScrollView,
   StyleSheet,
   Text,
+  TextInput,
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -158,6 +159,9 @@ export default function QuestRunScreen() {
   // found it noisy always-on), and keyed by step id so moving to a new step
   // doesn't carry over the previous step's expanded state.
   const [tipExpandedStepId, setTipExpandedStepId] = useState<string | null>(null);
+  // Optional feelings note captured at the wrap-up moment itself (à la Garmin
+  // Connect), folded into the auto-created memory rather than a separate step.
+  const [feelingsNote, setFeelingsNote] = useState('');
   const appStateRef = useRef<AppStateStatus>(AppState.currentState);
 
   useEffect(() => {
@@ -385,6 +389,12 @@ export default function QuestRunScreen() {
           .getState()
           .userQuests.find((u) => u.id === activeUq.id) ?? activeUq;
       const draft = composeMemoryDraftFromRun(quest, latestUq);
+      const feelings = feelingsNote.trim();
+      const memoryBody = feelings
+        ? draft.body === NO_EVIDENCE_NOTE
+          ? feelings
+          : `${draft.body}\n\nHow it felt: ${feelings}`
+        : draft.body;
 
       const r = await completeQuest(user.id, activeUq.id);
       if (!r.ok) {
@@ -407,7 +417,7 @@ export default function QuestRunScreen() {
         const memory = await createMemoryForQuest(user.id, {
           questId: quest.id,
           title: draft.title,
-          body: draft.body,
+          body: memoryBody,
           photoUri: draft.photoUri,
         });
         memoryId = memory.id;
@@ -438,7 +448,7 @@ export default function QuestRunScreen() {
                   // No real evidence was captured during the run — open
                   // straight into editing instead of a view-only screen with
                   // nothing personal in it, so adding a note takes no extra tap.
-                  ...(draft.body === NO_EVIDENCE_NOTE ? { autoEdit: '1' } : {}),
+                  ...(memoryBody === NO_EVIDENCE_NOTE ? { autoEdit: '1' } : {}),
                 },
               }),
           },
@@ -849,6 +859,18 @@ export default function QuestRunScreen() {
               })}
             </View>
 
+            <View style={styles.feelingsBlock}>
+              <Text style={styles.feelingsLabel}>How did that feel? (optional)</Text>
+              <TextInput
+                value={feelingsNote}
+                onChangeText={setFeelingsNote}
+                placeholder="Energized, tired, proud, meh — whatever's true."
+                placeholderTextColor={Theme.textMuted}
+                multiline
+                style={styles.feelingsInput}
+              />
+            </View>
+
             <PrimaryButton
               label="Complete quest"
               loading={primaryBusy}
@@ -1032,6 +1054,20 @@ const styles = StyleSheet.create({
   evidenceBody: { flex: 1, minWidth: 0 },
   evidenceTitle: { fontSize: 13, fontWeight: '700', color: Theme.text },
   evidenceLine: { fontSize: 13, lineHeight: 18, color: Theme.textMuted, marginTop: 2 },
+  feelingsBlock: { gap: 6, marginTop: 4 },
+  feelingsLabel: { fontSize: 13, fontWeight: '700', color: Theme.text },
+  feelingsInput: {
+    minHeight: 60,
+    borderWidth: 1,
+    borderColor: Theme.border,
+    borderRadius: 12,
+    padding: 12,
+    fontSize: 14,
+    lineHeight: 20,
+    color: Theme.text,
+    backgroundColor: Theme.bg,
+    textAlignVertical: 'top',
+  },
   doneBackLink: {
     alignSelf: 'center',
     paddingVertical: 8,
