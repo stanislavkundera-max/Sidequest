@@ -5,6 +5,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { PausedAndLikedSections } from '@/components/journey/PausedAndLikedSections';
 import { AccountCard } from '@/components/progress/AccountCard';
+import { BaselineReaskBanner } from '@/components/progress/BaselineReaskBanner';
 import { CompletedShowcase } from '@/components/progress/CompletedShowcase';
 import { PathFullModal } from '@/components/quests/PathFullModal';
 import { useQuestActions } from '@/components/quests/useQuestActions';
@@ -43,6 +44,7 @@ export function ProgressOverview() {
         </View>
 
         <AccountCard />
+        <BaselineReaskBanner />
 
         {loadingQuests ? (
           <View style={styles.loadingRow}>

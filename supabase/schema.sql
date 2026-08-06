@@ -21,7 +21,10 @@ create table if not exists public.profiles (
   -- How much the app "bothers" the user — settings-only, not asked during
   -- onboarding. No real notification sending is wired up to this yet.
   notification_intensity text not null default 'occasional'
-    check (notification_intensity in ('quiet', 'occasional', 'chatty'))
+    check (notification_intensity in ('quiet', 'occasional', 'chatty')),
+  -- Bumped whenever nature_connection/isolation are (re-)saved — drives the
+  -- 3-month re-ask nudge, not a general profile "last edited" timestamp.
+  baseline_updated_at timestamptz not null default now()
 );
 
 create table if not exists public.categories (

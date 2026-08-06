@@ -34,6 +34,8 @@ export type Profile = {
   natureConnection: OnboardingScaleAnswer;
   isolation: OnboardingScaleAnswer;
   notificationIntensity: NotificationIntensity;
+  /** Bumped whenever nature_connection/isolation are (re-)saved — drives the 3-month re-ask nudge. */
+  baselineUpdatedAt: string;
 };
 
 function normalizeIntensity(value: unknown): OnboardingIntensity {
@@ -89,6 +91,7 @@ function mapProfileRow(row: any): Profile {
     natureConnection: normalizeScaleAnswer(row.nature_connection),
     isolation: normalizeScaleAnswer(row.isolation_score),
     notificationIntensity: normalizeNotificationIntensity(row.notification_intensity),
+    baselineUpdatedAt: (row.baseline_updated_at as string | null) ?? (row.created_at as string),
   };
 }
 
@@ -180,7 +183,18 @@ export async function saveOnboardingStateForUser(
   userId: string,
   preferences: OnboardingPreferences
 ): Promise<OnboardingState> {
+  const nowIso = new Date().toISOString();
   const data = await updateProfileWithFallback(userId, [
+    {
+      onboarding_completed: true,
+      intensity_preference: preferences.intensity,
+      preferred_categories: preferences.categories,
+      pace_preference: preferences.pace,
+      nature_connection: preferences.natureConnection,
+      isolation_score: preferences.isolation,
+      baseline_updated_at: nowIso,
+    },
+    // Fallback: baseline_updated_at column not migrated yet.
     {
       onboarding_completed: true,
       intensity_preference: preferences.intensity,
@@ -255,6 +269,7 @@ function isMissingColumnError(message?: string): boolean {
     message.includes('pace_preference') ||
     message.includes('nature_connection') ||
     message.includes('isolation_score') ||
-    message.includes('notification_intensity')
+    message.includes('notification_intensity') ||
+    message.includes('baseline_updated_at')
   );
 }

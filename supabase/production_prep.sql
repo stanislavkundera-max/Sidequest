@@ -230,6 +230,11 @@ begin
   end if;
 end $$;
 
+-- 9) Baseline re-ask timestamp — bumped whenever nature_connection/isolation
+-- are (re-)saved, drives a 3-month nudge to re-answer them (round-1 plan).
+alter table if exists public.profiles
+  add column if not exists baseline_updated_at timestamptz not null default now();
+
 -- 4) Sanity check output.
 select
   exists (
