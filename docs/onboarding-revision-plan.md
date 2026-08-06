@@ -1,7 +1,6 @@
 # Onboarding revision plan
 
-**Status (2026-08-06): §1, §2, and §4 are done.** Only §3's history-vs-overwrite question remains
-open — see the note inline below.
+**Status (2026-08-06): all 4 sections done.** Nothing open in this plan anymore.
 
 Current onboarding is 7 steps: welcome → how it works → categories → pace →
 intensity → baseline scales → summary (`app/onboarding.tsx`). Answers are stored
@@ -29,16 +28,16 @@ them. That fact isn't communicated anywhere in the UI right now.
 ### 2. ✅ Done — Copy: "you can change these answers later"
 - Same footnote as §1 covers both messages in one line.
 
-### 3. ✅ Done (edit entry point + reopen flow) — 🔍 history-vs-overwrite still unresolved
+### 3. ✅ Done — edit entry point + reopen flow, and the overwrite-vs-history question
 - "Edit preferences" is a real, non-admin-gated entry point on the Progress tab's account card,
   reopening the categories/pace/intensity/baseline steps without replaying welcome/how-it-works,
   and without touching quest/memory history.
-- **Still open:** answers are overwritten in place, not versioned. The 3-month re-ask banner
-  (built 2026-08-06, `components/progress/BaselineReaskBanner.tsx`) nudges a re-answer but the
-  *previous* nature-connection/isolation values are lost on save — so "compare baseline vs. 3
-  months later" (backlog #1's actual ask, including the marketing-aggregate use case) isn't
-  possible yet. Needs a real decision: keep a small history table, or accept overwrite-only and
-  drop the comparison ask.
+- **Overwrite-vs-history, resolved (Standa, 2026-08-06):** a full history table only means
+  something once users have actually been on the app for months — nothing to version before
+  then. Instead: `nature_connection_baseline`/`isolation_baseline` capture the user's *first-ever*
+  answer once and are never overwritten, while `nature_connection`/`isolation` keep updating as
+  before on every edit/re-ask. A later comparison ("baseline vs. now", including the
+  marketing-aggregate use case from backlog #1) reads both pairs — no history table needed.
 
 ### 4. ✅ Done — New questions: loneliness / disconnection from nature
 - Both scales exist in onboarding step 5 (`natureConnection`, `isolation` on
@@ -59,9 +58,4 @@ them. That fact isn't communicated anywhere in the UI right now.
 
 ## Open decisions
 
-- **Overwrite vs. version onboarding answers (ties to backlog #1) — still unresolved,** the one
-  real gap left in this plan. Everything else below is settled/built.
-- ~~Do the new nature/isolation questions feed recommendation scoring at all, or are they purely a
-  baseline metric?~~ Decided by how it was built: purely a baseline metric, no scoring impact.
-- ~~Exact wording/placement of the "still have access to everything" and "editable later"
-  copy~~ — done, see §1/§2 above.
+All resolved — see §1–4 above for how each landed.
