@@ -69,7 +69,9 @@ export function ExploreQuestPanel({ userId, categoryId, preferences }: Props) {
     [userQuests]
   );
 
-  // One curated pick — the "Discover more" link leads to the full category in Journey.
+  // A pool of picks, not one forced choice — testers (all 4) wanted to choose
+  // from a few options instead of a single slot that vanishes once taken.
+  // "Discover more" still leads to the full category in Journey.
   const recommended = useMemo(() => {
     if (!categoryId) return [] as Quest[];
     return recommendQuestsInCategory({
@@ -77,7 +79,7 @@ export function ExploreQuestPanel({ userId, categoryId, preferences }: Props) {
       categoryId,
       preferences,
       excludeQuestIds: claimedIds,
-      limit: 1,
+      limit: 3,
     });
   }, [categoryId, quests, preferences, claimedIds]);
 

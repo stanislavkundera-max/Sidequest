@@ -146,6 +146,7 @@ export default function OnboardingScreen() {
   const quests = useQuestDomainStore((s) => s.quests);
   const categories = useQuestDomainStore((s) => s.categories);
   const bootstrap = useQuestDomainStore((s) => s.bootstrap);
+  const assignQuestToUser = useQuestDomainStore((s) => s.assignQuestToUser);
 
   const [step, setStep] = useState(isEditMode ? EDIT_MODE_FIRST_STEP : 0);
   const [selectedCategories, setSelectedCategories] = useState<OnboardingCategory[]>([]);
@@ -153,10 +154,20 @@ export default function OnboardingScreen() {
   const [intensity, setIntensity] = useState<OnboardingIntensity>('balanced');
   const [natureConnection, setNatureConnection] = useState<OnboardingScaleAnswer>(3);
   const [isolation, setIsolation] = useState<OnboardingScaleAnswer>(3);
+  const [selectedQuestIds, setSelectedQuestIds] = useState<Set<string>>(new Set());
   const [checking, setChecking] = useState(true);
   const [saving, setSaving] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const startedTracked = useRef(false);
+
+  const toggleQuestSelection = useCallback((questId: string) => {
+    setSelectedQuestIds((current) => {
+      const next = new Set(current);
+      if (next.has(questId)) next.delete(questId);
+      else next.add(questId);
+      return next;
+    });
+  }, []);
 
   function alertCompat(title: string, message: string) {
     if (Platform.OS === 'web' && typeof window !== 'undefined') {
@@ -280,7 +291,27 @@ export default function OnboardingScreen() {
         pacePreference: pace,
         intensityPreference: intensity,
       }).catch(() => undefined);
-      if (isEditMode) {
+
+      // Picking quests here is optional — start whichever ones the user
+      // actually checked. Failures (e.g. active path already full) are
+      // silently skipped rather than blocking the whole finish action;
+      // Explore/Journey are always there to pick them up individually.
+      const questsToStart = recommended.filter((q) => selectedQuestIds.has(q.id));
+      let startedQuestId: string | null = null;
+      if (user && questsToStart.length > 0) {
+        for (const q of questsToStart) {
+          try {
+            const r = await assignQuestToUser(user.id, q.id);
+            if (r.ok && !startedQuestId) startedQuestId = q.id;
+          } catch {
+            // Best-effort — see comment above.
+          }
+        }
+      }
+
+      if (startedQuestId && questsToStart.length === 1) {
+        router.replace(`/quest/run/${startedQuestId}` as never);
+      } else if (isEditMode) {
         router.back();
       } else {
         router.replace('/(tabs)/explore');
@@ -477,15 +508,29 @@ export default function OnboardingScreen() {
               {isEditMode ? 'Updated and ready.' : 'Almost set.'}
             </Text>
             <Text style={styles.subtext}>
-              Based on your answers, here&apos;s where we&apos;d start. You can always explore the
-              rest of the map.
+              Based on your answers, here&apos;s where we&apos;d start.{' '}
+              {recommended.length > 0
+                ? 'Tap any you want to begin right away — totally optional.'
+                : ''}{' '}
+              You can always explore the rest of the map.
             </Text>
             <View style={styles.choiceWrap}>
               {recommended.length > 0 ? (
                 recommended.map((quest) => {
                   const accent = categoryAccentForCategoryId(quest.categoryId);
+                  const selected = selectedQuestIds.has(quest.id);
                   return (
-                    <View key={quest.id} style={styles.recommendCard}>
+                    <Pressable
+                      key={quest.id}
+                      onPress={() => toggleQuestSelection(quest.id)}
+                      accessibilityRole="checkbox"
+                      accessibilityState={{ checked: selected }}
+                      accessibilityLabel={`${selected ? 'Remove' : 'Start with'} ${quest.title}`}
+                      style={({ pressed }) => [
+                        styles.recommendCard,
+                        selected && { borderColor: accent, backgroundColor: `${accent}14` },
+                        pressed && styles.pressed,
+                      ]}>
                       <View style={[styles.recommendAccent, { backgroundColor: accent }]} />
                       <View style={styles.recommendBody}>
                         <Text style={styles.recommendMeta}>{categoryName(quest.categoryId)}</Text>
@@ -496,7 +541,12 @@ export default function OnboardingScreen() {
                           {quest.shortDescription}
                         </Text>
                       </View>
-                    </View>
+                      <Ionicons
+                        name={selected ? 'checkmark-circle' : 'ellipse-outline'}
+                        size={22}
+                        color={selected ? accent : Theme.border}
+                      />
+                    </Pressable>
                   );
                 })
               ) : (
@@ -555,7 +605,11 @@ export default function OnboardingScreen() {
                 <ActivityIndicator color="#fff" />
               ) : (
                 <Text style={styles.ctaText}>
-                  {isEditMode ? 'Save changes' : 'Start exploring'}
+                  {selectedQuestIds.size > 0
+                    ? `Start with ${selectedQuestIds.size} quest${selectedQuestIds.size === 1 ? '' : 's'}`
+                    : isEditMode
+                      ? 'Save changes'
+                      : 'Start exploring'}
                 </Text>
               )}
             </Pressable>
@@ -801,11 +855,13 @@ const styles = StyleSheet.create({
   scaleEdgeLabel: { fontSize: 12, color: Theme.textMuted },
   recommendCard: {
     flexDirection: 'row',
+    alignItems: 'center',
     borderRadius: 16,
     borderWidth: 1,
     borderColor: Theme.border,
     backgroundColor: Theme.surface,
     overflow: 'hidden',
+    paddingRight: 14,
   },
   recommendAccent: { width: 5 },
   recommendBody: { flex: 1, padding: 14, gap: 4, minWidth: 0 },
