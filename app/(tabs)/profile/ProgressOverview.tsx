@@ -7,6 +7,7 @@ import { PausedAndLikedSections } from '@/components/journey/PausedAndLikedSecti
 import { AccountCard } from '@/components/progress/AccountCard';
 import { BaselineReaskBanner } from '@/components/progress/BaselineReaskBanner';
 import { CompletedShowcase } from '@/components/progress/CompletedShowcase';
+import { ScienceNote } from '@/components/progress/ScienceNote';
 import { PathFullModal } from '@/components/quests/PathFullModal';
 import { useQuestActions } from '@/components/quests/useQuestActions';
 import { ErrorState } from '@/components/ui/ErrorState';
@@ -64,6 +65,7 @@ export function ProgressOverview() {
 
         {!loadingQuests ? <PausedAndLikedSections actions={actions} /> : null}
         {!loadingQuests ? <CompletedShowcase /> : null}
+        <ScienceNote />
       </ScrollView>
       <PathFullModal
         visible={actions.pathFullOpen}
