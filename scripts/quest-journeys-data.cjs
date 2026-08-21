@@ -165,19 +165,6 @@ module.exports = {
       { id: 's3', title: 'Eat with attention—not desk lunch', estimateMinutes: 45 },
     ],
   },
-  'q-m-04': {
-    journeyIntro: 'Three nights without screens after nine.',
-    actionSteps: [
-      { id: 's1', title: 'Pick three consecutive weeknights', estimateMinutes: 5 },
-      {
-        id: 's2',
-        title: 'After 9 p.m. no video, social, or laptop',
-        detail: 'E-ink readers OK.',
-        estimateMinutes: 1,
-      },
-      { id: 's3', title: 'On night 3, note what you did instead', estimateMinutes: 10 },
-    ],
-  },
   'q-m-05': {
     journeyIntro: 'Show up for your community for two hours.',
     actionSteps: [

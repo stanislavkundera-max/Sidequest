@@ -180,19 +180,6 @@ const SEED_QUESTS_RAW: Array<Omit<Quest, 'journeyIntro' | 'actionSteps'>> = [
     suggestedProofType: 'photo',
   },
   {
-    id: 'q-m-04',
-    title: 'Digital sunset: no screens after 9 p.m. for three nights',
-    shortDescription: 'E-ink readers OK; no video or social apps.',
-    fullDescription:
-      'Pick three consecutive weeknights. After 9 p.m., no phone except calls, no TV or laptop. Read paper, stretch, or talk.',
-    categoryId: 'cat-relax',
-    timeframe: 'monthly',
-    difficulty: 'medium',
-    estimatedDurationMinutes: 180,
-    promptForReflection: 'Which night was hardest, and what did you do instead?',
-    suggestedProofType: 'text',
-  },
-  {
     id: 'q-m-05',
     title: 'Volunteer one shift of 2+ hours',
     shortDescription: 'Sign up with an organization; show up on time.',

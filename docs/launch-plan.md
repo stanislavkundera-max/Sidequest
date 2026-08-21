@@ -222,17 +222,18 @@ decision list, not a content draft.
 
 ### Current state (audited from the repo)
 
-- **20 quests total** (10 weekly, 6 monthly, 4 yearly) across the 4 categories — roughly 5 per
+- **19 quests total** (10 weekly, 5 monthly, 4 yearly) across the 4 categories — roughly 5 per
   category. Round-1 tester M's exact remark was "content quantity is extremely important" —
   this thin a catalog is a direct, confirmed match to that complaint, not a vague concern.
 - `docs/quest-content-guidelines.md` has exactly **one** rule (no abstention/negation quests). Its
   own "More rules" section is an explicit stub: "_(Add as they are decided — e.g. quest
   length/time framing, difficulty calibration, concreteness, category fit.)_" Nothing past rule #1
   has actually been decided yet.
-- **A live, known violation of rule #1 is still shipping**: `q-m-04`, "Digital sunset: no screens
-  after 9 p.m. for three nights," was confirmed today (live-testing the onboarding flow) to still
-  be actively recommended to new users. This is small, concrete, and disconnected from the bigger
-  volume question — could be fixed on its own without waiting for the rest of Pillar 3.
+- ~~A live, known violation of rule #1 is still shipping: `q-m-04`, "Digital sunset: no screens
+  after 9 p.m. for three nights."~~ **Resolved 2026-08-21** — Standa's call was to delete rather
+  than reframe it. Removed from `quests.ts`, `questJourneys.ts`, `quest-journeys-data.cjs`, and
+  `seed.sql`; live Supabase row still needs the one-off deactivation query (handed to Standa
+  directly, since this repo has no DB access/migration runner set up).
 - `scripts/quest-journeys-data.cjs` (used to generate `seed.sql`'s quest rows) is a **stale mirror**
   of the real source of truth (`src/constants/questJourneys.ts`) — missing the `interaction` field
   for every one of the 60 existing steps. Not user-facing today (a runtime fallback compensates),
@@ -257,8 +258,7 @@ decision list, not a content draft.
 3. **Difficulty/intensity calibration.** Quests need to map cleanly to Gentle/Balanced/Bold (built
    this session) within each category, but there's no written rule for what makes one quest "Bold"
    and another "Gentle" — right now it's a per-quest judgment call with no documented standard.
-4. **The `q-m-04` fix.** Small and separable — worth deciding whether to knock out now or fold into
-   the bigger pass.
+4. ~~The `q-m-04` fix.~~ **Done 2026-08-21** — deleted rather than reframed.
 5. **A tone/voice guide.** `story.md`/`value-proposition.md` establish a real voice (warm, direct,
    a little wry — "Order two dishes you have never tried from that tradition" is the existing house
    style), but it's not written down as something a second writer, or future-me, could follow

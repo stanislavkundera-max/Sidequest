@@ -485,38 +485,6 @@ export const QUEST_JOURNEY_BY_ID: Record<
       },
     ],
   },
-  'q-m-04': {
-    journeyIntro: 'Three nights without screens after nine.',
-    actionSteps: [
-      {
-        id: 's1',
-        title: 'Pick three consecutive weeknights',
-        tip: 'Stack three paper books visibly—objects beat willpower slogans on the nightstand.',
-        estimateMinutes: 5,
-        interaction: { kind: 'confirm' },
-      },
-      {
-        id: 's2',
-        title: 'After 9 p.m. no video, social, or laptop',
-        detail: 'E-ink readers OK.',
-        tip: 'Trade doom-scroll for warm low light and one tactile hobby for thirty minutes.',
-        estimateMinutes: 1,
-        interaction: { kind: 'confirm' },
-      },
-      {
-        id: 's3',
-        title: 'On night 3, note what you did instead',
-        tip: 'One line per night is enough—patterns show without journaling pressure.',
-        estimateMinutes: 10,
-        interaction: {
-          kind: 'input',
-          prompt: 'Three nights — what did you do instead? One line per night.',
-          minChars: 40,
-          placeholder: 'Night 1: read in bed. Night 2: sketched. Night 3: tea on the balcony…',
-        },
-      },
-    ],
-  },
   'q-m-05': {
     journeyIntro: 'Show up for your community for two hours.',
     actionSteps: [
