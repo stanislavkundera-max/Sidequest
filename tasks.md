@@ -1,20 +1,19 @@
 # Tasks / Backlog
 
-## 1) Onboarding: "which part of life needs improvement" question + 3-month re-ask
-- Change the one relevant onboarding question so it finds out **which part of their life needs improvement**.
-- After **3 months**, ask active users the **same question again** to see their progress.
-- Capture both answers (baseline + 3-month) so progress can be compared.
-- Option to use this data in **marketing** (e.g. aggregate "X% improved area Y").
+## 1) ~~Onboarding baseline question + 3-month re-ask~~ — Done (found already shipped, 2026-08-21)
+- Baseline nature-connection/isolation questions + one-time baseline capture +
+  3-month re-ask all built (`a0b65de`). This entry wasn't crossed off when the
+  work landed — caught during this session's tasks.md audit.
 
-## 2) Admin / test account
-- Create an **admin account** to test everything easily.
-- Should **bypass login** (no need to sign in each time).
-- Goal: quickly walk the whole app (onboarding, quests, journey, etc.) without auth friction.
+## 2) ~~Admin / test account~~ — Done differently than described (found 2026-08-21)
+- No literal "admin account" — instead `lib/devAuth.ts` auto-signs-in in
+  `__DEV__` builds via env vars, which covers the actual goal (walk the app
+  without re-entering credentials each time). Separately, `isAdminEmail()`
+  gates redo-onboarding/delete-progress tools for one real email.
 
-## 3) Finish `docs/value-proposition.md`
-- Source and add real citations for the "green notes" placeholder — science-based
-  credibility for how time in nature and reduced screen/autopilot time benefits
-  health, to back the "peace" and "aliveness" claims.
+## 3) ~~Finish `docs/value-proposition.md`~~ — Done 2026-08-21
+- "Backed by research" paragraph (White, Bratman, Killingsworth & Gilbert)
+  approved and live in the doc; 3 more citations kept as backup/reference.
 
 ## 4) Finish `docs/story.md`
 - Write up the actual "breaking point" scene — the Morocco surfing trip — as a
@@ -22,11 +21,10 @@
 - Once written, draft the trimmed welcome-screen cut and update the landing
   page / marketing copy to use the specific scene.
 
-## 5) Clarify: onboarding is recommendations only, not a restriction
-- Users can pick any quest, in any category, regardless of what they answered
-  in onboarding — the answers only shape what gets *recommended* to them.
-- Add copy somewhere in the app (onboarding summary screen and/or Explore)
-  that makes this explicit, so people don't feel boxed in by their answers.
+## 5) ~~Clarify: onboarding is recommendations only~~ — Done (found already shipped, 2026-08-21)
+- Footnote copy live on both the onboarding summary screen and Explore's
+  recommended section (`docs/onboarding-revision-plan.md` §1–2). Same catch
+  as #1 — done but not crossed off until this session's audit.
 
 ## 6) Decide on color palette (not necessary for MVP)
 - Current palette is a placeholder. Revisit once branding direction is set.
@@ -40,11 +38,12 @@
   spot (and the overall art style) actually feels like the quests it holds,
   not just a themed marker icon dropped on top.
 
-## 9) Finish onboarding + let users change their answers later
-- Add a real "edit preferences" flow for everyone (not just admin's full
-  redo-onboarding), so people can update categories/pace/focus without
-  starting over.
-- Plan: see [`docs/onboarding-revision-plan.md`](docs/onboarding-revision-plan.md)
-  — covers the copy about answers being recommendations-only + editable,
-  the new loneliness/nature-connection questions, and the open data-model
-  decisions. Plan only for now; build when there's time to start it properly.
+## 9) ~~Let users change onboarding answers later~~ — Done (found already shipped, 2026-08-21)
+- Real "Edit preferences" entry point on the Progress tab's account card for
+  everyone, not just admin (`docs/onboarding-revision-plan.md` §3). Same
+  catch as #1/#5.
+
+## 10) ~~Progress tab: surface the science backing, tucked away~~ — Done 2026-08-21
+- `components/progress/ScienceNote.tsx`: a collapsed "Why this works" row at
+  the bottom of the Progress tab, expands on tap to the approved research
+  paragraph. Verified in the browser preview (expand + collapse both work).
