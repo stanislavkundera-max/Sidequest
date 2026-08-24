@@ -12,6 +12,30 @@
 > references) were deleted as dead code in this pass. Read the rest of this doc as an **unrealized
 > design vision**, not current behavior — useful if this direction gets picked back up, not a
 > description of what ships today.
+>
+> **Built and evaluated, then parked (2026-08-21).** The scene was restored from git history,
+> wired to live data for the first time, and looked at on a real screen. It works mechanically —
+> but it is **not** merged. The code lives on branch **`journey-world-scene`**; `main` still ships
+> the plain catalog. Do not re-implement it from scratch; start from that branch.
+>
+> Three things must be solved before it ships, and none of them is a code defect:
+>
+> 1. **The art does not belong to this app yet.** `journey-valley-background.png` is soft hazy
+>    concept art; the live Explore map (`explore-map-background.png`) is a detailed, saturated,
+>    top-down illustration; the rest of the UI is flat and minimal. That is three visual languages.
+>    Of the two paintings the Explore map has the stronger identity — if one becomes the house
+>    style, Journey needs art matching *it*.
+> 2. **Progress is not legible from the path.** `anchoredUsForRange` spreads markers linearly
+>    across the whole trail no matter how many exist, so two quests look spatially the same as ten
+>    and the path always reads as "full". It should fill up from the start instead.
+> 3. **Artifacts read as UI, not scenery.** The "rounded paper base" in the Look rule below renders
+>    as a near-white pill floating on the painting. Composed shapes are fine; the white pedestal
+>    and halo behind them are what break the illusion.
+>
+> **Placement decision (Standa, 2026-08-21):** when this is revived it belongs on the **Progress**
+> tab, not Journey. The scene shows completed and active quests — the user's history — which is
+> what Progress is for ("Everything you have finished", already home to the trophy shelf). Journey
+> stays the catalog. This supersedes the Scope line above for the scene specifically.
 
 ---
 

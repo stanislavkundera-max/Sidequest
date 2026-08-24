@@ -158,9 +158,14 @@ or at minimum, a placeholder-but-real icon so store setup isn't fully blocked on
 - **A more ambitious visual direction was designed but never shipped:** `docs/journey-visual-style.md`
   describes a rich "world scene" system — a painted path, artifacts along it, mood/atmosphere
   layers reacting to time of day and progress. The implementation (~2,900 lines across 8
-  components) was found completely disconnected from the live app during today's cleanup and
-  deleted as dead code. This is a real fork for the redesign to resolve deliberately (see decisions
-  below), not something to silently let go.
+  components) was found completely disconnected from the live app during the 2026-08-06 cleanup and
+  deleted as dead code. **Rebuilt and evaluated 2026-08-21** — it now exists on branch
+  `journey-world-scene` (not merged) with the blockers written up in `docs/journey-visual-style.md`.
+  The fork below is updated accordingly.
+- **Two paintings, two unrelated styles.** `explore-map-background.png` (live) is a detailed,
+  saturated, top-down illustration; `journey-valley-background.png` is soft hazy concept art; the
+  UI around both is flat and minimal. Picking one house style and redrawing to it is probably the
+  single most visible thing this pillar can do.
 - `AGENTS.md`'s own design principles are a real constraint to design *within*, not against: "calm,
   grounded UI," "no loud UI patterns," explicitly bans streak-pressure/gamification visuals. A
   redesign that goes maximalist or game-HUD-flavored would contradict the product's own stated
@@ -193,11 +198,20 @@ page.
   final), or is a "good enough, real, just not final" icon acceptable to unblock Pillar 1 while
   deeper redesign continues in parallel? My lean: don't let redesign fully block the Play Store
   12-tester clock (Pillar 1) — that clock is calendar-bound, design work is not.
-- **Revive the "world scene" visual direction, or formally abandon it?** This is the single biggest
-  fork. Reviving it means a genuinely ambitious illustrated/interactive map experience (a lot more
-  design *and* engineering work, but a stronger, more differentiated identity). Abandoning it means
-  refining the current flat, minimal, card-based look instead (cheaper, faster, lower risk, less
-  distinctive). Either is defensible — it just needs to be a choice, not a default.
+- ~~**Revive the "world scene" visual direction, or formally abandon it?**~~ **Partly resolved
+  2026-08-21 — the engineering half is answered, the design half is now the real question.**
+  The scene was rebuilt from git history and put on a real screen (branch `journey-world-scene`,
+  not merged). Outcome: the mechanism is cheap and it works, so this is **not** the expensive fork
+  it looked like — it needs no new dependency and no per-artifact art. What it does need is an art
+  direction, and that is exactly what this pillar has to decide. See
+  `docs/journey-visual-style.md` for the three blockers in detail. The short version:
+  - The valley painting and the Explore map are two unrelated illustration styles, and the flat UI
+    is a third. **The redesign has to pick one house style and apply it to both maps** — this is
+    now a concrete brief item, not an abstract preference.
+  - The path never reads as filling up, so progress is not legible (fixable in code, art-independent).
+  - Artifacts render as white UI pills on the painting rather than objects in it.
+  - When revived it goes on **Progress**, not Journey (Standa's call) — the scene shows history,
+    and Journey is the catalog.
 - **Does the current "calm, no gamification" positioning stay locked**, or is that itself open for
   reconsideration as part of this redesign pass? (My assumption, given everything decided this
   session, is that it stays — but worth confirming explicitly before briefing anyone external.)
