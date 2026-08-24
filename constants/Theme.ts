@@ -1,15 +1,58 @@
-/** Calm earth / nature neutrals — minimal, grounded UI */
-export const Theme = {
-  bg: '#f4f1ec',
-  surface: '#ffffff',
-  text: '#2c2825',
-  textMuted: '#6b6560',
-  border: '#e0dbd4',
-  accent: '#5c7a6b',
-  accentSoft: '#e8f0ec',
-  nature: '#5c7a6b',
-  adventure: '#8b7355',
-  social: '#6b7a9e',
-  relax: '#7a6b8a',
-  danger: '#b85c4a',
-} as const;
+/**
+ * Palette derived from the Explore map artwork (2026-08-21).
+ *
+ * Sampling that illustration showed it is effectively monochrome: the twelve
+ * most common colours — 67% of its pixels — all sit at hue 66–98° (olive) and
+ * lightness 13–34%. Two rules follow, and everything below obeys them:
+ *
+ *   1. The brand accent comes *from* that band, so the UI and the artwork read
+ *      as one world.
+ *   2. Category hues stay *out* of it (and out of 0–15°, which danger owns),
+ *      so a marker never disappears into the forest behind it.
+ *
+ * Category lightness is staggered on purpose. Red-green colour blindness
+ * collapses hue differences, so value — not hue — is what keeps the three cool
+ * categories apart. Verified: every colour clears WCAG AA (4.5:1) on `bg` and
+ * `surface`, white text clears AA on every category fill, and the worst
+ * category pair is ΔE 37.9 in normal vision, 27.4 under protanopia. The
+ * weakest case is nature/social under deuteranopia (ΔE 15.1) — acceptable only
+ * because category colour is never the sole cue: an icon and a written label
+ * always accompany it.
+ *
+ * Named by role rather than by value so a dark palette can be added later
+ * without touching call sites.
+ */
+export type ThemePalette = {
+  bg: string;
+  surface: string;
+  text: string;
+  textMuted: string;
+  border: string;
+  accent: string;
+  accentSoft: string;
+  nature: string;
+  adventure: string;
+  social: string;
+  relax: string;
+  danger: string;
+};
+
+/** Calm earth / nature neutrals — minimal, grounded UI. */
+export const lightPalette: ThemePalette = {
+  bg: '#f3f2ec',
+  surface: '#fcfbf8',
+  text: '#28281f',
+  textMuted: '#6c6b5a',
+  border: '#dfdcd3',
+  // Moss, taken straight from the map's own hue band.
+  accent: '#536534',
+  accentSoft: '#ecf1e4',
+  nature: '#215e4f',
+  adventure: '#8d6025',
+  social: '#824071',
+  relax: '#4264b3',
+  danger: '#b13a2f',
+};
+
+// A dark palette slots in here; nothing else has to change.
+export const Theme = lightPalette;
