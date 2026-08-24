@@ -4,14 +4,13 @@
 
 **Scope:** `app/(tabs)/journey.tsx`, `components/journey/**`, `src/features/journey/**`. Shared hub chrome lives in `components/journey/journeyHubStyles.ts`, reused by `components/journey/PausedAndLikedSections.tsx` (rendered on the Progress tab, `app/(tabs)/profile/ProgressOverview.tsx`) — keep both aligned when changing chips, timeframe strips, or discover rows. Avoid unrelated screens unless wiring requires a minimal, justified touch.
 
-> **Reality check (2026-08-06):** the rich "world scene" system this doc describes below — path
-> spine, artifacts, atmosphere/mood layers, `JourneyWorldScene`/`JourneyAtmosphere` etc. — was
-> never wired into the live Journey tab. `app/(tabs)/journey.tsx` has only ever rendered
-> `AllQuestsList`, a plain category catalog (same discovery as `JourneyQuestHub.tsx`, see
-> `docs/feedback/round-1-synthesis.md`). The implementation files (~2,900 lines, zero live
-> references) were deleted as dead code in this pass. Read the rest of this doc as an **unrealized
-> design vision**, not current behavior — useful if this direction gets picked back up, not a
-> description of what ships today.
+> **Status (2026-08-21):** live. The "world scene" system this doc describes below — path spine,
+> artifacts, atmosphere/mood layers, `JourneyWorldScene`/`JourneyAtmosphere` etc. — had been built
+> once (2026-07-27–08-06), never wired into any screen, and was deleted as dead code on 2026-08-06.
+> It was restored from git history and wired into `app/(tabs)/journey.tsx` on 2026-08-21, as a
+> panel above the existing `AllQuestsList` catalog (not a replacement for it). `saved_for_later`
+> quests (paused/liked) are intentionally not shown on the path. The rules below describe current
+> behavior, not an unrealized vision.
 
 ---
 
@@ -39,6 +38,13 @@
 - **Contrast:** Path tread must be readable without squinting; avoid near-black-on-black and muddy dark-on-dark.
 - **Geometry:** Quest markers and artifacts follow the **painted path polyline** (`JOURNEY_PATH_POINTS` in `journeyImagePath.ts`). Depth scaling still uses `trailWidthAtT` / `scaleAtT` with placement `t`. Do not reintroduce a second synthetic path spine on top of the background art.
 - **Progression:** Trail width / completion feel may reflect **completed** quest count — active quests must not inflate “world completion” metrics unless the product asks for it.
+- **Nothing the user earned may be cropped.** The panel is **not** a fixed-height hero: it grows
+  with the stretch of trail actually occupied (`JourneyWorldScenePanel`), and the crop is anchored
+  to that band (`journeySceneAnchorForBand`), not centred. An empty path shows a short trailhead
+  strip. If the band cannot fit, the **top** wins — that end holds the newest marker and the current
+  position. The background bitmap is positioned from the *same* layout object as the markers, so
+  art and path can never drift out of register; do not reintroduce `resizeMode="cover"` here, which
+  always centres and would desync them.
 
 ---
 
@@ -85,6 +91,13 @@
 - **Separate planes:** Sky, horizon band, ground planes must remain distinguishable under fog.
 - **Category color:** Express through **marker glows and artifact ink**, not by washing the entire scene in one hue.
 - **Relax / night:** Still needs readable separation — no “everything is #0a0a0a.”
+- **One hue per category, two tiers of lightness (decided 2026-08-21).** `constants/Theme.ts`
+  and the scene's `LofiInk` palette in `JourneyArtifactGlyph.tsx` must share the **hue** for each
+  category; they differ only in lightness, because UI chips need contrast on `bg`/`surface` while
+  scene glyphs sit on painted art. Social is **warm** (~25°) in both — its glyphs are lanterns,
+  campfires and lit windows, and the microcopy says "warm lights are appearing along your way";
+  a cool social hue contradicts the whole artifact set. When adding or retuning a category color,
+  change both files together and re-check contrast against `Theme.bg`.
 
 ---
 
@@ -94,7 +107,7 @@ When approaching painterly reference boards:
 
 1. **Background** — Hero bitmap (`assets/images/journey-valley-background.png`, `cover` in `JourneyAtmosphere`) and/or future parallax layers (exported @1x/@2x/@3x); keep file size budget in mind.
 2. **Path glow** — Prefer **Skia** (gradient along curve, soft outer glow) if Views are insufficient; document the dependency in `README.md` / `AGENTS.md` when added.
-3. **Artifact icons** — Consistent **sprite size** + one art style bible (weekly / monthly / yearly × category); code maps `JourneyArtifactVisual` → asset.
+3. **Artifact icons** — Consistent **sprite size** + one art style bible (weekly / monthly / yearly × category); code maps `JourneyArtifactVisual` → a composed-`View` glyph (`JourneyArtifactGlyph.tsx`), not an image asset — no per-artifact art file needed today.
 4. **Avatar / “you”** — Simple silhouette + soft ring at current `t`; keep accessible target size.
 
 Do **not** block Journey UX on Rive/Lottie for the full scene; use them only for isolated accents if needed.

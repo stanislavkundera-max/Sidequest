@@ -3,6 +3,7 @@ import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { AllQuestsList } from '@/components/journey/AllQuestsList';
+import { JourneyWorldScenePanel } from '@/components/journey/JourneyWorldScenePanel';
 import { PathFullModal } from '@/components/quests/PathFullModal';
 import { useQuestActions } from '@/components/quests/useQuestActions';
 import { EmptyState } from '@/components/ui/EmptyState';
@@ -39,6 +40,10 @@ export default function JourneyScreen() {
         contentContainerStyle={styles.scrollContent}
         keyboardShouldPersistTaps="handled">
         <Text style={styles.pageTitle}>Journey</Text>
+        <JourneyWorldScenePanel
+          onOpenQuest={actions.openQuest}
+          onOpenMemory={(id) => router.push(`/memory/${id}`)}
+        />
         <Text style={styles.pageSub}>Every quest in the world — pick anything that calls to you.</Text>
         <AllQuestsList initialCategoryId={params.category ?? null} actions={actions} />
       </ScrollView>
