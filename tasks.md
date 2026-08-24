@@ -26,8 +26,15 @@
   recommended section (`docs/onboarding-revision-plan.md` §1–2). Same catch
   as #1 — done but not crossed off until this session's audit.
 
-## 6) Decide on color palette (not necessary for MVP)
-- Current palette is a placeholder. Revisit once branding direction is set.
+## 6) ~~Decide on color palette~~ — Done 2026-08-21
+- Derived from the Explore map artwork rather than picked by eye: brand accent
+  taken from the map's own hue band, category hues kept out of it, lightness
+  staggered so colour blindness cannot collapse them. Method and the measured
+  results (contrast, ΔE, dichromat simulation) are documented in
+  `constants/Theme.ts`.
+- Structured as `lightPalette` behind a `ThemePalette` type so a dark palette
+  can be added later without touching call sites. **Dark mode itself is still
+  open** — the structure is ready, the values are not written.
 
 ## 7) Side quest: content, process, voice, branding (after MVP)
 - Broader pass on quest content/process, brand voice, and visual branding —
