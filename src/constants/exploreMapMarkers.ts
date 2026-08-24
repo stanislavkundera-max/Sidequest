@@ -11,46 +11,50 @@ export type ExploreMapMarkerDef = {
 /** Pixel size of `explore-map-background.png` (illustrated forest map). */
 export const EXPLORE_MAP_SOURCE_SIZE = { width: 765, height: 1024 };
 
-// Markers used to be pinned to painted landmarks (waterfall / pond / cabin /
-// meadow). That pinning was dropped 2026-08-21: the top marker collided with
-// the header, and each marker now carries a name label underneath, so identity
-// comes from the label rather than from what it happens to sit on.
+// Spots picked by Standa on the artwork (2026-08-21), each sitting on a
+// landmark that suits its mood:
+//   • adventure → the open clearing in the middle of the map
+//   • relax     → the river bend on the eastern side
+//   • nature    → the wooded path in the south-west
+//   • social    → the big log cabin at the bottom
 //
-// What the layout optimises for instead:
-//   • a readable zig-zag down the map, roughly evenly spaced, so four markers
-//     plus their labels never crowd or overlap each other
-//   • clear of the header scrim at the top and the tab bar at the bottom
-//   • u inside the horizontally-safe band, because cover-fit crops the sides on
-//     a portrait phone while the full height stays visible. The old band
-//     (~0.24–0.76) was measured for the bare 52px circle; the label makes each
-//     marker 112px wide, which narrows the usable range to roughly 0.29–0.72.
+// Nudged from the exact marks only where geometry demanded it: `nature` and
+// `social` moved up so their labels clear the tab bar on a short phone
+// (375x667 is the binding case), and the top two were spread slightly so their
+// tap targets never touch.
 //
-// `v` is the centre of the circle; the label hangs ~26px below it, so leave
-// headroom under the lowest marker when retuning.
+// Constraints when retuning:
+//   • cover-fit crops the sides on a portrait phone while the full height
+//     shows, so extreme `u` pushes a label off-screen. The visible label is
+//     ~60–90px wide; the invisible tap target is 112px, which is what has to
+//     stay clear of a neighbour's.
+//   • `v` is the centre of the circle. The label hangs ~30px below it, and the
+//     header scrim covers the top 132px — so keep `v` inside roughly
+//     0.25–0.83 and leave vertical or horizontal room between neighbours.
 export const EXPLORE_MAP_MARKERS: ExploreMapMarkerDef[] = [
   {
     categoryId: 'cat-adventure',
-    u: 0.55,
-    v: 0.29,
-    accessibilityHint: 'Adventure quests — new routes and small trips',
+    u: 0.53,
+    v: 0.47,
+    accessibilityHint: 'Adventure quests — in the clearing, new routes and small trips',
   },
   {
     categoryId: 'cat-relax',
-    u: 0.38,
-    v: 0.45,
-    accessibilityHint: 'Relax quests — slow, restorative moments',
-  },
-  {
-    categoryId: 'cat-social',
-    u: 0.35,
+    u: 0.71,
     v: 0.61,
-    accessibilityHint: 'Social quests — real conversations and connection',
+    accessibilityHint: 'Relax quests — by the river, slow restorative moments',
   },
   {
     categoryId: 'cat-nature',
-    u: 0.6,
-    v: 0.77,
-    accessibilityHint: 'Nature quests — outdoors, plants, and light',
+    u: 0.3,
+    v: 0.8,
+    accessibilityHint: 'Nature quests — on the forest path, outdoors, plants, and light',
+  },
+  {
+    categoryId: 'cat-social',
+    u: 0.54,
+    v: 0.825,
+    accessibilityHint: 'Social quests — at the cabin, real conversations and connection',
   },
 ];
 
