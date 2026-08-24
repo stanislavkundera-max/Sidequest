@@ -1,10 +1,10 @@
 import { StyleSheet } from 'react-native';
 
+import { MIN_TOUCH_TARGET } from '@/constants/touchTargets';
 import { Theme } from '@/constants/Theme';
 
 /**
  * Shared “hub discover” chrome for Journey and Progress (chips, timeframe strip, quest rows).
- * Keep in sync when tuning Journey — see JourneyQuestHub.
  */
 export const journeyHubStyles = StyleSheet.create({
   root: { width: '100%', overflow: 'hidden', backgroundColor: Theme.bg },
@@ -37,7 +37,7 @@ export const journeyHubStyles = StyleSheet.create({
     paddingBottom: 12,
   },
   chipsScroll: { flexGrow: 1, flexShrink: 1, maxWidth: '100%' },
-  chips: { gap: 8, alignItems: 'center', flexGrow: 0 },
+  chips: { gap: 6, alignItems: 'center', flexGrow: 0 },
   chipHeartWrap: {
     width: 44,
     height: 44,
@@ -53,18 +53,25 @@ export const journeyHubStyles = StyleSheet.create({
   // map markers, so the same category looks the same in both places. The
   // selected chip fills with the category colour (callers pass it inline, since
   // it differs per category) rather than tinting faintly.
+  //
+  // Sized so all four fit one row without scrolling, down to a 360dp screen:
+  // measured label widths total 165px, leaving 13px spare there. Adding a
+  // longer category name would push them back into a scroll, so check the fit
+  // if the catalog ever gains one.
   chip: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
+    justifyContent: 'center',
+    gap: 4,
+    minHeight: MIN_TOUCH_TARGET,
     borderWidth: 1,
     borderColor: Theme.border,
     borderRadius: 999,
-    paddingVertical: 8,
-    paddingHorizontal: 13,
+    paddingVertical: 6,
+    paddingHorizontal: 8,
     backgroundColor: Theme.surface,
   },
-  chipText: { fontSize: 13, fontWeight: '700', color: Theme.text },
+  chipText: { fontSize: 12, fontWeight: '700', color: Theme.text },
   discoverBlock: { width: '100%', paddingBottom: 8 },
   heroCard: {
     marginHorizontal: 16,
@@ -206,22 +213,27 @@ export const journeyHubStyles = StyleSheet.create({
     letterSpacing: 0.6,
   },
   btnSubtleSolid: {
-    backgroundColor: 'rgba(92,122,107,0.9)',
+    // Was a hardcoded rgba copy of the old accent, so it kept the previous
+    // green when the palette changed. Reads from the token now.
+    backgroundColor: Theme.accent,
     borderRadius: 999,
-    minHeight: 34,
+    minHeight: MIN_TOUCH_TARGET,
     justifyContent: 'center',
     paddingVertical: 6,
-    paddingHorizontal: 12,
+    paddingHorizontal: 14,
   },
   btnSubtleSolidText: { color: '#fff', fontSize: 12, fontWeight: '600' },
   btnSubtleLight: {
     borderRadius: 999,
-    backgroundColor: 'rgba(255,255,255,0.94)',
-    minHeight: 34,
+    backgroundColor: Theme.surface,
+    borderWidth: 1,
+    borderColor: Theme.border,
+    minHeight: MIN_TOUCH_TARGET,
     paddingVertical: 6,
-    paddingHorizontal: 12,
+    paddingHorizontal: 14,
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
     gap: 6,
   },
   btnSubtleLightText: { color: Theme.accent, fontWeight: '600', fontSize: 12 },

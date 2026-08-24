@@ -2,6 +2,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
+import { MIN_TOUCH_TARGET } from '@/constants/touchTargets';
 import { Theme } from '@/constants/Theme';
 
 const RESEARCH_NOTE =
@@ -45,7 +46,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 4,
     alignSelf: 'flex-start',
-    paddingVertical: 4,
+    minHeight: MIN_TOUCH_TARGET,
+    paddingRight: 8,
   },
   toggleText: {
     fontSize: 12,

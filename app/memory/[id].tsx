@@ -346,7 +346,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     borderWidth: 1,
     borderColor: Theme.danger,
-    backgroundColor: '#fdecea',
+    backgroundColor: Theme.dangerSoft,
   },
   deleteBtnText: { fontSize: 15, fontWeight: '600', color: Theme.danger },
   pressed: { opacity: 0.85 },

@@ -35,6 +35,8 @@ export type ThemePalette = {
   social: string;
   relax: string;
   danger: string;
+  dangerSoft: string;
+  dangerBorder: string;
 };
 
 /** Calm earth / nature neutrals — minimal, grounded UI. */
@@ -52,6 +54,12 @@ export const lightPalette: ThemePalette = {
   social: '#824071',
   relax: '#4264b3',
   danger: '#b13a2f',
+  // The pale fill and hairline behind error states. These were hardcoded in
+  // five different files against the previous red, which is exactly how a
+  // palette drifts out of sync — the same way the "Start now" button kept the
+  // old green. Derived from `danger`; it carries 5.04:1 on the soft fill.
+  dangerSoft: '#f9e8e6',
+  dangerBorder: '#e5c0bd',
 };
 
 // A dark palette slots in here; nothing else has to change.

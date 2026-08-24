@@ -39,6 +39,13 @@ export function CatalogQuestRow({
 }: Props) {
   const accent = categoryAccentForCategoryId(quest.categoryId);
   return (
+    // Deliberately has no accessibilityRole: it contains the Start and Like
+    // buttons, and a button inside a button is invalid markup and confuses
+    // screen readers. Tapping the card is a shortcut to the detail screen;
+    // the two real actions inside carry the accessible roles.
+    // TODO: the shortcut itself is still not reachable by keyboard or screen
+    // reader. Fixing that properly means giving the card an explicit "details"
+    // control rather than making the whole surface a button.
     <Pressable
       onPress={() => onOpen(quest.id)}
       style={({ pressed }) => [styles.discoverQuestRow, pressed && styles.pressed]}>
@@ -56,6 +63,9 @@ export function CatalogQuestRow({
           <Pressable
             disabled={busy}
             onPress={() => onStart(quest.id)}
+            accessibilityRole="button"
+            accessibilityLabel={`${QUEST_COPY.startNow}: ${quest.title}`}
+            accessibilityState={{ disabled: busy }}
             style={({ pressed }) => [
               styles.btnSubtleSolid,
               pressed && !busy && styles.pressed,
@@ -67,6 +77,9 @@ export function CatalogQuestRow({
             <Pressable
               disabled={busy}
               onPress={() => onLike(quest.id)}
+              accessibilityRole="button"
+              accessibilityLabel={`${QUEST_COPY.likeQuest}: ${quest.title}`}
+              accessibilityState={{ disabled: busy }}
               style={({ pressed }) => [
                 styles.btnSubtleLight,
                 pressed && !busy && styles.pressed,

@@ -2,7 +2,7 @@ import React from 'react';
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 import { Redirect, router, Tabs } from 'expo-router';
 import { useEffect } from 'react';
-import { View } from 'react-native';
+import { Text, View } from 'react-native';
 
 import { LoadingState } from '@/components/ui/LoadingState';
 import { Theme } from '@/constants/Theme';
@@ -52,10 +52,17 @@ export default function TabLayout() {
       initialRouteName="explore"
       screenOptions={{
         tabBarActiveTintColor: Theme.accent,
-        // textMuted is too close in perceived brightness to accent for a 24px
-        // icon to read as "changed" — use a lighter neutral just for inactive
-        // tab icons so the active state is visibly distinct.
-        tabBarInactiveTintColor: '#b3aca4',
+        // A lighter neutral used to sit here so the active tab read as clearly
+        // "changed", but at 2.17:1 the inactive labels failed contrast. The
+        // active state is now carried by weight as well as colour (see
+        // `tabBarLabel` below), which is a stronger cue anyway — colour alone
+        // is not something every user can see.
+        tabBarInactiveTintColor: Theme.textMuted,
+        tabBarLabel: ({ focused, color, children }) => (
+          <Text style={{ fontSize: 10, fontWeight: focused ? '800' : '500', color }}>
+            {children}
+          </Text>
+        ),
         tabBarStyle: {
           backgroundColor: Theme.surface,
           borderTopWidth: 0,
@@ -100,6 +107,9 @@ export default function TabLayout() {
         name="memories"
         options={{
           title: 'Memories',
+          // Every tab screen renders its own title; leaving the navigation
+          // header on showed "Memories" twice.
+          headerShown: false,
           tabBarIcon: ({ color }) => (
             <TabBarIcon name="book" color={color} />
           ),
@@ -109,6 +119,7 @@ export default function TabLayout() {
         name="profile"
         options={{
           title: 'Progress',
+          headerShown: false,
           tabBarIcon: ({ color }) => (
             <TabBarIcon name="trophy" color={color} />
           ),

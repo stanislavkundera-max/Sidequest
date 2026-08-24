@@ -772,7 +772,7 @@ const styles = StyleSheet.create({
   errorBanner: {
     marginTop: 12,
     marginBottom: 6,
-    backgroundColor: '#fdecea',
+    backgroundColor: Theme.dangerSoft,
     color: Theme.danger,
     borderRadius: 10,
     paddingHorizontal: 12,

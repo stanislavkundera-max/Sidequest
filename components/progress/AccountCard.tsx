@@ -3,6 +3,7 @@ import { useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
 
+import { MIN_TOUCH_TARGET } from '@/constants/touchTargets';
 import { Theme } from '@/constants/Theme';
 import { alertCompat, alertTwoChoice } from '@/lib/alertCompat';
 import { resetOnboardingComplete } from '@/lib/onboarding';
@@ -326,6 +327,7 @@ export function AccountCard() {
         <Pressable
           accessibilityRole="link"
           accessibilityLabel="Privacy Policy"
+          style={styles.legalLink}
           onPress={() => router.push('/legal/privacy')}>
           <Text style={styles.legalLinkText}>Privacy Policy</Text>
         </Pressable>
@@ -333,6 +335,7 @@ export function AccountCard() {
         <Pressable
           accessibilityRole="link"
           accessibilityLabel="Terms of Service"
+          style={styles.legalLink}
           onPress={() => router.push('/legal/terms')}>
           <Text style={styles.legalLinkText}>Terms of Service</Text>
         </Pressable>
@@ -370,6 +373,8 @@ const styles = StyleSheet.create({
   notificationPill: {
     flex: 1,
     alignItems: 'center',
+    justifyContent: 'center',
+    minHeight: MIN_TOUCH_TARGET,
     borderRadius: 999,
     paddingVertical: 8,
     borderWidth: 1,
@@ -388,6 +393,8 @@ const styles = StyleSheet.create({
   editBtn: {
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
+    minHeight: MIN_TOUCH_TARGET,
     gap: 6,
     borderRadius: 999,
     paddingVertical: 8,
@@ -400,6 +407,8 @@ const styles = StyleSheet.create({
   adminBtn: {
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
+    minHeight: MIN_TOUCH_TARGET,
     gap: 6,
     borderRadius: 999,
     paddingVertical: 8,
@@ -412,16 +421,20 @@ const styles = StyleSheet.create({
   dangerBtn: {
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
+    minHeight: MIN_TOUCH_TARGET,
     gap: 6,
     borderRadius: 999,
     paddingVertical: 8,
     paddingHorizontal: 14,
     borderWidth: 1,
     borderColor: Theme.danger,
-    backgroundColor: '#fdecea',
+    backgroundColor: Theme.dangerSoft,
   },
   dangerBtnText: { fontSize: 13, fontWeight: '700', color: Theme.danger },
   signOutBtn: {
+    justifyContent: 'center',
+    minHeight: MIN_TOUCH_TARGET,
     borderRadius: 999,
     paddingVertical: 8,
     paddingHorizontal: 14,
@@ -430,7 +443,7 @@ const styles = StyleSheet.create({
     backgroundColor: Theme.bg,
   },
   signOutBtnText: { fontSize: 13, fontWeight: '700', color: Theme.textMuted },
-  exitPreviewLink: { alignSelf: 'flex-start', paddingVertical: 2 },
+  exitPreviewLink: { alignSelf: 'flex-start', justifyContent: 'center', minHeight: MIN_TOUCH_TARGET },
   exitPreviewLinkText: {
     fontSize: 11,
     fontWeight: '600',
@@ -438,14 +451,23 @@ const styles = StyleSheet.create({
     textDecorationLine: 'underline',
   },
   legalRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  legalLink: { justifyContent: 'center', minHeight: MIN_TOUCH_TARGET },
   legalLinkText: {
     fontSize: 12,
     fontWeight: '600',
     color: Theme.textMuted,
     textDecorationLine: 'underline',
   },
-  legalDivider: { fontSize: 12, color: Theme.border },
-  deleteAccountLink: { alignSelf: 'flex-start', paddingVertical: 2 },
+  legalDivider: { fontSize: 12, color: Theme.textMuted },
+  // Destructive and previously the hardest thing on the screen to hit (19px).
+  // Kept visually quiet, but the tap area now meets the same floor as
+  // everything else — a mis-tap here is worse than a mis-tap anywhere.
+  deleteAccountLink: {
+    alignSelf: 'flex-start',
+    justifyContent: 'center',
+    minHeight: MIN_TOUCH_TARGET,
+    paddingRight: 8,
+  },
   deleteAccountLinkText: {
     fontSize: 11,
     fontWeight: '600',

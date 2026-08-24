@@ -3,6 +3,7 @@ import { useRouter } from 'expo-router';
 import { useMemo } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
+import { MIN_TOUCH_TARGET } from '@/constants/touchTargets';
 import { Theme } from '@/constants/Theme';
 import { categoryAccentForCategoryId } from '@/lib/categoryAccent';
 import { useMemoryStore } from '@/src/features/memories/memoryStore';
@@ -299,6 +300,8 @@ const styles = StyleSheet.create({
   },
   emptyBtn: {
     marginTop: 16,
+    justifyContent: 'center',
+    minHeight: MIN_TOUCH_TARGET,
     backgroundColor: Theme.accent,
     borderRadius: 999,
     paddingVertical: 10,

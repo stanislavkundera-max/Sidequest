@@ -226,7 +226,7 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   bannerError: {
-    backgroundColor: '#fdecea',
+    backgroundColor: Theme.dangerSoft,
     color: Theme.danger,
     padding: 12,
     borderRadius: 10,

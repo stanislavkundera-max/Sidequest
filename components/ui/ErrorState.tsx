@@ -24,9 +24,9 @@ export function ErrorState({ message, onRetry }: Props) {
 const styles = StyleSheet.create({
   card: {
     borderWidth: 1,
-    borderColor: '#f0c9c2',
+    borderColor: Theme.dangerBorder,
     borderRadius: 12,
-    backgroundColor: '#fdecea',
+    backgroundColor: Theme.dangerSoft,
     padding: 14,
   },
   title: { color: Theme.danger, fontWeight: '600', fontSize: 15, marginBottom: 4 },
@@ -39,7 +39,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 8,
     borderWidth: 1,
-    borderColor: '#f0c9c2',
+    borderColor: Theme.dangerBorder,
   },
   retryText: { color: Theme.danger, fontWeight: '600', fontSize: 14 },
   pressed: { opacity: 0.9 },

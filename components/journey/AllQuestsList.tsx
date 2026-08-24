@@ -96,7 +96,7 @@ export function AllQuestsList({ initialCategoryId, actions }: Props) {
                 ]}>
                 <Ionicons
                   name={categoryIoniconNameForCategoryId(id)}
-                  size={14}
+                  size={13}
                   color={selected ? '#ffffff' : accent}
                 />
                 <Text style={[hub.chipText, selected && { color: '#ffffff' }]}>

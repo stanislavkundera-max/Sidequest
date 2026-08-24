@@ -15,6 +15,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { ErrorState } from '@/components/ui/ErrorState';
 import { LoadingState } from '@/components/ui/LoadingState';
+import { MIN_TOUCH_TARGET } from '@/constants/touchTargets';
 import { Theme } from '@/constants/Theme';
 import { categoryAccentForCategoryId } from '@/lib/categoryAccent';
 import { useMemoryStore } from '@/src/features/memories/memoryStore';
@@ -119,6 +120,8 @@ export default function MemoriesScreen() {
             }).catch(() => undefined);
             router.push('/memory/new');
           }}
+          accessibilityRole="button"
+          accessibilityLabel="Add a new memory"
           style={({ pressed }) => [styles.addBtn, pressed && { opacity: 0.85 }]}>
           <Text style={styles.addBtnText}>+ New</Text>
         </Pressable>
@@ -135,6 +138,8 @@ export default function MemoriesScreen() {
             contentContainerStyle={styles.filterRow}>
             <Pressable
               onPress={() => setCategoryFilter(null)}
+              accessibilityRole="button"
+              accessibilityState={{ selected: !categoryFilter }}
               style={[styles.chip, !categoryFilter && styles.chipSelected]}>
               <Text style={[styles.chipText, !categoryFilter && styles.chipTextSelected]}>
                 All categories
@@ -147,6 +152,8 @@ export default function MemoriesScreen() {
                 <Pressable
                   key={c.id}
                   onPress={() => setCategoryFilter(selected ? null : c.id)}
+                  accessibilityRole="button"
+                  accessibilityState={{ selected }}
                   style={[
                     styles.chip,
                     selected && { backgroundColor: `${accent}22`, borderColor: accent },
@@ -166,6 +173,8 @@ export default function MemoriesScreen() {
                 <Pressable
                   key={opt.value}
                   onPress={() => setDateFilter(opt.value)}
+                  accessibilityRole="button"
+                  accessibilityState={{ selected }}
                   style={[styles.chip, selected && styles.chipSelected]}>
                   <Text style={[styles.chipText, selected && styles.chipTextSelected]}>
                     {opt.label}
@@ -241,6 +250,8 @@ function MemoryRow({
   return (
     <Pressable
       onPress={() => onPress(entry.id)}
+      accessibilityRole="button"
+      accessibilityLabel={`Memory: ${entry.title}`}
       style={({ pressed }) => [styles.card, pressed && styles.cardPressed]}>
       <Text style={styles.cardDate}>
         {new Date(entry.createdAt).toLocaleString(undefined, {
@@ -277,6 +288,8 @@ const styles = StyleSheet.create({
   },
   title: { fontSize: 28, fontWeight: '600', color: Theme.text },
   addBtn: {
+    justifyContent: 'center',
+    minHeight: MIN_TOUCH_TARGET,
     backgroundColor: Theme.accent,
     paddingHorizontal: 14,
     paddingVertical: 8,
@@ -296,6 +309,8 @@ const styles = StyleSheet.create({
     paddingBottom: 10,
   },
   chip: {
+    justifyContent: 'center',
+    minHeight: MIN_TOUCH_TARGET,
     borderWidth: 1,
     borderColor: Theme.border,
     borderRadius: 999,
