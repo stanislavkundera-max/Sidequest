@@ -1,5 +1,5 @@
 import { useCallback, useMemo, useState } from 'react';
-import { StyleSheet, Text, View, type LayoutChangeEvent } from 'react-native';
+import { StyleSheet, Text, View, useWindowDimensions, type LayoutChangeEvent } from 'react-native';
 
 import { CategoryMapMarker } from '@/components/explore/CategoryMapMarker';
 import { ExploreMapBackground } from '@/components/explore/ExploreMapBackground';
@@ -27,13 +27,22 @@ export function ExploreMapScene({
   onSelectCategory,
 }: Props) {
   const categories = useQuestDomainStore((s) => s.categories);
-  const [size, setSize] = useState({ w: 0, h: 0 });
+  const { width: windowWidth, height: windowHeight } = useWindowDimensions();
+  const [measured, setMeasured] = useState({ w: 0, h: 0 });
 
   const onMapLayout = useCallback((e: LayoutChangeEvent) => {
     const w = Math.round(e.nativeEvent.layout.width);
     const h = Math.round(e.nativeEvent.layout.height);
-    setSize((prev) => (prev.w === w && prev.h === h ? prev : { w, h }));
+    setMeasured((prev) => (prev.w === w && prev.h === h ? prev : { w, h }));
   }, []);
+
+  // The map fills the screen, so the window is a good stand-in until `onLayout`
+  // reports. Falling back matters: `onLayout` does not fire in every
+  // environment, and gating on it alone renders the map with no markers at all.
+  const size = {
+    w: measured.w > 0 ? measured.w : windowWidth,
+    h: measured.h > 0 ? measured.h : windowHeight,
+  };
 
   const layout = useMemo(() => {
     if (size.w <= 0 || size.h <= 0) return null;
@@ -43,7 +52,7 @@ export function ExploreMapScene({
       EXPLORE_MAP_SOURCE_SIZE.width,
       EXPLORE_MAP_SOURCE_SIZE.height
     );
-  }, [size]);
+  }, [size.w, size.h]);
 
   const categoryName = useCallback(
     (categoryId: string) =>
