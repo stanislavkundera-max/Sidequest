@@ -49,17 +49,22 @@ export const journeyHubStyles = StyleSheet.create({
     borderColor: Theme.border,
     flexShrink: 0,
   },
+  // Category chips carry their category's icon and colour, matching the Explore
+  // map markers, so the same category looks the same in both places. The
+  // selected chip fills with the category colour (callers pass it inline, since
+  // it differs per category) rather than tinting faintly.
   chip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
     borderWidth: 1,
     borderColor: Theme.border,
     borderRadius: 999,
     paddingVertical: 8,
-    paddingHorizontal: 14,
+    paddingHorizontal: 13,
     backgroundColor: Theme.surface,
   },
-  chipSelected: { backgroundColor: Theme.accentSoft, borderColor: Theme.accent },
-  chipText: { fontSize: 13, fontWeight: '700', color: Theme.textMuted },
-  chipTextSelected: { color: Theme.accent },
+  chipText: { fontSize: 13, fontWeight: '700', color: Theme.text },
   discoverBlock: { width: '100%', paddingBottom: 8 },
   heroCard: {
     marginHorizontal: 16,

@@ -1,26 +1,13 @@
 import { Ionicons } from '@expo/vector-icons';
 import { memo } from 'react';
 
+import { categoryIoniconNameForCategoryId } from '@/lib/categoryIcons';
+
 type Props = {
   categoryId: string;
   color: string;
   size?: number;
 };
-
-export function categoryMarkerIcon(categoryId: string): keyof typeof Ionicons.glyphMap {
-  switch (categoryId) {
-    case 'cat-nature':
-      return 'leaf';
-    case 'cat-adventure':
-      return 'compass';
-    case 'cat-social':
-      return 'people';
-    case 'cat-relax':
-      return 'cafe';
-    default:
-      return 'help';
-  }
-}
 
 /**
  * The category icon, always shown.
@@ -36,5 +23,5 @@ export const CategoryMapMarkerGlyph = memo(function CategoryMapMarkerGlyph({
   color,
   size = 26,
 }: Props) {
-  return <Ionicons name={categoryMarkerIcon(categoryId)} size={size} color={color} />;
+  return <Ionicons name={categoryIoniconNameForCategoryId(categoryId)} size={size} color={color} />;
 });

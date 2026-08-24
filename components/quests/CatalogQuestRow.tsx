@@ -44,7 +44,7 @@ export function CatalogQuestRow({
       style={({ pressed }) => [styles.discoverQuestRow, pressed && styles.pressed]}>
       <View style={[styles.discoverQuestAccent, { backgroundColor: accent }]} />
       <View style={styles.discoverQuestRowBody}>
-        <Text style={styles.questRowMeta}>{categoryLabel}</Text>
+        <Text style={[styles.questRowMeta, { color: accent }]}>{categoryLabel}</Text>
         <Text style={styles.questRowTitle} numberOfLines={3}>
           {quest.title}
         </Text>

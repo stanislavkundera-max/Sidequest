@@ -1,3 +1,4 @@
+import { Ionicons } from '@expo/vector-icons';
 import { useEffect, useMemo, useState } from 'react';
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
@@ -6,6 +7,7 @@ import { CatalogQuestRow } from '@/components/quests/CatalogQuestRow';
 import type { useQuestActions } from '@/components/quests/useQuestActions';
 import { Theme } from '@/constants/Theme';
 import { categoryAccentForCategoryId } from '@/lib/categoryAccent';
+import { categoryIoniconNameForCategoryId } from '@/lib/categoryIcons';
 import { useQuestDomainStore } from '@/src/features/quests/questStore';
 import type { Quest } from '@/src/types/quest';
 
@@ -89,10 +91,15 @@ export function AllQuestsList({ initialCategoryId, actions }: Props) {
                 onPress={() => setSelectedCategoryId(id)}
                 style={({ pressed }) => [
                   hub.chip,
-                  selected && { backgroundColor: `${accent}22`, borderColor: accent },
+                  selected && { backgroundColor: accent, borderColor: accent },
                   pressed && hub.pressed,
                 ]}>
-                <Text style={[hub.chipText, selected && { color: accent }]}>
+                <Ionicons
+                  name={categoryIoniconNameForCategoryId(id)}
+                  size={14}
+                  color={selected ? '#ffffff' : accent}
+                />
+                <Text style={[hub.chipText, selected && { color: '#ffffff' }]}>
                   {categoryLabel(id)}
                 </Text>
               </Pressable>
