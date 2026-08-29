@@ -12,11 +12,14 @@ calm, grounded UI; restrained typography; no loud patterns; no gamification or s
 visuals. See also `[[sidequest-mentor-philosophy]]`: the "quiet companion, zero pressure"
 positioning has been reinforced more than once and is not up for casual revision.
 
+**Visual comparison** (colour candidates and type specimens, set in the palette itself):
+<https://claude.ai/code/artifact/4718686a-8596-4fc8-9cfe-a8d9245f2222>
+
 | # | Decision | Status |
 |---|---|---|
 | 1 | Brand name | 🟡 Incumbent, needs confirming — **and there is a deadline, see below** |
 | 2 | Colours | 🟡 Two of three already exist; the third has a conflict to resolve |
-| 3 | Typography | 🔴 Open — nothing chosen, nothing loaded |
+| 3 | Typography | 🟢 **Decided** — Fraunces + Inter. Body face has one open sub-question; not yet implemented |
 | 4 | Logo | ⏸️ Deliberately blocked on 1–3 |
 
 ---
@@ -75,10 +78,7 @@ is plum/magenta. It is, for practical purposes, already a purple. Adding a secon
 brand contrast colour means two purples in one interface meaning two unrelated things: "this is a
 Social quest" and "this is the primary action".
 
-Measured candidates (WCAG contrast, and ΔE76 distance — same family of check the palette was
-originally verified with):
-
-Worse: `social` is not the only neighbour. Measured across the **whole** palette, `relax: #4264b3`
+And `social` is not the only neighbour. Measured across the **whole** palette, `relax: #4264b3`
 turns out to sit at hue **286°** — already a violet-blue. Purple is boxed in between two occupied
 hues with about 50° of gap, and the candidates land in it like this (ΔE76; the last column is the
 closest collision, which is the only one that matters):
@@ -159,22 +159,38 @@ part of whatever lands here — it currently costs startup time for nothing.
   fonts, but a genuine trap if a boutique or display face gets chosen later for the wordmark — those
   routinely ship without ů and ř, and it will not be noticed until Czech marketing copy is set.
 
-### Pairings to choose from
+### ✅ Decided 2026-08-29 — Fraunces for headings, Inter for body
 
-| | Heading | Body | Character |
-|---|---|---|---|
-| **A** | Fraunces | Inter | Warm, slightly oddball variable serif against a fully neutral body. Most personality; closest to "grounded but not corporate". |
-| **B** | Source Serif 4 | Source Sans 3 | Designed as one family, so they pair by construction. Safest, least distinctive. |
-| **C** | Newsreader | Inter | Editorial, quiet, a little literary — suits the memories/journal half of the product. |
+Standa's call, after seeing the three pairings set in real copy.
 
-My lean is **A**: the product's voice in `docs/story.md` and `docs/value-proposition.md` is warm and
-a little wry, and Fraunces carries that in a way Source Serif deliberately does not. B is the choice
-if the priority is never being wrong rather than being memorable.
+**Why Fraunces is the organic one**, since "which feels most natural" was the deciding question and
+the answer is structural rather than a matter of taste: Fraunces carries a variable **`WONK`** axis
+that tilts letterforms off-square and a **`SOFT`** axis that rounds stroke terminals. It was built to
+be able to look made by hand rather than computed. Newsreader is quiet-editorial by comparison and
+Source Serif is systematic — deliberately the least organic of the three.
 
-### Decision needed
+Both faces are SIL OFL and both serve `latin-ext`, so Czech diacritics are covered (verified, see
+above).
 
-Pick a pairing, or reject all three with a direction. Then it is a small implementation: load via
-`expo-font`, add `heading`/`body` roles alongside the colour tokens, delete SpaceMono.
+**The rejected options, kept so this is not re-litigated:** Source Serif 4 + Source Sans 3 (safest,
+least distinctive) and Newsreader + Work Sans (editorial, quieter).
+
+### One sub-question still open
+
+**Inter is a neo-grotesque — engineered by design, not organic.** It was chosen for legibility at
+13–16px on a phone, which is the right priority for body text, with the warmth carried by the
+headings. If the organic feel should run through the body copy too, a humanist sans is warmer:
+**Source Sans 3** or **Work Sans**. That is a one-line change and does not touch the heading
+decision.
+
+### Implementation, once the body face is final
+
+Load both via `expo-font` in `app/_layout.tsx`, add `heading`/`body` roles alongside the colour
+tokens so screens stop naming families directly, and **delete `SpaceMono`** — it is an unused Expo
+template leftover that currently costs startup time for nothing.
+
+Fraunces is variable: worth exposing `WONK`/`SOFT` deliberately rather than shipping the default
+upright cut, since that axis is the entire reason it was chosen.
 
 ---
 
@@ -211,3 +227,6 @@ review.
 | 2026-08-21 | Dark mode structured but not written | `ThemePalette` type ready, values absent |
 | 2026-08-29 | Ship as `Stanislav Kundera`, private individual | Not a brand decision as such, but it fixes the public seller name — `constants/legal.ts` |
 | 2026-08-29 | Branding brief opened: name, 3 colours, 2 fonts, logo | This document |
+| 2026-08-29 | Corrected: brand purple is boxed in by `relax` 286° *and* `social` 336° | Earlier blue-violet advice was wrong |
+| 2026-08-29 | **Type: Fraunces (headings) + Inter (body)** | Standa, after seeing the three pairings set in real copy |
+| 2026-08-29 | Visual comparison published | Colour candidates and type specimens, set in the palette itself: https://claude.ai/code/artifact/4718686a-8596-4fc8-9cfe-a8d9245f2222 |
