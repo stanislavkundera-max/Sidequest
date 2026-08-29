@@ -1,9 +1,15 @@
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import {
+  LEGAL_CONTACT_EMAIL,
+  LEGAL_ENTITY_NAME,
+  LEGAL_JURISDICTION,
+  LEGAL_LAST_UPDATED,
+} from '@/constants/legal';
 import { Theme } from '@/constants/Theme';
 
-const LAST_UPDATED = 'August 2026';
+const LAST_UPDATED = LEGAL_LAST_UPDATED;
 
 /**
  * DRAFT — has a bracketed placeholder (governing-law entity/jurisdiction)
@@ -65,7 +71,10 @@ const SECTIONS: { heading: string; body: string }[] = [
   },
   {
     heading: 'Governing law',
-    body: 'These terms are governed by the laws of [jurisdiction — confirm before publishing].',
+    body:
+      `Side Quest Life is operated by ${LEGAL_ENTITY_NAME}, a private individual based in ` +
+      `${LEGAL_JURISDICTION}. These terms are governed by the laws of ${LEGAL_JURISDICTION}, and ` +
+      `its courts have jurisdiction over any dispute. Questions: ${LEGAL_CONTACT_EMAIL}.`,
   },
   {
     heading: 'Changes',

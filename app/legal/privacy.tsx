@@ -1,14 +1,25 @@
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import {
+  DATA_HOSTING_LOCATION,
+  LEGAL_CONTACT_EMAIL,
+  LEGAL_ENTITY_NAME,
+  LEGAL_JURISDICTION,
+  LEGAL_LAST_UPDATED,
+} from '@/constants/legal';
 import { Theme } from '@/constants/Theme';
 
-const LAST_UPDATED = 'August 2026';
+const LAST_UPDATED = LEGAL_LAST_UPDATED;
 
 /**
- * DRAFT — has 3 bracketed placeholders (contact email, Supabase hosting
- * region, governing-law entity) that need real values before this ships.
- * See docs/launch-plan.md, Pillar 1.
+ * Contact address, controller identity, and hosting location all come from
+ * `constants/legal.ts` — they are shared with the terms and the public
+ * account-deletion page, and the same values go into Play Console.
+ *
+ * The one thing still owed before submission is operational, not textual: the
+ * address in LEGAL_CONTACT_EMAIL has to be a mailbox that actually receives
+ * mail. See docs/play-store-handoff.md §3.
  */
 const SECTIONS: { heading: string; body: string }[] = [
   {
@@ -44,7 +55,7 @@ const SECTIONS: { heading: string; body: string }[] = [
     body:
       'Your data is stored with Supabase, our database and authentication provider, acting as our ' +
       'data processor — they host the data on our behalf and do not use it for their own purposes. ' +
-      'Data is stored in [Supabase project region — confirm before publishing]. We do not sell or ' +
+      `Data is stored in ${DATA_HOSTING_LOCATION}. We do not sell or ` +
       'share your data with advertisers or other third parties.',
   },
   {
@@ -73,7 +84,9 @@ const SECTIONS: { heading: string; body: string }[] = [
   },
   {
     heading: 'Contact',
-    body: 'Questions about this policy or your data: [contact email — confirm before publishing].',
+    body:
+      `Questions about this policy or your data: ${LEGAL_CONTACT_EMAIL}.\n\n` +
+      `The data controller is ${LEGAL_ENTITY_NAME}, a private individual based in ${LEGAL_JURISDICTION}.`,
   },
 ];
 

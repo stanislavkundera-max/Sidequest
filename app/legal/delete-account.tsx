@@ -1,9 +1,10 @@
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { LEGAL_CONTACT_EMAIL, LEGAL_LAST_UPDATED } from '@/constants/legal';
 import { Theme } from '@/constants/Theme';
 
-const LAST_UPDATED = 'August 2026';
+const LAST_UPDATED = LEGAL_LAST_UPDATED;
 
 /**
  * Public account-deletion page.
@@ -25,8 +26,9 @@ const LAST_UPDATED = 'August 2026';
  * `delete_own_account()` changes, or a new analytics property starts carrying
  * user-written text, this page becomes false — change them together.
  *
- * DRAFT — has one bracketed placeholder (contact email) that needs a real value
- * before this ships. See docs/play-store-handoff.md.
+ * The contact address comes from `constants/legal.ts`, shared with the privacy
+ * policy and the terms. It has to be a mailbox that actually receives mail
+ * before submission — this page is the one Google checks.
  */
 const SECTIONS: { heading: string; body: string }[] = [
   {
@@ -48,7 +50,7 @@ const SECTIONS: { heading: string; body: string }[] = [
   {
     heading: 'Request deletion without the app',
     body:
-      'If you no longer have the app installed, email [contact email — confirm before publishing] ' +
+      `If you no longer have the app installed, email ${LEGAL_CONTACT_EMAIL} ` +
       'from the address you signed up with, and ask for your account to be deleted. We will ' +
       'confirm and complete the deletion within 30 days.\n\n' +
       'We ask you to write from the signed-up address because it is the only way to check that ' +
@@ -78,7 +80,7 @@ const SECTIONS: { heading: string; body: string }[] = [
   },
   {
     heading: 'Questions',
-    body: 'Anything unclear about deletion or your data: [contact email — confirm before publishing].',
+    body: `Anything unclear about deletion or your data: ${LEGAL_CONTACT_EMAIL}.`,
   },
 ];
 

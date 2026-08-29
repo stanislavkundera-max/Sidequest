@@ -15,7 +15,7 @@ a judgment call rather than a fact, it says so.
 | 1 | **Create the Play Console account** ($25 one-time) | Identity verification runs for days on Google's side and blocks everything downstream. Start it before anything else. |
 | 2 | **Expo account + `npx eas-cli login`** | Needed before `eas init` can link the project. Takes a minute; I cannot do it because it requires your password. |
 | 3 | **Supabase: add `{{ .Token }}` to the reset-password email template** | See §2. Without it, password reset silently sends nothing. |
-| 4 | **Fill the three privacy placeholders** | See §3. The policy cannot be published with brackets in it. |
+| 4 | ~~**Fill the three privacy placeholders**~~ | ✅ Done 2026-08-29. One follow-up: make privacy@sidequestlife.com a real mailbox — see §3. |
 | 5 | **Deploy the web export** | Play needs public URLs for the privacy policy and account deletion. `vercel.json` is already configured; the routes already exist. See §4. |
 | 6 | ~~**Run `supabase/analytics_pii_scrub.sql`**~~ | ✅ Done 2026-08-29, both verification counts returned 0. See §2b for the one remaining catch. |
 | 7 | **Check whether the 12-tester rule applies to you** | Not a given — see §9. Find out early, because if it does apply it is the longest pole in the launch. |
@@ -87,15 +87,30 @@ function, or the page goes back to being false.
 
 ---
 
-## 3. The three placeholders that block publishing
+## 3. Legal identity — filled in 2026-08-29
 
-Both legal screens ship with bracketed values that must be replaced:
+All three placeholders are resolved. The values now live in one place,
+**`constants/legal.ts`**, shared by the privacy policy, the terms, and the deletion page, so a change
+is one edit rather than a hunt through three screens.
 
-| Placeholder | File | What is needed |
+| Value | Setting | How it was decided |
 |---|---|---|
-| `[contact email — confirm before publishing]` | `app/legal/privacy.tsx`, `app/legal/delete-account.tsx` (2 spots) | An address you will actually read. It goes in the Play listing too, so it becomes public. |
-| `[Supabase project region — confirm before publishing]` | `app/legal/privacy.tsx` | Supabase dashboard → Project Settings → General. For GDPR it matters whether it is inside the EU. |
-| Governing-law / legal entity | `app/legal/terms.tsx` | Whether you appear as a private individual in the Czech Republic or under an IČO. Same decision as the Play seller name. |
+| Contact address | `privacy@sidequestlife.com` | Standa's call: an address on the app's own domain rather than a personal inbox, so it can be redirected later without editing a published legal document. |
+| Data controller | Stanislav Kundera, private individual | Shipping under his own name, not an IČO — which also avoids the D-U-N-S paperwork that would slow Play account verification. |
+| Governing law | Czech Republic | Follows from the above. |
+| Hosting location | Frankfurt, Germany (AWS `eu-central-1`), inside the EU | Not taken from the dashboard: the project's database host resolves to `2a05:d014:7c9::…`, which sits inside `2a05:d014::/35`, a block Amazon's own published IP ranges assign to `eu-central-1`. Being inside the EU is what keeps the GDPR story simple. |
+
+### ⚠️ The one thing still owed
+
+`privacy@sidequestlife.com` has to be a mailbox that **actually receives mail** before submission.
+Right now it is a decision, not a working address. GDPR gives users the right to reach the
+controller, and Play publishes this address on the store page — a bouncing address is worse than a
+personal one. An alias forwarding to an inbox you read is completely fine; an address on an
+unregistered domain is not.
+
+That domain is the same one the public privacy-policy and deletion URLs need (§4), so registering it
+settles both at once. If you pick a different domain, change `LEGAL_CONTACT_EMAIL` in
+`constants/legal.ts` — nothing else needs touching.
 
 ---
 

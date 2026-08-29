@@ -18,17 +18,17 @@ content work — and heaviest on "here's what needs deciding first."
 | Item | Status |
 |---|---|
 | iOS bundle ID / Android package | ✅ Already set: `com.sidequestlife.app` (`app.config.ts`) |
-| EAS Build/Submit config (`eas.json`) | ✅ Exists (`241f940`), hardened 2026-08-29: production builds an AAB, `appVersionSource: remote`, submit targets the internal track, `NODE_ENV=production` pinned |
+| EAS Build/Submit config (`eas.json`) | ✅ Exists (`241f940`), hardened 2026-08-29: production builds an AAB, `appVersionSource: remote`, `NODE_ENV=production` on both preview and production, and three named submit profiles (internal / closed / production) so the Play track is chosen deliberately |
 | EAS project link (`projectId`) | ❌ `eas init` has never run — blocked on an Expo login |
 | First production build | ❌ Never attempted. The one real technical unknown left |
 | Apple Developer Program enrollment | ⏸️ Deferred — this round is Android-only, so the $99 and the iPad screenshot size are both out of scope for now |
 | Google Play Console account | ❌ Not created as of 2026-08-29. **Critical path** — identity verification runs for days |
 | App icon / splash / adaptive icon | ✅ Real icon shipped (`241f940`), no longer the Expo default |
 | Custom typography | ❌ None — default system font; `SpaceMono` is loaded but effectively unused (Expo template leftover) |
-| Privacy policy | ⚠️ Written (`app/legal/privacy.tsx`, `b4521af`) — 2 bracketed placeholders left, and not yet deployed to a public URL |
-| Terms of service | ⚠️ Written (`app/legal/terms.tsx`, `b4521af`) — governing-law placeholder left |
+| Privacy policy | ⚠️ Written (`app/legal/privacy.tsx`, `b4521af`), placeholders filled 2026-08-29 — not yet deployed to a public URL |
+| Terms of service | ✅ Written (`app/legal/terms.tsx`, `b4521af`), governing law filled 2026-08-29 |
 | Account deletion (in-app) | ✅ Real deletion shipped (`b4521af`): `deleteOwnAccount()` → `delete_own_account()` in Postgres. Distinct from "Delete all progress," which only wipes data |
-| Account deletion (public web page) | ✅ Written 2026-08-29 (`app/legal/delete-account.tsx`) — needs the contact-email placeholder and a deploy |
+| Account deletion (public web page) | ⚠️ Written 2026-08-29 (`app/legal/delete-account.tsx`), placeholder filled — still needs a deploy |
 | Password reset | ✅ Built and verified 2026-08-29 (`app/(auth)/forgot-password.tsx`). Needs one Supabase email-template edit to go live — see `docs/play-store-handoff.md` |
 | Permission usage strings | ✅ Already present and reasonable: calendar (`expo-calendar`) and photos (`expo-image-picker`) both have justification text in `app.config.ts` |
 | Third-party tracking / ad SDKs | ✅ None. Analytics is first-party only (`src/lib/analytics`, writes to your own Supabase `analytics_events` table). No IDFA, no ad network, no Firebase/Mixpanel/Amplitude. **This meaningfully simplifies both stores' privacy paperwork.** |
@@ -120,7 +120,9 @@ Standa," and "waiting on the redesign" — and those three run in parallel, whic
 3. Expo account + `eas login`, so `eas init` can link the project.
 4. Supabase: add `{{ .Token }}` to the reset-password email template, or password reset silently
    does nothing. Details in `docs/play-store-handoff.md` §2.
-5. The three legal placeholders: contact email, Supabase region, governing-law entity.
+5. ~~The three legal placeholders~~ — filled 2026-08-29 and consolidated into `constants/legal.ts`:
+   privacy@sidequestlife.com, Stanislav Kundera as controller under Czech law, hosting confirmed as
+   AWS eu-central-1. Still owed: making that address a mailbox that actually receives mail.
 6. Deploy the web export so `/legal/privacy` and `/legal/delete-account` become public URLs.
 7. A demo/reviewer account with credentials — the app requires sign-in.
 
