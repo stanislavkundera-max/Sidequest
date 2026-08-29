@@ -36,9 +36,14 @@
   can be added later without touching call sites. **Dark mode itself is still
   open** — the structure is ready, the values are not written.
 
-## 7) Side quest: content, process, voice, branding (after MVP)
-- Broader pass on quest content/process, brand voice, and visual branding —
-  deferred until after MVP validation.
+## 7) Side quest: content, process, voice, branding — **branding pulled forward 2026-08-29**
+- Broader pass on quest content/process and brand voice — still deferred until
+  after MVP validation.
+- **Visual branding is no longer deferred**: Standa made it the priority, and the
+  brief (name, 3 colour roles, heading+body type pairing, logo) now lives in
+  `BRANDING.md` with what is decided and what is still open. Note the one hard
+  deadline recorded there — the Android package name is permanent after the
+  first Play upload, so the name has to be settled before then.
 
 ## 8) Adjust Explore map art to match quest vibe
 - Current map is a generic forest illustration; revisit so each category's
