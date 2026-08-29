@@ -18,27 +18,30 @@ content work — and heaviest on "here's what needs deciding first."
 | Item | Status |
 |---|---|
 | iOS bundle ID / Android package | ✅ Already set: `com.sidequestlife.app` (`app.config.ts`) |
-| EAS Build/Submit config (`eas.json`) | ❌ Does not exist — EAS has never been set up for this project |
-| Apple Developer Program enrollment | ❓ Unknown — not visible from the repo, needs confirming |
-| Google Play Console account | ❓ Unknown — same |
-| App icon / splash / adaptive icon | ⚠️ Files exist but are the **literal default Expo template** placeholder (concentric grey circles) — not a real icon |
+| EAS Build/Submit config (`eas.json`) | ✅ Exists (`241f940`), hardened 2026-08-29: production builds an AAB, `appVersionSource: remote`, submit targets the internal track, `NODE_ENV=production` pinned |
+| EAS project link (`projectId`) | ❌ `eas init` has never run — blocked on an Expo login |
+| First production build | ❌ Never attempted. The one real technical unknown left |
+| Apple Developer Program enrollment | ⏸️ Deferred — this round is Android-only, so the $99 and the iPad screenshot size are both out of scope for now |
+| Google Play Console account | ❌ Not created as of 2026-08-29. **Critical path** — identity verification runs for days |
+| App icon / splash / adaptive icon | ✅ Real icon shipped (`241f940`), no longer the Expo default |
 | Custom typography | ❌ None — default system font; `SpaceMono` is loaded but effectively unused (Expo template leftover) |
-| Privacy policy | ❌ Does not exist anywhere in the repo |
-| Terms of service | ❌ Does not exist |
-| Account deletion (in-app) | ❌ Does not exist. `AccountCard.tsx` has "Delete all progress," which wipes quest/memory **data** and resets onboarding — it does **not** delete the Supabase auth account or profile row. This is a different thing from what both stores require. |
+| Privacy policy | ⚠️ Written (`app/legal/privacy.tsx`, `b4521af`) — 2 bracketed placeholders left, and not yet deployed to a public URL |
+| Terms of service | ⚠️ Written (`app/legal/terms.tsx`, `b4521af`) — governing-law placeholder left |
+| Account deletion (in-app) | ✅ Real deletion shipped (`b4521af`): `deleteOwnAccount()` → `delete_own_account()` in Postgres. Distinct from "Delete all progress," which only wipes data |
+| Account deletion (public web page) | ✅ Written 2026-08-29 (`app/legal/delete-account.tsx`) — needs the contact-email placeholder and a deploy |
+| Password reset | ✅ Built and verified 2026-08-29 (`app/(auth)/forgot-password.tsx`). Needs one Supabase email-template edit to go live — see `docs/play-store-handoff.md` |
 | Permission usage strings | ✅ Already present and reasonable: calendar (`expo-calendar`) and photos (`expo-image-picker`) both have justification text in `app.config.ts` |
 | Third-party tracking / ad SDKs | ✅ None. Analytics is first-party only (`src/lib/analytics`, writes to your own Supabase `analytics_events` table). No IDFA, no ad network, no Firebase/Mixpanel/Amplitude. **This meaningfully simplifies both stores' privacy paperwork.** |
 | Sign-in methods | Email/password + Supabase anonymous auth only. No Google/Facebook/Apple social login. |
 | Reviewer/demo access | ❌ No demo account prepared — the app requires sign-in, so Apple/Google reviewers will need one |
 | iPad support | `ios.supportsTablet: true` is set — this **pulls in an extra required screenshot size** (see below) for arguably no current benefit, since nothing in the app is iPad-tailored |
 
-**Found in passing, worth a security/hygiene check before any release build:** `lib/devAuth.ts`'s
-auto-login is correctly gated behind `__DEV__`, but the underlying `EXPO_PUBLIC_DEV_LOGIN_EMAIL`/
-`PASSWORD` values still flow into `app.config.ts`'s `extra` block regardless of `__DEV__`. If those
-env vars were ever set while running an EAS **production** build profile, the literal credential
-strings would ship inside the JS bundle. Not a current bug — nothing sets them today — but worth an
-explicit "never set these for release builds" note in the EAS setup, not something to discover by
-accident.
+~~**Found in passing, worth a security/hygiene check before any release build:**~~ **Resolved
+2026-08-29.** `app.config.ts` now strips `devLoginEmail`/`devLoginPassword` from `extra` whenever
+`NODE_ENV === 'production'`, and `eas.json`'s production profile pins `NODE_ENV=production` so the
+strip is not left to chance. Verified by experiment rather than by reading: with both env vars
+deliberately set to canary values, `expo config --type public` emits them under a development
+`NODE_ENV` and omits them entirely under production.
 
 ### What's actually required (researched)
 
@@ -95,49 +98,72 @@ accident.
   Connect / Play Console. Needs an `eas.json` and an Expo account linked to the project — neither
   exists yet.
 
-### Confirmed gaps, in the order they'd actually block you
+### Remaining gaps, reordered 2026-08-29 by what actually blocks what
 
-1. Real app icon + splash screen (currently the Expo default) — **depends on Pillar 2**
-2. Privacy policy (doesn't exist) — needs real GDPR-aware content, needs to be hosted at a public URL
-3. Terms of service (doesn't exist — not strictly mandated everywhere but standard practice)
-4. In-app account deletion feature — mandatory, doesn't exist. For Google, also needs a public web
-   page (can be a simple static page, doesn't need to be in the app itself)
-5. `eas.json` + linking the project to an Expo/EAS account — not set up
-6. Apple Developer Program enrollment ($99/yr) — confirm whether already done
-7. Google Play Console enrollment ($25 one-time) — confirm whether already done, **and start the
-   12-tester/14-day clock as early as possible once there's a working build**
-8. Store screenshots at the exact required pixel sizes — none exist, **depends on Pillar 2** for
-   actual visual content worth screenshotting
-9. Store listing copy (description, keywords, short description) — not written
-10. Content rating questionnaires (Google's IARC + Apple's own in App Store Connect) — not started
-11. Privacy nutrition label (Apple) / Data safety form (Google) — not started, should be
-    straightforward given the simple data model
-12. A demo/reviewer account with credentials, since the app requires sign-in — needs preparing
-13. Confirm at build time that the Android target API level clears the Aug 31, 2026 bar
-14. Build-hygiene check: confirm dev-login env vars are never set for the EAS production profile
+Most of the original list is closed. What is left sorts cleanly into "waiting on Google," "waiting on
+Standa," and "waiting on the redesign" — and those three run in parallel, which is the whole point.
+
+**Calendar-bound (start these first, they run while everything else happens)**
+
+1. **Play Console account** ($25) — not created. Identity verification takes days and blocks the rest.
+2. **12+ closed testers, active 14 continuous days.** Round 1 had 6 people. Longest pole in the launch.
+
+**Blocked on Standa, cheap once started**
+
+3. Expo account + `eas login`, so `eas init` can link the project.
+4. Supabase: add `{{ .Token }}` to the reset-password email template, or password reset silently
+   does nothing. Details in `docs/play-store-handoff.md` §2.
+5. The three legal placeholders: contact email, Supabase region, governing-law entity.
+6. Deploy the web export so `/legal/privacy` and `/legal/delete-account` become public URLs.
+7. A demo/reviewer account with credentials — the app requires sign-in.
+
+**Blocked on nothing but the console existing**
+
+8. Data safety form and the IARC content rating. Both have their answers pre-derived from the code
+   in `docs/play-store-handoff.md` §5–6; they are click-through, not research.
+
+**Blocked on Pillar 2, and deliberately not urgent**
+
+9. Phone screenshots and the 1024×500 feature graphic. Both are swappable in the listing **without a
+   new app review**, so they belong inside the closed-test window, not ahead of it.
+
+**Closed since this doc was written**
+
+- ~~Real app icon~~ (`241f940`) · ~~privacy policy~~ / ~~terms~~ / ~~in-app account deletion~~ (`b4521af`)
+  · ~~`eas.json`~~ (`241f940`, hardened 2026-08-29) · ~~store listing copy~~ (`docs/store-listing-copy.md`)
+  · ~~public account-deletion page~~ · ~~dev-login build hygiene~~ (both 2026-08-29)
+- ~~Confirm the Android target API level clears the Aug 31, 2026 bar~~ — Expo SDK 54 targets API 36
+  by default. Still worth reading back from the first real build output rather than trusting it.
+- Apple's items (nutrition label, $99 enrollment, iPad screenshots) are **deferred, not done** —
+  this round is Android-only.
 
 ### Decisions only Standa can make
 
-- **Individual or Organization** for the Apple Developer account (and same question for Google)?
-  Depends on whether there's a registered company (IČO) you want as the public seller name, or
-  whether shipping under your own name is fine for now.
-- **Payment method** for the $99 + $25 — trivial amounts, but personal card vs. a business account
-  is worth deciding once rather than defaulting by accident.
-- **Drop `supportsTablet: true`?** If iPad isn't a real target for the MVP, turning it off removes
-  the 13" iPad screenshot requirement entirely — one less asset size to produce, no functional loss
-  since nothing is iPad-tailored today anyway.
-- **Who are the 12+ Play Store closed testers?** The round-1 group covers half. Worth deciding now
-  since the 14-day clock is the single biggest timeline lever in this whole pillar.
-- **When to start the Play Store testing clock** — my recommendation: as soon as there's *any*
-  working build worth putting in front of 12 people, even before the icon/redesign/content work is
-  finished, purely because the 14 days run in parallel with everything else and cost nothing to start.
+- ~~**Android-first, or both stores at once?**~~ **Decided 2026-08-29: Play Store only for this
+  round.** Skips the $99 Apple fee, the iPad screenshot size, and a second review queue. iOS can
+  follow whenever, and `supportsTablet` stops mattering until it does.
+- **Individual or Organization** for the Google account? Depends on whether there's a registered
+  company (IČO) you want as the public seller name, or whether shipping under your own name is fine.
+  The same answer settles the governing-law placeholder in `app/legal/terms.tsx`.
+- **Payment method** for the $25 — trivial amount, but personal card vs. a business account is worth
+  deciding once rather than defaulting by accident.
+- **Who are the 12+ Play Store closed testers?** The round-1 group covers half. This is the single
+  biggest timeline lever in the whole launch and the one thing no amount of engineering shortens.
+- **When to start the Play Store testing clock** — my recommendation is unchanged and has only got
+  stronger: as soon as there's *any* build worth putting in front of 12 people, well before the
+  redesign or the content work is finished. The 14 days run in parallel with everything else and
+  cost nothing to start.
 
-### What happens next (once decisions land)
+### What happens next
 
-I can build: the account-deletion feature (in-app + the Google web page), a first-draft privacy
-policy and terms of service (GDPR-aware, matched to what the app actually collects), the `eas.json`
-setup, and a demo/reviewer account. The icon/splash/screenshots depend on Pillar 2 landing first —
-or at minimum, a placeholder-but-real icon so store setup isn't fully blocked on the full redesign.
+The build list from the original version of this section is done — account deletion (in-app and the
+public web page), privacy policy, terms, `eas.json`, and password recovery all exist and are
+verified. What is left on my side is `eas init` and the first production build, both waiting on an
+Expo login.
+
+Everything still needing *you* — with the exact answers to give, derived from the code rather than
+from a template — is collected in **`docs/play-store-handoff.md`**: the Supabase email-template edit,
+the three legal placeholders, the Data safety table, the IARC answers, and the reviewer account.
 
 ---
 
