@@ -78,40 +78,65 @@ Social quest" and "this is the primary action".
 Measured candidates (WCAG contrast, and ΔE76 distance — same family of check the palette was
 originally verified with):
 
-| Candidate | Hex | Hue | vs `bg` | vs `surface` | vs white | ΔE vs `social` | ΔE vs green |
+Worse: `social` is not the only neighbour. Measured across the **whole** palette, `relax: #4264b3`
+turns out to sit at hue **286°** — already a violet-blue. Purple is boxed in between two occupied
+hues with about 50° of gap, and the candidates land in it like this (ΔE76; the last column is the
+closest collision, which is the only one that matters):
+
+| Candidate | Hex | Hue | vs `bg` | vs white | vs `social` 336° | vs `relax` 286° | **closest** |
 |---|---|---|---|---|---|---|---|
-| *social (existing)* | `#824071` | 336° | 6.41 | 6.95 | 7.19 | — | 65.5 |
-| Deep indigo-violet | `#4a3f73` | 302° | 8.32 | 9.02 | 9.33 | 22.7 | 64.3 |
-| Muted violet | `#5b4b8a` | 304° | 6.64 | 7.20 | 7.45 | 21.9 | 69.6 |
-| Mid purple | `#6b4e9e` | 307° | 5.84 | 6.32 | 6.54 | 24.5 | 79.4 |
-| Vivid purple | `#7a4da6` | 312° | 5.44 | 5.90 | 6.11 | 25.9 | 84.8 |
-| Classic amethyst | `#8e44ad` | 318° | 5.23 | 5.67 | 5.87 | 31.2 | 94.2 |
+| Deep indigo-violet | `#4a3f73` | 302° | 8.32 | 9.33 | 22.7 | 22.5 | **22.5** |
+| Muted violet | `#5b4b8a` | 304° | 6.64 | 7.45 | 21.9 | 17.2 | **17.2** |
+| Mid purple | `#6b4e9e` | 307° | 5.84 | 6.54 | 24.5 | 18.5 | **18.5** |
+| Vivid purple | `#7a4da6` | 312° | 5.44 | 6.11 | 25.9 | 24.2 | **24.2** |
+| Classic amethyst | `#8e44ad` | 318° | 5.23 | 5.87 | 31.2 | 35.4 | **31.2** |
 
-Reading it: every candidate clears WCAG AA (4.5:1) on both backgrounds, and every one is
-enormously far from the green, so there is no risk of muddling brand purple with brand green. The
-tension is entirely with `social`. For scale, the existing category pairs sit around ΔE 37.9 in
-normal vision — so a brand purple at ΔE ~22–26 is *distinguishable but noticeably closer* than the
-separation the palette was built to.
+All clear WCAG AA on both backgrounds, and all are far from the green and the ochre — so contrast
+was never the problem. Hue crowding is.
 
-**Recommendation: go blue-violet, around 302–305°** — `#4a3f73` or `#5b4b8a`. Furthest in hue from
-`social`'s magenta, best contrast of the set, and the cooler cast sits better against warm beige than
-a red-leaning purple does. The counter-intuitive part: the *bigger* ΔE numbers (amethyst, 31.2) come
-from being lighter and more saturated, not from being further in hue — they read as "more different"
-on a chart while looking more like `social` on screen.
+**Correction to an earlier recommendation in this file:** "go blue-violet, 302–305°" was wrong. It
+was based on measuring against `social` alone; adding `relax` inverts the answer, because every step
+toward blue walks *into* `relax`. `#5b4b8a` has the worst separation of the set (17.2), close to the
+ΔE 15.1 floor the palette notes call acceptable "only because category colour is never the sole cue."
 
-**The alternative worth naming:** move `social` off magenta entirely and give the whole purple space
-to the brand. Cleaner semantically, but it re-opens the colour-blindness verification for the
-category set, so it is real work rather than a swap.
+Of purples that stay in the UI, the least-bad is the **amethyst end, ~315–320°** (31.2). But that is
+also the loudest and most saturated of them, which argues against it under "calm, grounded."
+
+### The structural finding, which matters more than picking a hex
+
+Every *natural* contrast colour is already occupied, because the category palette was deliberately
+spread across the natural spectrum:
+
+| Natural contrast candidate | Referent | Already in the app as |
+|---|---|---|
+| Dusk violet | twilight sky, thistle, blackberry | `relax` 286° / `social` 336° squeeze it |
+| Rust, terracotta | rosehip, rowan berry, clay | `danger: #b13a2f` at 35° — and brand colour = error colour is a worse collision than any of the above |
+| Amber, honey, gold | late sun, wheat, birch | `adventure: #8d6025` at 72°, and too low-contrast on beige to carry an action |
+
+**So the productive move is not to hunt for a free hue. It is to decide the brand contrast colour
+is not a UI colour.** Reserved for the logo, store assets, and marketing — surfaces where category
+colours never appear — the collision stops existing, and the colour can be as bold as the brand
+wants without fighting "calm, grounded" inside the app. The app's primary action stays the green it
+already is.
+
+If instead the contrast colour must live in the UI as the primary-action colour, something has to
+move, and the cheapest thing to move is `social` — not `danger`, whose meaning is not negotiable.
 
 ### Decisions needed
 
-- Which purple, and at what role — accent for primary actions, or reserved for the logo and
-  marketing only? (Reserving it avoids the `social` collision almost entirely, since the two would
-  rarely appear together.)
-- Does `social` move?
-- **Dark mode.** `ThemePalette` is structured so a dark palette slots in without touching call
-  sites, but the values were never written (`tasks.md` #6). Your "dark = green" may mean the brand's
-  dark colour, or it may mean a dark theme — worth being explicit, they are different projects.
+- **Role first, hex second.** Is the contrast colour a brand-only colour (logo, store, marketing) or
+  a UI colour (primary actions)? This decides whether hue crowding matters at all, and every other
+  colour question follows from it.
+- If it goes in the UI: which hue, and does `social` move to make room?
+- Exact shades for green and beige. The current values are a good starting point but were derived
+  for UI legibility, not as a brand green — a brand green can be deeper and more saturated than
+  `#536534`, since it does not have to carry body text on beige.
+
+### Settled
+
+- **"Dark = green" means the brand colour, not a dark theme** (Standa, 2026-08-29). Dark mode
+  remains a separate, still-open project — `ThemePalette` is structured for it and the values were
+  never written (`tasks.md` #6).
 
 ---
 
