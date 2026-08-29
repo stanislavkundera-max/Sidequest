@@ -17,7 +17,7 @@ a judgment call rather than a fact, it says so.
 | 3 | **Supabase: add `{{ .Token }}` to the reset-password email template** | See §2. Without it, password reset silently sends nothing. |
 | 4 | **Fill the three privacy placeholders** | See §3. The policy cannot be published with brackets in it. |
 | 5 | **Deploy the web export** | Play needs public URLs for the privacy policy and account deletion. `vercel.json` is already configured; the routes already exist. See §4. |
-| 6 | **Run `supabase/analytics_pii_scrub.sql`** | Makes the deletion page's promises actually true. See §2b. |
+| 6 | ~~**Run `supabase/analytics_pii_scrub.sql`**~~ | ✅ Done 2026-08-29, both verification counts returned 0. See §2b for the one remaining catch. |
 | 7 | **Check whether the 12-tester rule applies to you** | Not a given — see §9. Find out early, because if it does apply it is the longest pole in the launch. |
 | 8 | **Create a demo account for the Google reviewer** | See §7. |
 
@@ -53,10 +53,24 @@ verified against real Supabase; this is the only missing piece.
 
 ---
 
-## 2b. The one Supabase change the deletion page depends on
+## 2b. The Supabase change the deletion page depends on — done, with one catch
 
-Run **`supabase/analytics_pii_scrub.sql`** in the SQL editor. It does two things:
-updates `delete_own_account()` on the deployed database, and cleans up rows written before the fix.
+**Status: run 2026-08-29.** Both verification counts came back 0, so the deployed
+`delete_own_account()` is current and the historical rows are clean.
+
+**The catch: that script is a one-time cleanup, not a standing guarantee.** The code that stops
+`userId` being written in the first place lives in `QuestFeedbackCard.tsx` on the
+`play-store-prep` branch. Any build still running the old version re-introduces the duplicated
+identifier on every feedback submission. Two consequences:
+
+- Merge and ship the branch before putting a build in front of testers.
+- After the first real deployment, re-run the verification query at the bottom of the script. If
+  `rows_with_duplicated_user_id` is above 0, an old build is still in circulation somewhere.
+
+The rest of this section is kept for context on why it mattered.
+
+`supabase/analytics_pii_scrub.sql` does two things: updates `delete_own_account()` on the deployed
+database, and cleans up rows written before the fix.
 
 Why it is not optional: `analytics_events.user_id` is `on delete set null`, which was assumed to
 make a deleted user's rows anonymous. It did not. The `properties` jsonb was also receiving a
@@ -64,11 +78,12 @@ verbatim copy of the user's UUID and the free text they typed into quest feedbac
 nulled those. A "deleted" account's rows stayed fully identifying.
 
 `app/legal/delete-account.tsx` states in public that after deletion nothing you wrote survives and
-the account reference cannot be traced back to you. **Until that script runs against the live
-database, both statements are false** for anyone who ever submitted quest feedback. The app side is
-already fixed; the deployed database is not.
+the account reference cannot be traced back to you. Those were false for anyone who had ever
+submitted quest feedback, which is what the script fixed.
 
-The script ends with a verification query. Both counts must come back `0`.
+Treat that page and `delete_own_account()` as a matched pair from here on: if a new analytics
+property starts carrying user-written text or an identifier, add its key to the strip list in the
+function, or the page goes back to being false.
 
 ---
 
