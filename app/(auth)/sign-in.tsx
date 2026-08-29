@@ -1,7 +1,6 @@
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
 import {
-  Alert,
   KeyboardAvoidingView,
   Platform,
   Pressable,
@@ -14,6 +13,9 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { PrimaryButton } from '@/components/ui/PrimaryButton';
 import { Theme } from '@/constants/Theme';
+import { MIN_TOUCH_TARGET } from '@/constants/touchTargets';
+import { alertCompat } from '@/lib/alertCompat';
+import { formatAuthErrorForUi } from '@/lib/authErrors';
 import {
   isSupabaseConfigured,
   supabase,
@@ -21,27 +23,6 @@ import {
 } from '@/lib/supabase';
 import { logError } from '@/src/lib/monitoring/errorLogger';
 import { useSessionStore } from '@/stores/session';
-
-function formatAuthErrorForUi(e: unknown): string {
-  if (e instanceof TypeError) {
-    return (
-      'Could not reach Supabase (network). Copy Project URL from Supabase → Settings → API into EXPO_PUBLIC_SUPABASE_URL ' +
-      '(a typo in the hostname looks like this). Restart Expo after changing .env. If the URL is correct, check VPN/firewall and that the project is not paused.'
-    );
-  }
-  if (e instanceof Error) {
-    const m = e.message;
-    if (
-      m === 'Failed to fetch' ||
-      m.includes('NetworkError') ||
-      m.includes('Load failed')
-    ) {
-      return formatAuthErrorForUi(new TypeError(m));
-    }
-    return m;
-  }
-  return 'Something went wrong';
-}
 
 export default function SignInScreen() {
   const router = useRouter();
@@ -54,14 +35,6 @@ export default function SignInScreen() {
   const [formInfo, setFormInfo] = useState<string | null>(null);
 
   const configured = isSupabaseConfigured();
-
-  function alertCompat(title: string, message: string) {
-    if (Platform.OS === 'web' && typeof window !== 'undefined') {
-      window.alert(`${title}\n\n${message}`);
-    } else {
-      Alert.alert(title, message);
-    }
-  }
 
   async function submit() {
     setFormError(null);
@@ -176,6 +149,17 @@ export default function SignInScreen() {
             placeholderTextColor={Theme.textMuted}
           />
 
+          {mode === 'signin' ? (
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel="Reset your password"
+              onPress={() => router.push('/(auth)/forgot-password')}
+              disabled={loading}
+              style={styles.forgotWrap}>
+              <Text style={styles.forgot}>Forgot your password?</Text>
+            </Pressable>
+          ) : null}
+
           <PrimaryButton
             label={mode === 'signin' ? 'Sign in' : 'Sign up'}
             loading={loading}
@@ -271,6 +255,15 @@ const styles = StyleSheet.create({
     borderColor: Theme.border,
   },
   secondaryBtnText: { color: Theme.accent, fontWeight: '600', fontSize: 15 },
+  forgotWrap: {
+    alignSelf: 'flex-end',
+    justifyContent: 'center',
+    minHeight: MIN_TOUCH_TARGET,
+    marginTop: -8,
+    marginBottom: 8,
+    paddingHorizontal: 4,
+  },
+  forgot: { color: Theme.accent, fontSize: 14 },
   switchWrap: { marginTop: 20, alignItems: 'center' },
   switch: { color: Theme.accent, fontSize: 15 },
   hint: {
