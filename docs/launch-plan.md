@@ -79,15 +79,20 @@ deliberately set to canary values, `expo config --type public` emits them under 
   assume, check when you actually build.
 - **Content rating (IARC questionnaire):** free, ~10–15 min, mandatory — app gets removed without
   one.
-- **⚠️ The one true bottleneck to plan around:** if the Play Console account is newly created
-  (anything after Nov 13, 2023 counts as "new"), Google requires a **closed test with at least 12
-  opted-in testers, active for 14 continuous days**, before you're even allowed to request
+- **⚠️ The potential bottleneck, and the one thing to confirm early:** Google may require a **closed
+  test with at least 12 opted-in testers, active for 14 continuous days** before you can request
   production access. "Opted in" means they accepted the invite *and* installed the build under a
-  matching Google account — just adding 12 emails doesn't count, and dropping below 12 active
-  testers at any point resets the 14-day clock. Your round-1 group (5 testers + mentor = 6 people)
-  is half of what's needed. **This is a calendar constraint, not an effort constraint — it's worth
-  starting the moment there's a working build, in parallel with everything else, since the 14 days
-  run regardless of what else is happening.**
+  matching Google account — adding 12 emails doesn't count, and dropping below 12 active testers
+  resets the clock. Round 1 had 6 people, half of what that would need.
+  **Whether it applies to your account is not settled** (updated 2026-08-29). It has historically
+  hit *personal* accounts created after Nov 13, 2023 and not organization accounts, Google has
+  changed both the rule and its rollout more than once, and it varies by region — it's entirely
+  possible you're never asked for it. Confirm it from your own Play Console rather than from this
+  doc; see `docs/play-store-handoff.md` §9.
+  Plan for both, since the cost is lopsided: if it applies it's the longest pole in the launch and
+  the 14 days run regardless of what else is happening, so start it the moment there's an
+  installable build. If it doesn't, lining up testers costs nothing — a real closed test before
+  release is worth running anyway.
 
 **Both stores / cross-cutting**
 - **GDPR applies** — you're EU-based and will have EU users, so the privacy policy needs actual
@@ -106,7 +111,9 @@ Standa," and "waiting on the redesign" — and those three run in parallel, whic
 **Calendar-bound (start these first, they run while everything else happens)**
 
 1. **Play Console account** ($25) — not created. Identity verification takes days and blocks the rest.
-2. **12+ closed testers, active 14 continuous days.** Round 1 had 6 people. Longest pole in the launch.
+2. **Confirm whether the closed-test requirement applies**, then, if it does, 12+ testers active for
+   14 continuous days. Round 1 had 6 people. Potentially the longest pole in the launch, but not a
+   given — see the note above and `docs/play-store-handoff.md` §9.
 
 **Blocked on Standa, cheap once started**
 
@@ -147,12 +154,14 @@ Standa," and "waiting on the redesign" — and those three run in parallel, whic
   The same answer settles the governing-law placeholder in `app/legal/terms.tsx`.
 - **Payment method** for the $25 — trivial amount, but personal card vs. a business account is worth
   deciding once rather than defaulting by accident.
-- **Who are the 12+ Play Store closed testers?** The round-1 group covers half. This is the single
-  biggest timeline lever in the whole launch and the one thing no amount of engineering shortens.
-- **When to start the Play Store testing clock** — my recommendation is unchanged and has only got
-  stronger: as soon as there's *any* build worth putting in front of 12 people, well before the
-  redesign or the content work is finished. The 14 days run in parallel with everything else and
-  cost nothing to start.
+- **Who are the 12+ Play Store closed testers?** The round-1 group covers half. If the requirement
+  applies, this is the single biggest timeline lever in the launch and the one thing no amount of
+  engineering shortens — and it's worth having the names ready before you know, since the answer
+  only arrives once the account is verified.
+- **When to start the Play Store testing clock** — my recommendation is unchanged: as soon as
+  there's *any* build worth putting in front of 12 people, well before the redesign or the content
+  work is finished. If the rule applies, the 14 days run in parallel with everything else. If it
+  doesn't, a real closed test before release is worth running on its own merits.
 
 ### What happens next
 

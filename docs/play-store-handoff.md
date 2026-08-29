@@ -17,8 +17,9 @@ a judgment call rather than a fact, it says so.
 | 3 | **Supabase: add `{{ .Token }}` to the reset-password email template** | See §2. Without it, password reset silently sends nothing. |
 | 4 | **Fill the three privacy placeholders** | See §3. The policy cannot be published with brackets in it. |
 | 5 | **Deploy the web export** | Play needs public URLs for the privacy policy and account deletion. `vercel.json` is already configured; the routes already exist. See §4. |
-| 6 | **Name 12+ closed testers** | The 14-day clock is the longest pole in the whole launch. Round 1 had 6 people. |
-| 7 | **Create a demo account for the Google reviewer** | See §7. |
+| 6 | **Run `supabase/analytics_pii_scrub.sql`** | Makes the deletion page's promises actually true. See §2b. |
+| 7 | **Check whether the 12-tester rule applies to you** | Not a given — see §9. Find out early, because if it does apply it is the longest pole in the launch. |
+| 8 | **Create a demo account for the Google reviewer** | See §7. |
 
 ---
 
@@ -49,6 +50,25 @@ If you didn't ask for this, you can ignore this email.
 **Until this edit is made, the reset screen will accept an email address and then never work** — the
 user gets an email with a link but no code to type. Everything on the app side is already built and
 verified against real Supabase; this is the only missing piece.
+
+---
+
+## 2b. The one Supabase change the deletion page depends on
+
+Run **`supabase/analytics_pii_scrub.sql`** in the SQL editor. It does two things:
+updates `delete_own_account()` on the deployed database, and cleans up rows written before the fix.
+
+Why it is not optional: `analytics_events.user_id` is `on delete set null`, which was assumed to
+make a deleted user's rows anonymous. It did not. The `properties` jsonb was also receiving a
+verbatim copy of the user's UUID and the free text they typed into quest feedback — and nothing
+nulled those. A "deleted" account's rows stayed fully identifying.
+
+`app/legal/delete-account.tsx` states in public that after deletion nothing you wrote survives and
+the account reference cannot be traced back to you. **Until that script runs against the live
+database, both statements are false** for anyone who ever submitted quest feedback. The app side is
+already fixed; the deployed database is not.
+
+The script ends with a verification query. Both counts must come back `0`.
 
 ---
 
@@ -95,7 +115,7 @@ is why every "Shared with third parties" answer below is No.
 | Personal info → **User IDs** | Yes | No | Required | App functionality, Analytics | Supabase `auth.uid()`, on every row. |
 | Photos and videos → **Photos** | Yes | No | Optional | App functionality | Memory photos, uploaded to the private `quest-memory-photos` bucket. |
 | App activity → **App interactions** | Yes | No | Required | Analytics, App functionality | The 24 event names in `src/constants/validation.ts`. |
-| App activity → **Other user-generated content** | Yes | No | Optional | App functionality | Memory notes and free-text answers typed during quest steps. |
+| App activity → **Other user-generated content** | Yes | No | Optional | App functionality | Memory notes, free-text answers typed during quest steps, and the optional note on quest feedback. |
 | Personal info → **Other info** | Yes | No | Optional | App functionality, Personalization | Onboarding preferences: categories, pace, intensity, plus the two baseline scale answers. See the judgment call below. |
 
 ### Data types to declare as NOT collected
@@ -164,7 +184,50 @@ builds on purpose (`app.config.ts`, verified 2026-08-29) and will not work in th
 
 ---
 
-## 8. Store listing assets — status
+## 8b. Which submit track to use
+
+`eas.json` defines three submit profiles rather than one, because picking the wrong track is a
+silent failure — the upload succeeds, it just does not count toward anything:
+
+| Command | Play track | Use it for |
+|---|---|---|
+| `eas submit --profile internal` | Internal testing | Smoke-testing that the upload pipeline works at all. Up to 100 testers, no review wait. **Does not count toward the closed-testing requirement.** |
+| `eas submit --profile closed` | Closed testing (`alpha`) | The 12-tester / 14-day requirement, *if* it applies to your account — see §9. |
+| `eas submit --profile production` | Production | The actual public release. |
+
+The earlier version of this config had a single profile pointing at `internal`, which would have
+looked like the release path while quietly never starting the closed-test clock.
+
+---
+
+## 9. The 12-tester / 14-day rule — confirm before planning around it
+
+Google's requirement is a **closed test with at least 12 testers opted in and active for 14
+continuous days** before production access is granted. "Opted in" means they accepted the invite
+*and* installed the build under a matching Google account; dropping below 12 restarts the clock.
+
+**Do not treat this as settled for your account.** It has historically applied to *personal*
+developer accounts created after 13 November 2023 and not to organization accounts, Google has
+adjusted both the rule and its rollout more than once, and how it appears differs by region. It is
+also possible your account is simply not asked for it.
+
+Find out from your own Play Console rather than from any doc, including this one: once the account
+is verified, the requirement (or its absence) is stated on the dashboard when you request production
+access.
+
+Plan for both outcomes, because the cost is lopsided:
+
+- **If it applies**, it is the single longest pole in the launch — 14 days that run regardless of
+  what else is happening, so start it the moment there is any build worth installing.
+- **If it does not**, you have lost nothing by lining up testers: a real closed test before release
+  is worth running on its own merits, and this is the same group round 2 would need anyway.
+
+Either way the engineering work is identical, so nothing else in this document is waiting on the
+answer.
+
+---
+
+## 10. Store listing assets — status
 
 | Asset | Status |
 |---|---|

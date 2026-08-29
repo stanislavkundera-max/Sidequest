@@ -17,7 +17,7 @@
         "buildType": "apk"
       },
       "env": {
-        "NODE_ENV": "development"
+        "NODE_ENV": "production"
       }
     },
     "production": {
@@ -31,9 +31,19 @@
     }
   },
   "submit": {
-    "production": {
+    "internal": {
       "android": {
         "track": "internal"
+      }
+    },
+    "closed": {
+      "android": {
+        "track": "alpha"
+      }
+    },
+    "production": {
+      "android": {
+        "track": "production"
       }
     }
   }
