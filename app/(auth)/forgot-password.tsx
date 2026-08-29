@@ -1,5 +1,5 @@
 import { useRouter } from 'expo-router';
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import {
   KeyboardAvoidingView,
   Platform,
@@ -63,6 +63,22 @@ export default function ForgotPasswordScreen() {
   const [formError, setFormError] = useState<string | null>(null);
   const [formInfo, setFormInfo] = useState<string | null>(null);
 
+  /**
+   * Whether the code has already been exchanged for a session.
+   *
+   * A recovery code is single-use. If `verifyOtp` succeeds but the
+   * `updateUser` after it fails — a server-side password rule stricter than
+   * ours, or the network dropping between the two calls — the code is spent
+   * even though the password never changed. Re-running `verifyOtp` on retry
+   * would then fail with "Token has expired or is invalid", which is both
+   * wrong and unrecoverable: the user is in fact already authenticated and
+   * only the second call needs repeating.
+   *
+   * A ref rather than state because the retry reads it inside the same
+   * callback that sets it, where a state update would not have landed yet.
+   */
+  const verifiedRef = useRef(false);
+
   const configured = isSupabaseConfigured();
 
   function guardConfigured(): boolean {
@@ -84,6 +100,9 @@ export default function ForgotPasswordScreen() {
     try {
       const { error } = await supabase.auth.resetPasswordForEmail(email.trim());
       if (error) throw error;
+      // A newly issued code supersedes any earlier one, so a previous
+      // verification no longer counts.
+      verifiedRef.current = false;
       setPhase('verify');
       // Supabase answers the same way whether or not the address is
       // registered, so nothing here can promise an email is actually coming.
@@ -122,21 +141,26 @@ export default function ForgotPasswordScreen() {
     setLoading(true);
     try {
       // The code exchanges for a real session; without it the `updateUser`
-      // call below has no authenticated user to act on.
-      const { data, error } = await supabase.auth.verifyOtp({
-        email: email.trim(),
-        token: code.trim(),
-        type: 'recovery',
-      });
-      if (error) throw error;
-      if (!data.session) {
-        throw new Error('That code did not work. Request a new one and try again.');
+      // call below has no authenticated user to act on. Skipped on a retry
+      // where the exchange already succeeded — see `verifiedRef`.
+      if (!verifiedRef.current) {
+        const { data, error } = await supabase.auth.verifyOtp({
+          email: email.trim(),
+          token: code.trim(),
+          type: 'recovery',
+        });
+        if (error) throw error;
+        if (!data.session) {
+          throw new Error('That code did not work. Request a new one and try again.');
+        }
+        verifiedRef.current = true;
+        setSession(data.session);
       }
-      setSession(data.session);
 
       const { error: updateError } = await supabase.auth.updateUser({ password });
       if (updateError) throw updateError;
 
+      verifiedRef.current = false;
       alertCompat('Password changed', 'You are signed in with your new password.');
       router.replace('/');
     } catch (e: unknown) {
@@ -148,6 +172,43 @@ export default function ForgotPasswordScreen() {
     } finally {
       setLoading(false);
     }
+  }
+
+  /**
+   * Back to phase 1 with everything cleared.
+   *
+   * Without this the screen is a trap: `resetPasswordForEmail` succeeds even
+   * for an address that has no account (Supabase will not reveal which
+   * addresses exist), so a typo advances to phase 2 exactly like a correct
+   * address would — and phase 2 locks the email field. "Send another" would
+   * only re-send to the same wrong address.
+   */
+  function useDifferentEmail() {
+    verifiedRef.current = false;
+    setCode('');
+    setPassword('');
+    setConfirmPassword('');
+    setFormError(null);
+    setFormInfo(null);
+    setPhase('request');
+  }
+
+  /**
+   * Navigates to sign-in explicitly rather than popping history.
+   *
+   * `router.back()` is wrong here and `canGoBack()` does not rescue it. This
+   * route is public and exported as its own page, so it gets opened cold — from
+   * a bookmark, a pasted link, a reload. On web, `canGoBack()` also answers
+   * true for history that came from *outside* the app, so `back()` can walk to
+   * `/`, which auto-signs-in anonymously and lands on onboarding. Measured:
+   * both the plain `back()` and the `canGoBack()`-guarded version put the user
+   * on /onboarding from a directly-loaded page.
+   *
+   * The label promises one specific destination, so the code names that
+   * destination instead of guessing from history.
+   */
+  function backToSignIn() {
+    router.replace('/(auth)/sign-in');
   }
 
   return (
@@ -228,20 +289,31 @@ export default function ForgotPasswordScreen() {
           />
 
           {phase === 'verify' ? (
-            <Pressable
-              accessibilityRole="button"
-              accessibilityLabel="Send a new code"
-              onPress={() => sendCode(true)}
-              disabled={loading}
-              style={styles.linkWrap}>
-              <Text style={styles.link}>Didn&apos;t get a code? Send another</Text>
-            </Pressable>
+            <>
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel="Send a new code"
+                onPress={() => sendCode(true)}
+                disabled={loading}
+                style={styles.linkWrap}>
+                <Text style={styles.link}>Didn&apos;t get a code? Send another</Text>
+              </Pressable>
+
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel="Start over with a different email address"
+                onPress={useDifferentEmail}
+                disabled={loading}
+                style={styles.linkWrap}>
+                <Text style={styles.link}>Use a different email</Text>
+              </Pressable>
+            </>
           ) : null}
 
           <Pressable
             accessibilityRole="button"
             accessibilityLabel="Back to sign in"
-            onPress={() => router.back()}
+            onPress={backToSignIn}
             disabled={loading}
             style={styles.linkWrap}>
             <Text style={styles.link}>Back to sign in</Text>
