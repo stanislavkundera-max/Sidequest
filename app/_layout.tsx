@@ -203,6 +203,13 @@ function RootLayoutNav() {
               headerBackTitle: 'Back',
             }}
           />
+          <Stack.Screen
+            name="legal/delete-account"
+            options={{
+              title: 'Delete Account',
+              headerBackTitle: 'Back',
+            }}
+          />
         </Stack>
       </NavigationThemeProvider>
     </PaperProvider>
