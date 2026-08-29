@@ -232,9 +232,22 @@ for each row execute function public.handle_new_user_profile();
 -- "deactivate" toggle). Operates on auth.uid() only, never a parameter, so a
 -- caller can only ever delete their own account. profiles/user_quests/
 -- memory_entries/future_goals all cascade automatically via their existing
--- "on delete cascade" FK to auth.users; analytics_events.user_id is
--- "on delete set null" by design, so aggregate analytics survive without PII.
--- Storage objects don't cascade, so they're removed explicitly first.
+-- "on delete cascade" FK to auth.users. Storage objects don't cascade, so
+-- they're removed explicitly first.
+--
+-- analytics_events.user_id is "on delete set null" so aggregate analytics
+-- survive the deletion. That alone is NOT enough to call the row anonymous:
+-- the properties jsonb is a free-form blob, and anything identifying copied
+-- into it survives untouched while the real column is nulled. Two keys were
+-- found doing exactly that — 'userId' (a duplicate of the column) and 'note'
+-- (free text the user typed into quest feedback) — so they are stripped here,
+-- before the delete, because once user_id is null there is no way left to
+-- find which rows belonged to whom.
+--
+-- IF YOU ADD AN EVENT PROPERTY THAT CARRIES USER-WRITTEN TEXT OR ANY
+-- IDENTIFIER, ADD ITS KEY TO THE strip list below. app/legal/delete-account.tsx
+-- publicly promises that nothing the user wrote survives deletion; this
+-- statement is what makes that promise true.
 create or replace function public.delete_own_account()
 returns void
 language plpgsql
@@ -251,6 +264,10 @@ begin
   delete from storage.objects
     where bucket_id = 'quest-memory-photos'
       and (storage.foldername(name))[1] = uid::text;
+
+  update public.analytics_events
+     set properties = properties - 'note' - 'userId'
+   where user_id = uid;
 
   delete from auth.users where id = uid;
 end;

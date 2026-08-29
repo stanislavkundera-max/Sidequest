@@ -14,11 +14,16 @@ const LAST_UPDATED = 'August 2026';
  * it at /legal/delete-account, which is the URL to paste into Play Console
  * under Data safety → Account deletion.
  *
- * The "what is deleted" list below is not boilerplate: it mirrors
- * `delete_own_account()` in supabase/schema.sql exactly. Everything with an
- * `on delete cascade` FK to auth.users goes; `analytics_events.user_id` is
- * `on delete set null` by design, so those rows survive without any link to a
- * person. If that function changes, this page has to change with it.
+ * The "what is deleted" and "what is kept" lists below are not boilerplate:
+ * they mirror `delete_own_account()` in supabase/schema.sql exactly. Everything
+ * with an `on delete cascade` FK to auth.users goes; `analytics_events.user_id`
+ * is `on delete set null`, and the function additionally strips the 'note' and
+ * 'userId' keys out of that table's properties blob so the surviving rows are
+ * genuinely anonymous rather than merely missing a column value.
+ *
+ * These are load-bearing claims in a public legal document. If
+ * `delete_own_account()` changes, or a new analytics property starts carrying
+ * user-written text, this page becomes false — change them together.
  *
  * DRAFT — has one bracketed placeholder (contact email) that needs a real value
  * before this ships. See docs/play-store-handoff.md.
@@ -64,11 +69,12 @@ const SECTIONS: { heading: string; body: string }[] = [
   {
     heading: 'What is kept, and why',
     body:
-      'Basic usage events (for example "quest started" or "memory saved") are kept, but the link ' +
-      'to you is permanently removed at the moment of deletion — the account reference is erased ' +
-      'and cannot be restored or traced back to you.\n\n' +
-      'What remains is anonymous counts used to understand how the app is used overall. It ' +
-      'contains no email address, no notes, no photos, and nothing you wrote.',
+      'Basic usage events are kept — a record that something like "quest started" or "memory ' +
+      'saved" happened, when it happened, and which quest it referred to.\n\n' +
+      'The link to you is removed as part of the deletion: the account reference on those events ' +
+      'is erased, and any text you had written that was attached to them is stripped at the same ' +
+      'time. What is left is counts of actions, with nothing pointing back to you.\n\n' +
+      'It holds no email address, no memories, no photos, and no text you wrote.',
   },
   {
     heading: 'Questions',

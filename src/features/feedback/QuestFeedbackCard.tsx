@@ -48,8 +48,13 @@ export function QuestFeedbackCard({
     }
 
     setStatus('sending');
+    // `userId` is deliberately NOT duplicated into the properties blob. The
+    // analytics_events table already carries it in a real column, and that
+    // column is the only one account deletion can null out — anything copied
+    // into the jsonb survives deletion and quietly re-identifies the row.
+    // `note` is free text the user wrote, so it is listed in
+    // ANALYTICS_USER_CONTENT_KEYS and scrubbed by delete_own_account().
     await trackEvent('quest_feedback_submitted', {
-      userId,
       questId,
       rating,
       note: note.trim() || null,
