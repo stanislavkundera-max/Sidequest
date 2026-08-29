@@ -18,9 +18,9 @@ positioning has been reinforced more than once and is not up for casual revision
 | # | Decision | Status |
 |---|---|---|
 | 1 | Brand name | 🟡 Incumbent, needs confirming — **and there is a deadline, see below** |
-| 2 | Colours | 🟡 Two of three already exist; the third has a conflict to resolve |
+| 2 | Colours | 🟢 **Decided** — beige `#f3f2ec`, forest green `#33471f`, indigo-violet `#4a3f73`, brand-only |
 | 3 | Typography | 🟢 **Decided** — Fraunces + Inter. Body face has one open sub-question; not yet implemented |
-| 4 | Logo | ⏸️ Deliberately blocked on 1–3 |
+| 4 | Logo | 🟡 Unblocked on colour and type; waiting on the name and a short form |
 
 ---
 
@@ -55,23 +55,75 @@ needed — but a package id that contradicts the brand is a small permanent emba
 
 ## 2. Colours
 
-### What already exists, and is already what you asked for
+### ✅ Decided 2026-08-29 — the brand palette
+
+Standa's call, and with it the answer to the role question: **these are brand colours for the logo,
+social posts and marketing — not UI colours.** The app keeps its own palette; `#536534` stays the
+in-app accent. That settles the hue-crowding problem below by making it irrelevant, because brand
+surfaces never show category colours.
+
+| Role | Value | Notes |
+|---|---|---|
+| Ground | `#f3f2ec` beige | Unchanged from the app, so brand and product share a ground |
+| Primary | `#33471f` forest green | Deeper and more saturated than the UI moss — a brand green does not have to carry body text |
+| Contrast | `#4a3f73` deep indigo-violet | Dusk, not decoration: the violet of the sky after the orange goes |
+
+Derived tints, for social backgrounds and larger fills. Hue and a share of the chroma are kept while
+L\* is raised, so they stay *the same colour* rather than washing out to grey:
+
+| | Pale (L\* 92) | Soft (L\* 85) | Mid (L\* 62) |
+|---|---|---|---|
+| Green | `#e0ecd1` | `#cadab8` | `#899c73` |
+| Violet | `#ede3ff` | `#dacefa` | `#9c8ec3` |
+
+Ink `#28281f` clears 10:1 on every pale and soft tint, so text on them is safe.
+
+### How the pair actually behaves — measured
+
+**On light grounds, both are excellent.** Green 9.08 and violet 8.32 on beige; 10.19 and 9.33 on
+white; and the reverse (beige or white knocked out of either colour) is identical by definition. Any
+logo lockup on a light ground, or reversed out of a solid brand colour, is comfortably clear.
+
+**⚠️ But green and violet have almost the same lightness — L\* 27.6 against 30.0 — so their contrast
+with each other is 1.09.** Colour distance ΔE 60.2 says they read as two obviously different colours
+in normal vision. Value distance says they are the same. Three consequences that matter for a logo:
+
+- **Never set one on the other.** Green text or a thin green line on violet is invisible, and vice
+  versa. Large adjacent shapes are fine; overlap and fine detail are not.
+- **In one colour they merge.** A monochrome or greyscale rendering — the Android notification
+  silhouette, a stamped print, a fax-grade reproduction — flattens both to nearly the same grey. A
+  two-colour mark built from these two is a one-value mark in disguise. This is what makes the
+  "must survive one colour" constraint in §4 concrete rather than boilerplate.
+- **If they must touch**, shift one in lightness rather than hue: `#33471f` against the mid violet
+  `#9c8ec3` gives 3.43, which clears AA for graphics and UI components (3:1).
+
+**Colour blindness.** Protanopia and deuteranopia — the common ones, roughly 8% of men — keep the
+pair far apart (ΔE 56.1 and 52.6), so the palette is safe for almost everyone. **Tritanopia collapses
+it: ΔE 3.7**, the two colours become nearly identical. Tritanopia is rare (~0.01%), so this is a
+footnote rather than a blocker, but it points the same direction as the greyscale finding: the logo
+should not *depend* on the green/violet distinction to say anything. Decorative use is fine;
+load-bearing use is not.
+
+### Background: how the analysis got here
+
+*Kept for the reasoning, not as an open question — the decision above supersedes it. It is also why
+the in-app accent should stay `#536534` rather than adopting the new brand green.*
 
 `constants/Theme.ts` was derived on 2026-08-21 from the Explore map artwork rather than picked by
-eye, and two of your three colours are already in it:
+eye, and two of your three colours were already in it:
 
 | Role | Your brief | In the repo today | |
 |---|---|---|---|
 | Light | Beige | `bg: #f3f2ec` / `surface: #fcfbf8` | ✅ matches |
 | Dark | Green | `accent: #536534` (moss, taken from the map's own hue band) | ✅ matches |
-| Contrast | Purple | — | ⚠️ conflict, below |
+| Contrast | Purple | — | ⚠️ conflicted inside the app — see below |
 
 The existing palette also carries a documented method worth preserving: category hues are kept
 *out* of the olive band so markers never disappear into the artwork, and their lightness is
 staggered so red-green colour blindness cannot collapse them. Anything added here should hold to the
 same standard rather than being dropped in by eye.
 
-### ⚠️ The purple is already taken
+### Why purple could not simply become a UI colour
 
 `social: #824071` is the Social category colour — and measured in Lab it sits at **hue 336°**, which
 is plum/magenta. It is, for practical purposes, already a purple. Adding a second purple as the
@@ -122,21 +174,23 @@ already is.
 If instead the contrast colour must live in the UI as the primary-action colour, something has to
 move, and the cheapest thing to move is `social` — not `danger`, whose meaning is not negotiable.
 
-### Decisions needed
-
-- **Role first, hex second.** Is the contrast colour a brand-only colour (logo, store, marketing) or
-  a UI colour (primary actions)? This decides whether hue crowding matters at all, and every other
-  colour question follows from it.
-- If it goes in the UI: which hue, and does `social` move to make room?
-- Exact shades for green and beige. The current values are a good starting point but were derived
-  for UI legibility, not as a brand green — a brand green can be deeper and more saturated than
-  `#536534`, since it does not have to carry body text on beige.
-
 ### Settled
 
+- **Role: brand-only** (Standa, 2026-08-29). Recorded at the top of this section. It is what makes
+  all of the crowding analysis above moot — kept anyway, because it is also the reason the UI accent
+  should *not* be changed to the new green, and because that reasoning would otherwise be
+  re-discovered from scratch.
 - **"Dark = green" means the brand colour, not a dark theme** (Standa, 2026-08-29). Dark mode
   remains a separate, still-open project — `ThemePalette` is structured for it and the values were
   never written (`tasks.md` #6).
+
+### Still open
+
+- **Do the brand colours ever enter the app?** Today the answer is no, and nothing forces a change:
+  the in-app accent stays `#536534`. Worth revisiting only if the app starts feeling disconnected
+  from its own marketing — at which point the deeper green could become an in-app *heading* colour
+  without touching the action colour, since headings do not carry the category meaning that caused
+  the crowding.
 
 ---
 
@@ -229,4 +283,5 @@ review.
 | 2026-08-29 | Branding brief opened: name, 3 colours, 2 fonts, logo | This document |
 | 2026-08-29 | Corrected: brand purple is boxed in by `relax` 286° *and* `social` 336° | Earlier blue-violet advice was wrong |
 | 2026-08-29 | **Type: Fraunces (headings) + Inter (body)** | Standa, after seeing the three pairings set in real copy |
+| 2026-08-29 | **Colour: brand-only palette — beige / `#33471f` / `#4a3f73`** | Standa. Settles the role question: brand surfaces, not UI |
 | 2026-08-29 | Visual comparison published | Colour candidates and type specimens, set in the palette itself: https://claude.ai/code/artifact/4718686a-8596-4fc8-9cfe-a8d9245f2222 |
