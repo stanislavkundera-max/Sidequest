@@ -100,8 +100,8 @@ is one edit rather than a hunt through three screens.
 | Value | Setting | How it was decided |
 |---|---|---|
 | Contact address | `privacy@sidequestlife.com` | Standa's call: an address on the app's own domain rather than a personal inbox, so it can be redirected later without editing a published legal document. |
-| Data controller | ⚠️ **Changing** — the OSVČ and its IČO | Reversed the same day: an Organization account is what an OSVČ needs, and Google's closed-testing requirement is written for *personal* accounts, so Organization appears to be exempt. Worth the D-U-N-S paperwork to remove a 14-day gate. **Waiting on the registered name and IČO.** |
-| Governing law | Czech Republic | Unchanged by the reversal. |
+| Data controller | Stanislav Kundera, private individual | Settled after considering an Organization account: that type is bound to a legal entity, and the IČO behind it is being dissolved at year end. A **personal** Play account matches this value exactly, so nothing here waits on anything. |
+| Governing law | Czech Republic | Follows from the above. |
 | Hosting location | Frankfurt, Germany (AWS `eu-central-1`), inside the EU | Not taken from the dashboard: the project's database host resolves to `2a05:d014:7c9::…`, which sits inside `2a05:d014::/35`, a block Amazon's own published IP ranges assign to `eu-central-1`. Being inside the EU is what keeps the GDPR story simple. |
 
 ### ⚠️ The one thing still owed

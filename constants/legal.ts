@@ -24,17 +24,15 @@ export const LEGAL_CONTACT_EMAIL = 'privacy@sidequestlife.com';
 /**
  * The data controller under GDPR: who is legally answerable for the data.
  *
- * ⚠️ PENDING CHANGE — do not publish the legal pages on this value.
+ * A private individual under Czech law, matching the **personal** Play
+ * developer account (settled 2026-08-29 after going back and forth on an
+ * Organization account: an Organization account is bound to a legal entity, and
+ * the IČO behind it is being dissolved at the end of the year — see
+ * docs/play-store-roadmap.md §0.5).
  *
- * The first decision (2026-08-29) was to ship as a private individual. Standa
- * reversed it the same day in favour of an OSVČ with an Organization developer
- * account, mainly because Google's closed-testing requirement is written for
- * *personal* accounts and an Organization account appears to be exempt from it
- * — see docs/play-store-roadmap.md §0.5.
- *
- * So the controller becomes the business, not the person: the OSVČ's registered
- * name plus its IČO. That is one edit here, and it flows to the privacy policy
- * and the terms automatically. Waiting on the registered name and IČO.
+ * Note this is about *who Google verified and whose name shows on the store*,
+ * not about tax treatment. If the app later earns real money, how that income
+ * is declared is a separate question and does not force this value to change.
  *
  * The Play seller name has to match whatever this says.
  */
