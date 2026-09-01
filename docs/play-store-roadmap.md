@@ -148,11 +148,41 @@ Gate: **0.2 done (Expo login).** Can run in parallel with Phase 1.
 
 | # | Task | Owner | Notes |
 |---|---|---|---|
+| 2.0 | 🚨 **Set `EXPO_PUBLIC_SUPABASE_URL` and `EXPO_PUBLIC_SUPABASE_ANON_KEY` as EAS environment variables** | Standa | **Without this the build ships dead** — see below |
 | 2.1 | `eas init` — links the project, writes `projectId` into `app.config.ts` | Claude | `eas.json` is already configured |
 | 2.2 | First production build: `eas build --platform android --profile production` | Claude | Produces an AAB. **The one real technical unknown left** |
 | 2.3 | Read the build output and confirm `targetSdkVersion` is 36 | Claude | Expected to pass — see the API level note below |
 | 2.4 | Deploy the web export so `/legal/privacy` and `/legal/delete-account` are public | Standa | `vercel.json` is ready; needs the domain from 0.3 |
 | 2.5 | Create the reviewer demo account and walk it through onboarding once | Claude + Standa | Not the dev-login credentials — those are stripped from production builds |
+
+### 🚨 2.0 — the build will ship dead without this
+
+The most likely way the first build fails, and it fails *silently*: it installs, opens, and does
+nothing.
+
+`.env` is gitignored (correctly — line 34). EAS builds in the cloud, from the repo, so it never sees
+that file. `app.config.ts` reads `EXPO_PUBLIC_SUPABASE_URL` and `EXPO_PUBLIC_SUPABASE_ANON_KEY` at
+config-evaluation time and puts them into `extra`; with nothing to read, both land empty.
+`isSupabaseConfigured()` then returns false and every screen falls back to "Configure Supabase env
+vars to enable sign-in." A tester sees an app that cannot sign in, cannot load quests, and does
+nothing at all.
+
+Fix before the first build, after `eas login`:
+
+```
+eas env:create --name EXPO_PUBLIC_SUPABASE_URL --value "<project url>" --visibility plaintext
+eas env:create --name EXPO_PUBLIC_SUPABASE_ANON_KEY --value "<anon key>" --visibility plaintext
+```
+
+`plaintext` is correct here rather than careless: the anon key is designed to be public, is protected
+by row-level security, and ends up in the JS bundle either way. The `service_role` key is the one
+that must never leave the server, and it is not used by this app.
+
+**Do not set `EXPO_PUBLIC_DEV_LOGIN_EMAIL` or `EXPO_PUBLIC_DEV_LOGIN_PASSWORD` in EAS.** The
+production profile strips them, but there is no reason to have them in the build environment at all.
+
+Verify after the build: install it, and confirm the sign-in screen shows the normal form rather than
+the configuration warning.
 
 ### Target API level — you are already compliant
 
@@ -341,7 +371,44 @@ hand:
 
 ---
 
-## Reading the current state
+## Is the app ready for testing?
+
+Audited 2026-08-29. **Functionally yes; technically unproven.**
+
+**What is genuinely ready.** The app works — typecheck clean, `expo-doctor` 18/18, every screen
+verified in the browser preview, and round 1 put it in front of real people who found real bugs that
+were then fixed. Content, flows and copy are in a testable state.
+
+**What has never been proven.** The app has **never been built natively.** There is no `android/`
+directory, `prebuild` has never run, and round 1 was distributed through **Expo Go**
+(`docs/real-user-testing-checklist.md:21`, and the Maestro runbook still assumes
+`E2E_APP_ID=host.exp.Exponent`). A production AAB is a different runtime from Expo Go: its own
+manifest and permissions, release-mode JS, `__DEV__` false, R8 shrinking, the real icon and splash.
+Everything that has been verified so far was verified somewhere else.
+
+That is not a reason to delay — it is the reason task 2.2 exists and why an internal test (3.0) is
+worth running first. But nobody should be surprised if the first build surfaces something.
+
+### Blockers before a build reaches testers, in order
+
+1. 🚨 **Supabase env vars in EAS** (2.0) — without them the app installs and does nothing.
+2. **Merge `play-store-prep` and `play-store-roadmap`** (0.6) — the analytics fix must ship before
+   anyone submits quest feedback, or the identifier starts landing in the database again.
+3. **`{{ .Token }}` in the Supabase reset-password template** (0.4) — otherwise password reset is
+   inert, and a tester locked out of their account is a tester who stops being active.
+4. **Brand name confirmed** (0.7) — the first upload fixes the package name permanently.
+5. **Legal pages deployed** (2.4) — the privacy policy URL is required in Play Console.
+
+### Known open issues, neither a blocker
+
+- **"Leave doesn't save progress"** (round-1 bug #8, part E) — never reproduced, so never fixed.
+  Worth handing to round-2 testers as something to watch for.
+- The synthesis lists a **"saves 10× on web"** duplicate-memory bug as still open, but
+  `app/memory/new.tsx` now navigates straight to the saved memory precisely because "a multi-button
+  `Alert.alert` never renders on web". It reads as fixed and the synthesis simply was not updated —
+  and it was web-only regardless, so it does not affect an Android closed test.
+
+### Everything else
 
 Done and verified: `eas.json` with three named submit tracks, real app icon, in-app account deletion,
 privacy policy, terms, the public deletion page, password reset, and the analytics anonymization fix
