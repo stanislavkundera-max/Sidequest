@@ -15,11 +15,14 @@ Play Console documentation (supplied 2026-08-29) and checked against this repo.
 
 ## The critical path, in one line
 
-**Play Console account → identity verification (days, Google's clock) → create app → first AAB →
-closed test (14 days, if it applies) → production review (days to weeks).**
+**D-U-N-S number → Play Console Organization account → entity verification (days, Google's clock) →
+create app → first AAB → production review (days to weeks).**
 
-Everything else runs in parallel with those waits. Nothing else is on the critical path, which is
-why the account is worth creating before anything else on this page.
+Going the OSVČ / Organization route likely removes the 14-day closed-test gate that used to sit in
+the middle of this — see 0.5. Confirm that before relying on it.
+
+Everything else runs in parallel with those waits, which is why the D-U-N-S request is worth starting
+before anything else on this page.
 
 ---
 
@@ -31,9 +34,30 @@ in a phase.
 | Decision | Why it is permanent | Status |
 |---|---|---|
 | **Package name** `com.sidequestlife.app` | Google's docs: package names "are unique and permanent… can't be deleted or re-used in the future." A different package is a different app: new listing, zero installs, no migration path. | ⚠️ **Settle the brand name before the first upload.** See `BRANDING.md` §1 |
-| **Free or paid** | Steps 3 and 4 of Google's create-app flow both say "You can change this later." Step 5, free-or-paid, conspicuously does not. The well-known rule is that a paid app can become free but a free app cannot become paid. | ⚠️ **Confirm in Play Console before submitting.** Working assumption: free |
+| **Free or paid** | Steps 3 and 4 of Google's create-app flow both say "You can change this later." Step 5, free-or-paid, conspicuously does not. The known rule is that a paid app can become free but a free app cannot become paid. | ✅ **Free.** Costs nothing — see below |
 | **App signing key** | If you manage the key yourself and lose it, you can never update the app again. Your *upload* key can be reset by Google; the *app signing* key cannot. | ✅ Plan: let Google generate it (Play App Signing default) |
 | **Default language** | Set at app creation. Changing the default later is not part of the normal flow. | Decide: English, given the repo and store copy are English |
+
+### "Free" does not mean "cannot earn"
+
+Worth stating plainly, because the free/paid flag reads scarier than it is: it sets **the price to
+download**, nothing else. In-app purchases and subscriptions are a separate mechanism and work
+normally inside a free app — Strava, Duolingo and Spotify are all "free" apps with paid tiers. That
+is the standard model, not an exception.
+
+So **choose Free and nothing is foreclosed.** The irreversible half is only free → paid *as a
+download price*, which is not a model this app would ever want. A premium tier can be added whenever.
+
+Two notes for later, neither blocking now:
+
+- There is **no monetization code in the app today**. Adding subscriptions is its own project — Play
+  Billing, entitlement checks against Supabase, purchase restoration — not a switch to flip.
+- **Donations are a genuinely different question and the policy is not simple.** The reliable part:
+  the moment a "donation" unlocks anything — a feature, content, a badge — it stops being a donation
+  and becomes a purchase, which must go through Google Play Billing. A pure donation that unlocks
+  nothing has an exception, but the conditions depend on registered-nonprofit status and on region.
+  **Do not plan around donations without reading Play's Payments policy first** — flagged in "Still
+  worth looking up".
 
 ---
 
@@ -43,32 +67,52 @@ These run while Google verifies the account. None of them depends on another.
 
 | # | Task | Owner | Status |
 |---|---|---|---|
-| 0.1 | **Create the Play Console account** ($25) and start identity verification | Standa | ❌ Not started — **critical path** |
+| 0.1 | **Request a D-U-N-S number** for the OSVČ | Standa | ❌ Free, but days to weeks — **now the critical path** |
+| 0.1b | **Create the Play Console account** ($25) as **Organization**, start entity verification | Standa | ❌ Needs 0.1 |
 | 0.2 | Expo account + `npx eas-cli login` | Standa | ❌ Blocks 2.1 |
 | 0.3 | Register the domain for `privacy@sidequestlife.com` and make it receive mail | Standa | ❌ Blocks 1.3 and 3.4 |
 | 0.4 | Supabase → Authentication → Emails: add `{{ .Token }}` to the reset-password template | Standa | ❌ Password reset is inert without it — handoff §2 |
-| 0.5 | Decide the 12+ closed testers and confirm they have Google accounts | Standa | ❌ Longest pole if the rule applies — see below |
+| 0.5 | Confirm the Organization account is exempt from the testing requirement | Standa | 🟡 Likely exempt — verify. Keep a tester list ready regardless |
 | 0.6 | Merge `play-store-prep` and `play-store-roadmap` into `main` | Standa | ❌ The analytics fix must ship before testers install anything |
 | 0.7 | Brand name confirmed or changed | Standa | 🟡 See the permanence table above |
+| 0.8 | Business name + IČO, so `constants/legal.ts` can name the real data controller | Standa | ❌ Blocks the legal pages being final |
 
-### About 0.5 — the testing requirement almost certainly applies to you
+### About 0.5 — an Organization account probably removes this requirement entirely
 
-Google's own page, in the text you supplied: *"Developers with personal accounts created after
-November 13, 2023, must meet specific testing requirements before they can make their app available
-on Google Play."*
+**Direction changed 2026-08-29 (second call): Standa is targeting an Organization account as an
+OSVČ**, superseding the earlier "private individual" decision.
 
-You decided on 2026-08-29 to ship as a **private individual**, which means a **personal** developer
-account created well after that date. So plan for the requirement applying: **12+ testers opted in
-and active for 14 continuous days** before you can request production access. Confirm the exact
-wording your console shows once verification completes, but do not plan around it *not* applying.
+That matters more than it looks. Google's rule, in the text supplied: *"Developers with **personal
+accounts** created after November 13, 2023, must meet specific testing requirements before they can
+make their app available on Google Play."* Personal accounts. An Organization account is not subject
+to it.
 
-The alternative is an organization account, which is exempt — but it needs a registered entity and a
-D-U-N-S number, which lengthens verification and changes the public seller name and the governing-law
-clause in `app/legal/terms.tsx`. That is a real trade-off, not a loophole, and it is your call.
+So the OSVČ route likely **deletes the 12-testers-for-14-days gate** — the one item on the critical
+path that no amount of work could shorten. Verify it against the requirements page before relying on
+it (see "Still worth looking up"), because it is a large enough win to be worth confirming rather
+than assuming.
 
-"Opted in" means each tester accepted the invitation **and** installed the build under the matching
-Google account. Adding twelve email addresses does nothing on its own, and dropping below twelve
-active testers restarts the fourteen days.
+**It trades one wait for another, and the trade looks good:**
+
+| | Personal account | Organization account (OSVČ) |
+|---|---|---|
+| Testing gate | 12 testers active 14 continuous days | Exempt |
+| Extra paperwork | None | D-U-N-S number, entity verification (name, address, registration documents) |
+| Who controls the wait | Twelve other people | You |
+| Public seller name | Stanislav Kundera | The business |
+
+A D-U-N-S number is free but can take days to weeks to issue. Twelve testers staying active for
+fourteen continuous days depends on twelve other people accepting an invitation *and* installing the
+build under a matching Google account — and dropping below twelve at any point restarts the clock.
+Self-controlled waiting beats other-people-controlled waiting.
+
+**If the requirement does still apply**, "opted in" means accepted *and* installed; adding twelve
+email addresses does nothing on its own. Keep the tester list ready either way — a real closed test
+before release is worth running on its own merits.
+
+**Repo impact of going Organization:** the data controller in `constants/legal.ts` stops being
+"Stanislav Kundera, a private individual" and becomes the OSVČ with its IČO. That flows into the
+privacy policy and the terms. One edit in one file, once the business name and IČO are known.
 
 ---
 
@@ -211,13 +255,18 @@ of it is your problem:
 Offered, and genuinely useful — these are the gaps this roadmap could not close from the material at
 hand:
 
-1. **The closed-testing requirements page** (`support.google.com/…/answer/14151465`) — the exact
-   current wording on tester count, duration, and how the console reports progress. It is the one
-   rule with a calendar cost, and it has changed more than once.
-2. **Store listing asset specs** — current required screenshot counts and pixel dimensions for
+1. **The closed-testing requirements page** (`support.google.com/…/answer/14151465`) — specifically,
+   confirm in writing that it applies to **personal** accounts only and that an Organization account
+   is exempt. This is now the highest-value thing to verify: it decides whether fourteen calendar
+   days sit on the critical path at all.
+2. **Organization account requirements for an OSVČ** — what entity documents Google asks for beyond
+   the D-U-N-S number, and the realistic issuing time for a Czech sole trader. This sets the length
+   of the new critical path.
+3. **Store listing asset specs** — current required screenshot counts and pixel dimensions for
    phones, and whether the feature graphic is mandatory or optional for a phone-only app.
-3. **Free vs paid changeability** — worth one minute of certainty before task 1.1, since it is on the
-   permanent list.
+4. **Play Payments policy, donations section** — whether a pure donation that unlocks nothing can use
+   a non-Google payment method for a for-profit OSVČ, and in which regions. The other case is already
+   settled: anything a "donation" unlocks makes it a purchase, which must use Play Billing.
 
 ---
 

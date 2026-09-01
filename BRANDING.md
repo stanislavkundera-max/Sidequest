@@ -279,7 +279,7 @@ review.
 |---|---|---|
 | 2026-08-21 | Palette derived from Explore map artwork | Method and measurements in `constants/Theme.ts`; `tasks.md` #6 |
 | 2026-08-21 | Dark mode structured but not written | `ThemePalette` type ready, values absent |
-| 2026-08-29 | Ship as `Stanislav Kundera`, private individual | Not a brand decision as such, but it fixes the public seller name — `constants/legal.ts` |
+| 2026-08-29 | ~~Ship as `Stanislav Kundera`, private individual~~ → **reversed same day: OSVČ, Organization account** | Fixes the public seller name, so it is a brand decision in effect. Waiting on the registered name and IČO — `constants/legal.ts`, `docs/play-store-roadmap.md` §0.5 |
 | 2026-08-29 | Branding brief opened: name, 3 colours, 2 fonts, logo | This document |
 | 2026-08-29 | Corrected: brand purple is boxed in by `relax` 286° *and* `social` 336° | Earlier blue-violet advice was wrong |
 | 2026-08-29 | **Type: Fraunces (headings) + Inter (body)** | Standa, after seeing the three pairings set in real copy |

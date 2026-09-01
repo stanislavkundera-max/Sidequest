@@ -24,10 +24,19 @@ export const LEGAL_CONTACT_EMAIL = 'privacy@sidequestlife.com';
 /**
  * The data controller under GDPR: who is legally answerable for the data.
  *
- * Standa ships as a private individual rather than through a company (decided
- * 2026-08-29), so the controller is a named person and the governing law is
- * Czech. If this ever moves to an IČO, this constant, the Play seller name, and
- * the Apple developer account all have to change together.
+ * ⚠️ PENDING CHANGE — do not publish the legal pages on this value.
+ *
+ * The first decision (2026-08-29) was to ship as a private individual. Standa
+ * reversed it the same day in favour of an OSVČ with an Organization developer
+ * account, mainly because Google's closed-testing requirement is written for
+ * *personal* accounts and an Organization account appears to be exempt from it
+ * — see docs/play-store-roadmap.md §0.5.
+ *
+ * So the controller becomes the business, not the person: the OSVČ's registered
+ * name plus its IČO. That is one edit here, and it flows to the privacy policy
+ * and the terms automatically. Waiting on the registered name and IČO.
+ *
+ * The Play seller name has to match whatever this says.
  */
 export const LEGAL_ENTITY_NAME = 'Stanislav Kundera';
 export const LEGAL_JURISDICTION = 'the Czech Republic';
