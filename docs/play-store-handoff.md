@@ -1,7 +1,11 @@
 # Play Store handoff — what only Standa can do, and the exact answers to give
 
-Companion to `docs/launch-plan.md` Pillar 1. That doc explains *what* is required and why; this one
-is the click-through sheet for the parts that need your account, your card, or your decision.
+One of three: `docs/launch-plan.md` explains *why*, `docs/play-store-roadmap.md` gives the *order*
+and the gates, and this page is *what to type* — the exact answers for the parts that need your
+account, your card, or your decision.
+
+**Start from `docs/play-store-roadmap.md`** if the question is what to do next; come here when a form
+is already in front of you.
 
 Every answer below was derived from the code on 2026-08-29, not from a template. Where an answer is
 a judgment call rather than a fact, it says so.

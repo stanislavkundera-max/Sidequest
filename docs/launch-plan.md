@@ -1,5 +1,10 @@
 # Launch plan — 3 pillars
 
+**For Pillar 1, this doc is now the strategy layer only.** The ordered path with its gates and
+dependencies lives in `docs/play-store-roadmap.md`, and the exact form answers live in
+`docs/play-store-handoff.md`. Read this for *why* store work is sequenced against redesign and
+content; read the roadmap for what to do next.
+
 Draft plan for the next phase: (1) app store readiness, (2) redesign, (3) content.
 Researched 2026-08-06 — store policies change, so re-verify anything with a $ or a deadline
 attached before acting on it if this doc is more than a couple months old.
