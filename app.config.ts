@@ -13,7 +13,12 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   orientation: 'portrait',
   icon: './assets/images/icon.png',
   scheme: 'sidequestlife',
-  userInterfaceStyle: 'automatic',
+  // The app ships one palette: `constants/Theme.ts` exports `lightPalette` only,
+  // and a dark one is structured but unwritten (tasks.md #6). 'automatic' told
+  // the OS the app adapts to the system theme when it does not, and `expo
+  // prebuild` warns the setting is inert on Android without `expo-system-ui`.
+  // 'light' is what the app actually does. Revisit when a dark palette exists.
+  userInterfaceStyle: 'light',
   newArchEnabled: true,
   splash: {
     image: './assets/images/splash-icon.png',
@@ -31,6 +36,26 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     },
     edgeToEdgeEnabled: true,
     package: 'com.sidequestlife.app',
+    /**
+     * Permissions Expo's prebuild template adds by default and this app does
+     * not use. The template itself labels them "OPTIONAL PERMISSIONS, REMOVE
+     * WHATEVER YOU DO NOT NEED" — nobody ever did, so a `prebuild` on
+     * 2026-08-29 produced a manifest asking to draw over other apps.
+     *
+     * SYSTEM_ALERT_WINDOW is the one that matters: it is React Native's
+     * dev-menu overlay permission, useless in a release build, and one of the
+     * permissions Play reviewers question. Asking for it while shipping a quest
+     * journal invites a conversation nobody wants to have.
+     *
+     * RECORD_AUDIO is handled separately — see `microphonePermission` on the
+     * expo-image-picker plugin below, which is the supported way to block it.
+     *
+     * The storage permissions are deliberately left alone: expo-image-picker
+     * declares them in its own library manifest for picking from the camera
+     * roll, and blocking them here would strip that too and could break photo
+     * selection on Android 12 and below (minSdk is 24).
+     */
+    blockedPermissions: ['android.permission.SYSTEM_ALERT_WINDOW'],
   },
   web: {
     bundler: 'metro',
@@ -51,6 +76,15 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
       {
         photosPermission:
           'Side Quest Life needs access to your photos to attach an image to a memory.',
+        cameraPermission:
+          'Side Quest Life uses your camera so a quest step can be finished with a photo.',
+        // The plugin adds RECORD_AUDIO unconditionally (for video capture it
+        // does not offer here). Nothing in this app records audio — verified
+        // by grep: no expo-av, no recording APIs — and shipping a microphone
+        // permission you never use is both a Data safety question to answer
+        // and a reason for a reviewer to look harder. `false` is the plugin's
+        // own supported way to block it.
+        microphonePermission: false,
       },
     ],
   ],
