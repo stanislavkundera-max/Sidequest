@@ -36,8 +36,13 @@ the domain the legal contact address assumes (`sidequestlife.com`, see `constant
 to Play.** Not renamed, not migrated — a different package is a different app, with a new listing
 and zero installs. Everything else on this page can be revised after launch; this cannot.
 
-So the name question has to be settled *before the first production upload*, not before the first
-build. If there is any doubt about `Side Quest Life`, now is when it costs nothing to change it.
+**The deadline is earlier than "before launch".** Google's testing documentation is explicit: *"Once
+you upload an artifact, the package name for that app is fixed and cannot be changed."* That is the
+first upload to **any** track — including a throwaway internal test build. So the name has to be
+settled before the very first build reaches Play Console, not before the production release.
+
+If there is any doubt about `Side Quest Life`, now is when it costs nothing to change it. After that
+first upload, it costs everything.
 
 The store *display* name is separate and can be edited freely, so the two can diverge later if
 needed — but a package id that contradicts the brand is a small permanent embarrassment.

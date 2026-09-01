@@ -33,7 +33,7 @@ in a phase.
 
 | Decision | Why it is permanent | Status |
 |---|---|---|
-| **Package name** `com.sidequestlife.app` | Google's docs: package names "are unique and permanent… can't be deleted or re-used in the future." A different package is a different app: new listing, zero installs, no migration path. | ⚠️ **Settle the brand name before the first upload.** See `BRANDING.md` §1 |
+| **Package name** `com.sidequestlife.app` | Package names "are unique and permanent… can't be deleted or re-used in the future," and the testing docs are sharper still: *"Once you upload an artifact, the package name for that app is fixed and cannot be changed."* That means the **first upload to any track, internal tests included** — not the production release. A different package is a different app: new listing, zero installs, no migration. | ⚠️ **Settle the brand name before task 2.2.** See `BRANDING.md` §1 |
 | **Free or paid** | Steps 3 and 4 of Google's create-app flow both say "You can change this later." Step 5, free-or-paid, conspicuously does not. The known rule is that a paid app can become free but a free app cannot become paid. | ✅ **Free.** Costs nothing — see below |
 | **App signing key** | If you manage the key yourself and lose it, you can never update the app again. Your *upload* key can be reset by Google; the *app signing* key cannot. | ✅ Plan: let Google generate it (Play App Signing default) |
 | **Default language** | Set at app creation. Changing the default later is not part of the normal flow. | Decide: English, given the repo and store copy are English |
@@ -180,11 +180,78 @@ Gate: **an AAB exists and Phase 1 forms are submitted.**
 
 | # | Task | Owner | Notes |
 |---|---|---|---|
+| 3.0 | **Internal test first** — `eas submit --profile internal` | Claude | Up to 100 testers, and it can run *before app setup is complete*. Cheapest way to prove the whole pipeline works |
 | 3.1 | Upload the AAB to **closed testing** — `eas submit --profile closed` (Play track `alpha`) | Claude | **Not `internal`.** Internal testing does not count toward the 14 days |
-| 3.2 | Invite 12+ testers; confirm each accepted **and** installed | Standa | The clock starts when 12 are actually active |
-| 3.3 | Hold 12+ active for 14 continuous days | — | Calendar time. Nothing shortens it |
-| 3.4 | Meanwhile: screenshots, feature graphic, 512×512 icon | Standa (design) | Swappable later without a new review — see below |
-| 3.5 | Meanwhile: quest content | Standa | Server-side, no build needed — see below |
+| 3.2 | Set up a **Google Group** for testers rather than an email list | Standa | See below — far less admin |
+| 3.3 | Provide the required **feedback URL or email** on the opt-in page | Standa | Mandatory field; testers cannot leave public reviews |
+| 3.4 | Invite testers; confirm each opted in **and** installed | Standa | The clock starts when 12 are actually active |
+| 3.5 | Hold 12+ active for 14 continuous days | — | Calendar time. Nothing shortens it |
+| 3.6 | Meanwhile: screenshots, feature graphic, 512×512 icon | Standa (design) | Swappable later without a new review — see below |
+| 3.7 | Meanwhile: quest content | Standa | Server-side, no build needed — see below |
+
+### Run an internal test before anything else
+
+Worth doing even though it counts for nothing toward the requirement, because of what it costs:
+nothing. From Google's testing docs, an internal test can be created **before the app is fully
+configured**, takes up to 100 testers, is exempt from the Data safety section, and "might not be
+subject to standard Play policy or security reviews."
+
+So it answers "does our AAB actually install and run from Play?" days before the paperwork is
+finished.
+
+**Build with the `production` profile even for this.** Every Play track needs an Android App Bundle,
+and `eas.json`'s `preview` profile deliberately produces an APK for sideloading — useful for handing
+a build to someone directly, useless for uploading to Play. The `internal` name in
+`eas submit --profile internal` refers to the Play *track*, not to the build profile.
+
+Two things to know before doing it: it still **fixes the package name permanently** (see the top of
+this page), and until the app's first review testers see a temporary name rather than the real one.
+
+### Mechanics that bite, from Google's own testing docs
+
+- **The opt-in link only appears once the app status is 'Published'.** Draft or 'Pending
+  publication' shows no link at all. Several people read this as a broken console.
+- **First publication takes several hours to reach testers**, and later changes take hours too. Not
+  minutes. Don't schedule the tester invitations for the same hour as the upload.
+- **Use a Google Group, not an email list.** Both are supported; the group can be set to "anyone can
+  join" and shared as a single opt-in link, which removes the email-collecting, the privacy
+  question, and the constant re-adding. With a group, testers must join the group *before* opting
+  in — worth saying in the invitation. Limits either way are generous: up to 200 lists, 2,000 users
+  per list, 50 lists per track.
+- **A feedback URL or email is required** and shown on the opt-in page. Testers cannot leave public
+  Play reviews for test builds. Use the same address as `constants/legal.ts`.
+- **Test feedback does not affect the public rating.** A rough first impression costs nothing
+  publicly.
+- **Testers need a Google account and an Android device.** The realistic constraint for round 2 is
+  Android ownership, not willingness.
+- Pricing and country availability apply **across all tracks at once** — there is no per-track
+  pricing.
+- Ending a test is "Pause track". Testers keep the installed app but stop receiving updates.
+
+### Contingency: if the Organization exemption does not hold
+
+Only relevant if 0.5 comes back saying the requirement applies anyway. Practitioner advice, sourced
+from a developer write-up (2026-08-29) rather than from Google, and labelled as such because the
+author is promoting his own tool in the same piece:
+
+- **Recruit 20–30, not 12.** People drop off, uninstall, or never open it again, and falling below
+  twelve restarts the fourteen days. A buffer is the whole trick.
+- **Ship small updates during the window.** Claimed to help; costs little either way.
+- **Take the production access form seriously.** Reported as where people fail *after* completing
+  the testing — it asks about the app's purpose, its target users, and policy compliance. This one
+  is worth believing: it matches how Google reviews everything else, and
+  `docs/value-proposition.md` and `docs/story.md` already contain good raw material for it.
+
+**On mutual-testing communities** — platforms where developers install each other's apps to clear
+the requirement. Judgement rather than fact: real humans genuinely installing an app is not against
+the rules, and it is clearly better than the paid services that use bots and get accounts rejected.
+But a reciprocal ring where nobody actually uses the app is closer to those bots in spirit than in
+letter, and Google is looking at whether testing was real. If it comes to that, prefer people who
+would plausibly *use* a side-quest app over people farming installs — the feedback is worth
+something, and round 1 already showed that real testers surface real problems.
+
+Round 1 had 6 people, so this would need roughly quadrupling the group with Android users. That is
+the strongest practical argument for the Organization route.
 
 ### Internal app sharing — a faster side channel, not a substitute
 
@@ -263,7 +330,8 @@ hand:
    the D-U-N-S number, and the realistic issuing time for a Czech sole trader. This sets the length
    of the new critical path.
 3. **Store listing asset specs** — current required screenshot counts and pixel dimensions for
-   phones, and whether the feature graphic is mandatory or optional for a phone-only app.
+   phones, and whether the feature graphic is mandatory or optional for a phone-only app. The one
+   gap none of the supplied material touched.
 4. **Play Payments policy, donations section** — whether a pure donation that unlocks nothing can use
    a non-Google payment method for a for-profit OSVČ, and in which regions. The other case is already
    settled: anything a "donation" unlocks makes it a purchase, which must use Play Billing.
