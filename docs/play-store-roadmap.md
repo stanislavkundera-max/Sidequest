@@ -13,6 +13,26 @@ Play Console documentation (supplied 2026-08-29) and checked against this repo.
 
 ---
 
+## Where this actually stands — checked 2026-09-05
+
+A week after the roadmap was written, verified rather than assumed:
+
+| | Status |
+|---|---|
+| Expo account | ✅ Exists. **Not logged in on this machine** — `npx eas-cli login` is the next command |
+| `eas init` | ❌ Not run; no `projectId` in `app.config.ts` |
+| Play Console account | ❌ **Not created.** Still the critical path |
+| EAS env vars (task 2.0) | ❌ Blocked on the login |
+| Supabase `{{ .Token }}` template | ❌ Not done — password reset stays inert until it is |
+| Domain / `privacy@` mailbox | ❌ Not done |
+| Code and native readiness | ✅ Done and merged |
+
+Nothing technical moved in that week because everything technical is downstream of two logins.
+`docs/app-store-option.md` was researched and parked in the meantime — it does **not** change any of
+the above, and specifically does not remove the Play testing requirement.
+
+---
+
 ## The critical path, in one line
 
 **Play Console personal account → identity verification (days, Google's clock) → create app →
