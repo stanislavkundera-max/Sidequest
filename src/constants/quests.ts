@@ -20,6 +20,7 @@ const SEED_QUESTS_RAW: Array<Omit<Quest, 'journeyIntro' | 'actionSteps'>> = [
     estimatedDurationMinutes: 25,
     promptForReflection: 'Which sound stuck with you after you stopped?',
     suggestedProofType: 'text',
+    suggestedGroup: 'outside',
   },
   {
     id: 'q-w-02',
@@ -33,6 +34,7 @@ const SEED_QUESTS_RAW: Array<Omit<Quest, 'journeyIntro' | 'actionSteps'>> = [
     estimatedDurationMinutes: 15,
     promptForReflection: 'What detail would you not have noticed if you had kept walking?',
     suggestedProofType: 'none',
+    suggestedGroup: 'do_now',
   },
   {
     id: 'q-w-03',
@@ -46,6 +48,7 @@ const SEED_QUESTS_RAW: Array<Omit<Quest, 'journeyIntro' | 'actionSteps'>> = [
     estimatedDurationMinutes: 45,
     promptForReflection: 'Did the process feel slower or more satisfying than usual?',
     suggestedProofType: 'photo',
+    suggestedGroup: 'low_energy',
   },
   {
     id: 'q-w-04',
@@ -59,6 +62,7 @@ const SEED_QUESTS_RAW: Array<Omit<Quest, 'journeyIntro' | 'actionSteps'>> = [
     estimatedDurationMinutes: 30,
     promptForReflection: 'What did you see on the extra stretch that you usually skip?',
     suggestedProofType: 'text',
+    suggestedGroup: 'outside',
   },
   {
     id: 'q-w-05',
@@ -72,6 +76,7 @@ const SEED_QUESTS_RAW: Array<Omit<Quest, 'journeyIntro' | 'actionSteps'>> = [
     estimatedDurationMinutes: 10,
     promptForReflection: 'How did it feel to reach out without an agenda?',
     suggestedProofType: 'none',
+    suggestedGroup: 'social',
   },
   {
     id: 'q-w-06',
@@ -85,6 +90,7 @@ const SEED_QUESTS_RAW: Array<Omit<Quest, 'journeyIntro' | 'actionSteps'>> = [
     estimatedDurationMinutes: 35,
     promptForReflection: 'Did knowing the names change how you looked at the street?',
     suggestedProofType: 'text',
+    suggestedGroup: 'outside',
   },
   {
     id: 'q-w-07',
@@ -98,6 +104,7 @@ const SEED_QUESTS_RAW: Array<Omit<Quest, 'journeyIntro' | 'actionSteps'>> = [
     estimatedDurationMinutes: 25,
     promptForReflection: 'What surprised you once you crossed the threshold?',
     suggestedProofType: 'text',
+    suggestedGroup: 'weekend',
   },
   {
     id: 'q-w-08',
@@ -111,6 +118,7 @@ const SEED_QUESTS_RAW: Array<Omit<Quest, 'journeyIntro' | 'actionSteps'>> = [
     estimatedDurationMinutes: 15,
     promptForReflection: 'How did outdoor light change the start of your day?',
     suggestedProofType: 'photo',
+    suggestedGroup: 'do_now',
   },
   {
     id: 'q-w-09',
@@ -124,6 +132,7 @@ const SEED_QUESTS_RAW: Array<Omit<Quest, 'journeyIntro' | 'actionSteps'>> = [
     estimatedDurationMinutes: 20,
     promptForReflection: 'What was easier live than in text?',
     suggestedProofType: 'none',
+    suggestedGroup: 'social',
   },
   {
     id: 'q-w-10',
@@ -137,6 +146,7 @@ const SEED_QUESTS_RAW: Array<Omit<Quest, 'journeyIntro' | 'actionSteps'>> = [
     estimatedDurationMinutes: 30,
     promptForReflection: 'Did the place feel different after you left it cleaner?',
     suggestedProofType: 'text',
+    suggestedGroup: 'outside',
   },
 
   // —— Monthly (6) ——
@@ -152,6 +162,7 @@ const SEED_QUESTS_RAW: Array<Omit<Quest, 'journeyIntro' | 'actionSteps'>> = [
     estimatedDurationMinutes: 120,
     promptForReflection: 'Where on the trail did you feel most away from routine?',
     suggestedProofType: 'photo',
+    suggestedGroup: 'outside',
   },
   {
     id: 'q-m-02',
@@ -165,6 +176,7 @@ const SEED_QUESTS_RAW: Array<Omit<Quest, 'journeyIntro' | 'actionSteps'>> = [
     estimatedDurationMinutes: 90,
     promptForReflection: 'What would you repeat next month?',
     suggestedProofType: 'photo',
+    suggestedGroup: 'social',
   },
   {
     id: 'q-m-03',
@@ -178,6 +190,7 @@ const SEED_QUESTS_RAW: Array<Omit<Quest, 'journeyIntro' | 'actionSteps'>> = [
     estimatedDurationMinutes: 90,
     promptForReflection: 'Which flavor or texture will you remember?',
     suggestedProofType: 'photo',
+    suggestedGroup: 'weekend',
   },
   {
     id: 'q-m-05',
@@ -191,6 +204,7 @@ const SEED_QUESTS_RAW: Array<Omit<Quest, 'journeyIntro' | 'actionSteps'>> = [
     estimatedDurationMinutes: 150,
     promptForReflection: 'What task did you not expect to do?',
     suggestedProofType: 'text',
+    suggestedGroup: 'social',
   },
   {
     id: 'q-m-06',
@@ -204,6 +218,7 @@ const SEED_QUESTS_RAW: Array<Omit<Quest, 'journeyIntro' | 'actionSteps'>> = [
     estimatedDurationMinutes: 720,
     promptForReflection: 'What felt different when you woke up?',
     suggestedProofType: 'photo',
+    suggestedGroup: 'weekend',
   },
 
   // —— Yearly (4) ——
@@ -219,6 +234,7 @@ const SEED_QUESTS_RAW: Array<Omit<Quest, 'journeyIntro' | 'actionSteps'>> = [
     estimatedDurationMinutes: 2880,
     promptForReflection: 'What from the trip do you want to keep in daily life?',
     suggestedProofType: 'photo',
+    suggestedGroup: 'weekend',
   },
   {
     id: 'q-y-02',
@@ -232,6 +248,7 @@ const SEED_QUESTS_RAW: Array<Omit<Quest, 'journeyIntro' | 'actionSteps'>> = [
     estimatedDurationMinutes: 240,
     promptForReflection: 'Would you do it again without the instructor?',
     suggestedProofType: 'photo',
+    suggestedGroup: 'outside',
   },
   {
     id: 'q-y-03',
@@ -245,6 +262,7 @@ const SEED_QUESTS_RAW: Array<Omit<Quest, 'journeyIntro' | 'actionSteps'>> = [
     estimatedDurationMinutes: 60,
     promptForReflection: 'What felt restored—or honestly closed?',
     suggestedProofType: 'none',
+    suggestedGroup: 'social',
   },
   {
     id: 'q-y-04',
@@ -258,6 +276,7 @@ const SEED_QUESTS_RAW: Array<Omit<Quest, 'journeyIntro' | 'actionSteps'>> = [
     estimatedDurationMinutes: 960,
     promptForReflection: 'What did your body do when nothing was “productive”?',
     suggestedProofType: 'text',
+    suggestedGroup: 'weekend',
   },
 ];
 
