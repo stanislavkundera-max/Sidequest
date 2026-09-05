@@ -25,7 +25,7 @@ A week after the roadmap was written, verified rather than assumed:
 | EAS env vars (task 2.0) | ✅ Set for production and preview 2026-09-05 |
 | Supabase `{{ .Token }}` template | ✅ Done 2026-09-05 |
 | Domain / `privacy@` mailbox | ❌ Not done |
-| First production build | 🔄 Running for the first time ever, 2026-09-05 |
+| First production build | ✅ **Succeeded 2026-09-05** — verified from the artifact, see below |
 | Code and native readiness | ✅ Done and merged |
 
 Nothing technical moved in that week because everything technical is downstream of two logins.
@@ -204,6 +204,36 @@ production profile strips them, but there is no reason to have them in the build
 
 Verify after the build: install it, and confirm the sign-in screen shows the normal form rather than
 the configuration warning.
+
+### ✅ The first build succeeded — and what the artifact actually contains
+
+Built 2026-09-05, ~14.5 minutes, `versionCode` 2, version 1.0.0. **The app has now been built
+natively for the first time in the project's life**, which retires the one genuine unknown that had
+been sitting at the top of this roadmap since it was written.
+
+Everything below was read out of the downloaded `.aab`, not inferred from config:
+
+| Check | Result |
+|---|---|
+| `targetSdkVersion` | **36** — read from `base/manifest/AndroidManifest.xml`. Clears the 31 Aug 2026 requirement for new apps |
+| Supabase URL and anon key | **Present and populated** in the resolved `app.config` inside the bundle. Task 2.0 worked: the app will actually run, not show the configuration fallback |
+| `devLoginEmail` / `devLoginPassword` | **Absent.** The production `NODE_ENV` strip did its job in a real build, not just in a local experiment |
+| `RECORD_AUDIO` | **Gone** — the block took effect through the manifest merger |
+| `SYSTEM_ALERT_WINDOW` | **Gone** — likewise |
+| `CAMERA` | **Present**, as intended. Confirms it merges in from expo-image-picker's own library manifest, so photo quest steps will work |
+| Calendar, storage, INTERNET, VIBRATE | Present, all intended |
+| `android.package` | `com.sidequestlife.app` |
+| `userInterfaceStyle` | `light` |
+
+**One unexplained entry: `android.permission.DUMP`.** It is not declared anywhere in this repo and
+does not appear in any `AndroidManifest.xml` under `node_modules`, so it arrives from a transitive
+Maven dependency rather than from anything we control. It is a signature-level permission that is
+never granted to an ordinary app, so it is harmless — noted here only so it is not mistaken for a
+finding if Play ever asks about it.
+
+A first check on `strings` returned an empty permission list and would have read as "everything was
+removed". It was a false negative — the tool simply found nothing in a protobuf manifest. The table
+above comes from a byte-level search instead. Worth remembering if these checks get repeated.
 
 ### Target API level — you are already compliant
 
@@ -430,7 +460,11 @@ Audited 2026-08-29. **Functionally yes; technically unproven.**
 verified in the browser preview, and round 1 put it in front of real people who found real bugs that
 were then fixed. Content, flows and copy are in a testable state.
 
-**What has never been proven.** The app has **never been built natively.** There is no `android/`
+**~~What has never been proven~~ — resolved 2026-09-05.** The first native build succeeded and was
+verified from the artifact; see Phase 2. The paragraph below is kept because it explains what the
+risk was and why an internal test is still worth running first.
+
+The app had **never been built natively.** There is no `android/`
 directory, `prebuild` has never run, and round 1 was distributed through **Expo Go**
 (`docs/real-user-testing-checklist.md:21`, and the Maestro runbook still assumes
 `E2E_APP_ID=host.exp.Exponent`). A production AAB is a different runtime from Expo Go: its own
