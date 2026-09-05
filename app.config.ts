@@ -9,6 +9,10 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   ...config,
   name: 'Side Quest Life',
   slug: 'side-quest-life',
+  // Which Expo account owns the EAS project. Pinned explicitly so builds never
+  // depend on whichever account happens to be logged in — the CLI offers both
+  // `sidequestlife` and the auto-created `sidequestlifes-team` organization.
+  owner: 'sidequestlife',
   version: '1.0.0',
   orientation: 'portrait',
   icon: './assets/images/icon.png',
@@ -92,6 +96,12 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     typedRoutes: true,
   },
   extra: {
+    // Written by hand because `eas init` cannot edit a dynamic (TypeScript)
+    // config — it prints the block and expects you to paste it. Created
+    // 2026-09-05 under the `sidequestlife` account.
+    eas: {
+      projectId: '47896bf8-1a57-4fb8-9f0c-6c84df8e4a6a',
+    },
     supabaseUrl: envTrim('EXPO_PUBLIC_SUPABASE_URL'),
     supabaseAnonKey: envTrim('EXPO_PUBLIC_SUPABASE_ANON_KEY'),
     // Dev-only auto-login credentials. `lib/devAuth.ts` already gates their
