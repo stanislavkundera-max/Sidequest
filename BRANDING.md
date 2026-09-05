@@ -20,7 +20,7 @@ positioning has been reinforced more than once and is not up for casual revision
 | 1 | Brand name | 🟢 **Confirmed `Side Quest Life`** 2026-09-05 — package `com.sidequestlife.app` is now locked in by choice |
 | 2 | Colours | 🟢 **Decided** — beige `#f3f2ec`, forest green `#33471f`, indigo-violet `#4a3f73`, brand-only |
 | 3 | Typography | 🟢 **Decided** — Fraunces + Inter. Body face has one open sub-question; not yet implemented |
-| 4 | Logo | 🟡 Unblocked on colour and type; waiting on the name and a short form |
+| 4 | Logo | 🟢 **Direction chosen 2026-09-05: a cairn**, in all three brand colours ("earth → dusk"). Needs drawing as a final asset |
 
 ---
 
@@ -114,6 +114,27 @@ it: ΔE 3.7**, the two colours become nearly identical. Tritanopia is rare (~0.0
 footnote rather than a blocker, but it points the same direction as the greyscale finding: the logo
 should not *depend* on the green/violet distinction to say anything. Decorative use is fine;
 load-bearing use is not.
+
+### Correction 2026-09-05 — this was being applied too strictly
+
+Standa pushed back on the above with a fair argument: if the contrast colour cannot appear next to
+the primary, it is a badly chosen contrast colour. Re-examining it, he was right that the warning had
+been over-generalised.
+
+The rule is about *load-bearing* distinction, and the wording above already said so — but it was then
+used to rule out a **decorative** violet stone in the cairn mark, which is a different case. In a
+notification silhouette **every** shape flattens to one colour, not just the violet one. If the mark
+does not encode meaning in the colour difference, nothing is lost: a cairn is still a cairn.
+
+So the palette is not wrong and all three colours can appear in the logo together. The constraint
+that does survive is narrower and geometric: **green and violet must not share an edge.** At 1.09
+contrast, a violet shape directly touching a green shape has no boundary. Keeping a beige gap between
+them — which the cairn does anyway, since the stones do not touch — removes the problem entirely,
+and each stone then sits on beige at 9.08 (green) and 8.32 (violet).
+
+If a future mark genuinely needs the two colours adjacent, the fix is lightness, not hue: the violet
+would have to rise to roughly `#9c8ec3`, which buys 3.43 against the green but drops to 2.65 against
+beige. That trade is worth knowing about and worth avoiding.
 
 ### Background: how the analysis got here
 
@@ -293,6 +314,8 @@ review.
 | 2026-08-29 | **Ship as `Stanislav Kundera`, private individual** — settled after considering an OSVČ/Organization account | Fixes the public seller name, so it is a brand decision in effect. An Organization account is bound to a legal entity and the IČO is being dissolved — `docs/play-store-roadmap.md` §0.5 |
 | 2026-08-29 | Branding brief opened: name, 3 colours, 2 fonts, logo | This document |
 | 2026-09-05 | **Name confirmed: `Side Quest Life`** | Standa. Settles the one deadline-bound branding decision — the package name becomes permanent at the first upload to any Play track |
+| 2026-09-05 | **Logo direction: a cairn**, all three brand colours, "earth → dusk" | Chosen from five natural concepts. A trail marker left by whoever walked first — closer to what the app does than a leaf or a star |
+| 2026-09-05 | Corrected: the green/violet warning had been over-applied | Standa's challenge was right — it governs load-bearing distinction, not decoration. See §2 |
 | 2026-08-29 | Corrected: brand purple is boxed in by `relax` 286° *and* `social` 336° | Earlier blue-violet advice was wrong |
 | 2026-08-29 | **Type: Fraunces (headings) + Inter (body)** | Standa, after seeing the three pairings set in real copy |
 | 2026-08-29 | **Colour: brand-only palette — beige / `#33471f` / `#4a3f73`** | Standa. Settles the role question: brand surfaces, not UI |
