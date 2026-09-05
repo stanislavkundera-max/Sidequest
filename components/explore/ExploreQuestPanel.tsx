@@ -18,15 +18,11 @@ import {
   getNextActionableStepLabel,
 } from '@/src/features/quests/questHelpers';
 import { useQuestDomainStore } from '@/src/features/quests/questStore';
-import { recommendQuestsInCategory } from '@/src/features/quests/suggestedQuests';
+import {
+  claimedQuestIds,
+  recommendQuestsInCategory,
+} from '@/src/features/quests/suggestedQuests';
 import type { Quest, UserQuest } from '@/src/types/quest';
-
-const CLAIMED_STATUSES: UserQuest['status'][] = [
-  'active',
-  'chosen',
-  'saved_for_later',
-  'completed',
-];
 
 type Props = {
   userId: string;
@@ -59,14 +55,12 @@ export function ExploreQuestPanel({ userId, categoryId, preferences }: Props) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [categoryId, userQuests]);
 
+  // Shared with the Journey catalogue so a finished quest disappears from both
+  // and returns to both. This screen used to exclude completed quests forever,
+  // which quietly retired a weekly walk after doing it once.
   const claimedIds = useMemo(
-    () =>
-      new Set(
-        userQuests
-          .filter((uq) => CLAIMED_STATUSES.includes(uq.status))
-          .map((uq) => uq.questId)
-      ),
-    [userQuests]
+    () => claimedQuestIds({ userQuests, catalog: quests }),
+    [userQuests, quests]
   );
 
   // A pool of picks, not one forced choice — testers (all 4) wanted to choose

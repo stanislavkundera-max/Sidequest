@@ -1,4 +1,5 @@
 import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useEffect, useState } from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -7,12 +8,22 @@ import { PathFullModal } from '@/components/quests/PathFullModal';
 import { useQuestActions } from '@/components/quests/useQuestActions';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { Theme } from '@/constants/Theme';
+import { getOnboardingState } from '@/lib/onboarding';
+import type { OnboardingPreferences } from '@/src/features/onboarding/types';
 import { useSessionStore } from '@/stores/session';
 
 export default function JourneyScreen() {
   const router = useRouter();
   const params = useLocalSearchParams<{ category?: string }>();
   const user = useSessionStore((s) => s.user);
+  // Only five quests per category are shown, so which five matters. Read the
+  // same onboarding answers Explore uses; null just means gentlest-first.
+  const [preferences, setPreferences] = useState<OnboardingPreferences | null>(null);
+  useEffect(() => {
+    getOnboardingState()
+      .then((state) => setPreferences(state.preferences))
+      .catch(() => undefined);
+  }, []);
   // Called unconditionally (rules of hooks) — harmless with an empty userId
   // when signed out, since the early return below prevents any action firing.
   const actions = useQuestActions(user?.id ?? '');
@@ -39,8 +50,12 @@ export default function JourneyScreen() {
         contentContainerStyle={styles.scrollContent}
         keyboardShouldPersistTaps="handled">
         <Text style={styles.pageTitle}>Journey</Text>
-        <Text style={styles.pageSub}>Every quest in the world — pick anything that calls to you.</Text>
-        <AllQuestsList initialCategoryId={params.category ?? null} actions={actions} />
+        <Text style={styles.pageSub}>A few picks in each place — take whichever one calls to you.</Text>
+        <AllQuestsList
+          initialCategoryId={params.category ?? null}
+          preferences={preferences}
+          actions={actions}
+        />
       </ScrollView>
       <PathFullModal
         visible={actions.pathFullOpen}

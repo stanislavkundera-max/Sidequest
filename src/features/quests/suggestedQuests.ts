@@ -7,6 +7,13 @@ import type { Quest, QuestTimeframe, UserQuest } from '@/src/types/quest';
 
 export type SuggestedGroupId = 'do_now' | 'low_energy' | 'outside' | 'social' | 'weekend';
 
+/** Soonest cadence first, as a last tie-break. */
+const TIMEFRAME_RANK: Record<QuestTimeframe, number> = {
+  weekly: 0,
+  monthly: 1,
+  yearly: 2,
+};
+
 /** Pace answer → the quest cadence we lean toward. */
 const PACE_TIMEFRAME: Record<OnboardingPace, QuestTimeframe> = {
   quick: 'weekly',
@@ -122,6 +129,50 @@ export function recommendQuestsInCategory(params: {
     .map((e) => e.quest);
 }
 
+/**
+ * What one category tab offers: everything in that category the user could
+ * still take on, best first.
+ *
+ * Capping happens at the call site — this returns the full ordered list so the
+ * caller can say how many are hidden. Order is: newly added, then fit to the
+ * onboarding answers, then gentlest (soonest cadence, then shortest).
+ */
+export function orderCategoryQuests(params: {
+  catalog: Quest[];
+  userQuests: UserQuest[];
+  categoryId: string;
+  preferences?: OnboardingPreferences | null;
+  now?: number;
+}): Quest[] {
+  const now = params.now ?? Date.now();
+  const claimed = claimedQuestIds({
+    userQuests: params.userQuests,
+    catalog: params.catalog,
+    now,
+  });
+  const prefs = params.preferences ?? null;
+  const preferredIds = prefs ? new Set(prefs.categories.map((c) => `cat-${c}`)) : null;
+  const fit = (q: Quest) =>
+    prefs && preferredIds ? scoreQuestForPreferences(q, prefs, preferredIds) : 0;
+
+  return params.catalog
+    .filter(
+      (q) =>
+        q.isActive !== false &&
+        q.categoryId === params.categoryId &&
+        !claimed.has(q.id)
+    )
+    .sort(
+      (a, b) =>
+        // Newly written quests first. With only a handful visible, a new quest
+        // added to a full category would otherwise never be seen.
+        Number(isRecentlyAdded(b, now)) - Number(isRecentlyAdded(a, now)) ||
+        fit(b) - fit(a) ||
+        TIMEFRAME_RANK[a.timeframe] - TIMEFRAME_RANK[b.timeframe] ||
+        a.estimatedDurationMinutes - b.estimatedDurationMinutes
+    );
+}
+
 export const SUGGESTED_GROUP_ORDER: SuggestedGroupId[] = [
   'do_now',
   'low_energy',
@@ -194,13 +245,28 @@ function isCompletedRecently(
   return now - t < horizon;
 }
 
-/** Quest ids the user already has in a non-suggested engagement row. */
-function claimedQuestIds(
-  userQuests: UserQuest[],
-  now: number,
-  dismissHorizonMs: number,
-  byId?: Map<string, Quest>
-): Set<string> {
+/**
+ * Quest ids to keep out of any "here is what you could do" list: the ones the
+ * user is already carrying, recently turned down, or recently finished.
+ *
+ * This is deliberately one shared rule rather than a filter per screen. It was
+ * three before: the Journey catalogue excluded nothing at all, Explore dropped
+ * completed quests forever, and only this module honoured the per-timeframe
+ * horizon — so the same finished quest could be gone from one tab, back in
+ * another, and never returning in a third.
+ */
+export function claimedQuestIds(params: {
+  userQuests: UserQuest[];
+  /** Needed to read each quest's timeframe for the completion horizon. */
+  catalog: Quest[];
+  now?: number;
+  /** Default 30 days. */
+  dismissHorizonMs?: number;
+}): Set<string> {
+  const { userQuests } = params;
+  const now = params.now ?? Date.now();
+  const dismissHorizonMs = params.dismissHorizonMs ?? DEFAULT_DISMISS_MS;
+  const byId = new Map(params.catalog.map((q) => [q.id, q]));
   const ids = new Set<string>();
   for (const uq of userQuests) {
     if (uq.status === 'active' || uq.status === 'chosen' || uq.status === 'saved_for_later') {
@@ -237,7 +303,7 @@ const NEW_QUEST_WINDOW_MS = 30 * 24 * 60 * 60 * 1000;
  * established, never new. That is what keeps the whole catalogue from reading
  * as new the day the column was added.
  */
-function isRecentlyAdded(quest: Quest, now: number): boolean {
+export function isRecentlyAdded(quest: Quest, now: number = Date.now()): boolean {
   if (!quest.createdAt) return false;
   const t = new Date(quest.createdAt).getTime();
   return Number.isFinite(t) && now - t < NEW_QUEST_WINDOW_MS;
@@ -245,6 +311,12 @@ function isRecentlyAdded(quest: Quest, now: number): boolean {
 
 /**
  * Small curated suggested set for the Journey hub — virtual, not persisted as `suggested` rows.
+ *
+ * NOT CURRENTLY RENDERED. No screen imports this: the Journey tab shows the
+ * per-category catalogue (`AllQuestsList`) and Explore shows
+ * `recommendQuestsInCategory`. The grouped hub this was written for is gone,
+ * so treat this as a spare part — either wire it up or delete it, but do not
+ * assume a fix made here reaches the user.
  */
 export function pickSuggestedQuests(params: {
   catalog: Quest[];
@@ -256,11 +328,12 @@ export function pickSuggestedQuests(params: {
   preferences?: OnboardingPreferences;
 }): SuggestedPick[] {
   const now = params.now ?? Date.now();
-  const dismissHorizonMs = params.dismissHorizonMs ?? DEFAULT_DISMISS_MS;
-  // Completion horizons depend on the quest's own timeframe, so the exclusion
-  // check needs to look the quest up rather than work from the row alone.
-  const byId = new Map(params.catalog.map((q) => [q.id, q]));
-  const claimed = claimedQuestIds(params.userQuests, now, dismissHorizonMs, byId);
+  const claimed = claimedQuestIds({
+    userQuests: params.userQuests,
+    catalog: params.catalog,
+    now,
+    dismissHorizonMs: params.dismissHorizonMs,
+  });
 
   const buckets: Record<SuggestedGroupId, Quest[]> = {
     do_now: [],
