@@ -11,6 +11,7 @@
  *   assets/images/icon.png            1024  full-bleed, green ground
  *   assets/images/adaptive-icon.png   1024  foreground only, transparent
  *   assets/images/splash-icon.png     1024  transparent, for the splash screen
+ *   assets/images/favicon.png          196  browser tab, green ground
  *   store-assets/play/icon-512.png     512  Play listing, no transparency
  *
  * Android's adaptive icon only guarantees the centre 66 of 108 dp — everything
@@ -116,6 +117,13 @@ async function render(page, markup, size, file, transparent) {
   // Splash — transparent, sits on the splash backgroundColor.
   await render(page, svg({ size: 1024, background: null, scale: 0.7, stone: GREEN, top: AMBER }), 1024,
     path.join(OUT_APP, 'splash-icon.png'), true);
+
+  // Browser tab. Rendered a little larger than the app icon: a favicon is seen
+  // at 16–32px, where four separate stones start to merge, so filling more of
+  // the frame keeps the silhouette readable. Same mark and colours regardless —
+  // a differently drawn favicon would be a second logo.
+  await render(page, svg({ size: 196, background: GREEN, scale: 1.35, stone: AMBER }), 196,
+    path.join(OUT_APP, 'favicon.png'), false);
 
   // Play listing — 512 and no alpha channel, which Play rejects.
   await render(page, svg({ size: 512, background: GREEN, scale: FULL_SCALE, stone: AMBER }), 512,
