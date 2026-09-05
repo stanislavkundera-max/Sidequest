@@ -52,7 +52,7 @@ in a phase.
 
 | Decision | Why it is permanent | Status |
 |---|---|---|
-| **Package name** `com.sidequestlife.app` | Package names "are unique and permanent… can't be deleted or re-used in the future," and the testing docs are sharper still: *"Once you upload an artifact, the package name for that app is fixed and cannot be changed."* That means the **first upload to any track, internal tests included** — not the production release. A different package is a different app: new listing, zero installs, no migration. | ⚠️ **Settle the brand name before task 2.2.** See `BRANDING.md` §1 |
+| **Package name** `com.sidequestlife.app` | Package names "are unique and permanent… can't be deleted or re-used in the future," and the testing docs are sharper still: *"Once you upload an artifact, the package name for that app is fixed and cannot be changed."* That means the **first upload to any track, internal tests included** — not the production release. A different package is a different app: new listing, zero installs, no migration. | ✅ **Confirmed 2026-09-05.** `Side Quest Life` / `com.sidequestlife.app` |
 | **Free or paid** | Steps 3 and 4 of Google's create-app flow both say "You can change this later." Step 5, free-or-paid, conspicuously does not. The known rule is that a paid app can become free but a free app cannot become paid. | ✅ **Free.** Costs nothing — see below |
 | **App signing key** | If you manage the key yourself and lose it, you can never update the app again. Your *upload* key can be reset by Google; the *app signing* key cannot. | ✅ Plan: let Google generate it (Play App Signing default) |
 | **Default language** | Set at app creation. Changing the default later is not part of the normal flow. | Decide: English, given the repo and store copy are English |
@@ -93,7 +93,7 @@ These run while Google verifies the account. None of them depends on another.
 | 0.4 | ~~Supabase: `{{ .Token }}` in the reset-password template~~ | Standa | ✅ Done 2026-09-05 |
 | 0.5 | Line up 12+ testers with Android devices — aim for 20 | Standa | ❌ Applies. The longest pole once the account is verified |
 | 0.6 | ~~Merge both branches into `main`~~ | Standa | ✅ Done and pushed 2026-09-05 |
-| 0.7 | Brand name confirmed or changed | Standa | 🟡 See the permanence table above |
+| 0.7 | ~~Brand name confirmed or changed~~ | Standa | ✅ Confirmed `Side Quest Life` 2026-09-05 |
 
 ### About 0.5 — why Personal, and why the testing gate is accepted
 
@@ -388,6 +388,13 @@ is what breaks a 14-day streak.
 Fix when convenient: Supabase → Authentication → Emails → SMTP Settings. Resend has a free tier
 around 3,000 emails a month and takes minutes to wire up. Deferred deliberately 2026-09-05 — Standa's
 call, and the right one.
+
+**Related: email confirmation on sign-up is ON**, checked and deliberately left that way
+2026-09-05. It means a user who signs up with an email cannot get in until they click a confirmation
+link delivered by that same rate-limited service. Small exposure during the closed test, since
+anonymous sign-in means most testers never create an account; a real funnel problem at public
+launch. If a tester ever reports "I signed up and nothing arrived", this is the cause — confirm them
+by hand in Supabase → Authentication → Users.
 
 ---
 

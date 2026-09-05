@@ -30,6 +30,9 @@ yarn-error.*
 .DS_Store
 *.pem
 
+# deploy tooling
+.vercel
+
 # local env files (never commit secrets)
 .env
 .env*.local

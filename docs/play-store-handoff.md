@@ -12,6 +12,74 @@ a judgment call rather than a fact, it says so.
 
 ---
 
+## 0. Next session — the click-path, with every value ready
+
+Prepared 2026-09-05 so the next session is clicking, not deciding. Work top to bottom.
+
+### Play Console → Create app
+
+| Field | Value | Note |
+|---|---|---|
+| App name | `Side Quest Life` | Confirmed 2026-09-05. 15 of 30 characters |
+| Default language | English (United States) | Set at creation; the store copy is English |
+| App or game | **App** | Changeable later |
+| Free or paid | **Free** | ⚠️ Not changeable later. Does not block a paid tier — see roadmap |
+| Contact email | ⛔ **blocked on the domain decision** | See below |
+| Declarations | Accept all three: Developer Program Policies, US export laws, **Play App Signing ToS** | The last one is what enables the AAB flow |
+
+### Store listing — content is written
+
+| Field | Where it is | Status |
+|---|---|---|
+| Short description | `docs/store-listing-copy.md` — "Small real-world quests that pull you out of routine and into your life." | ✅ 72 / 80 characters |
+| Full description | `docs/store-listing-copy.md` | ✅ ~1,140 / 4,000 characters |
+| App icon 512×512 | `store-assets/play/icon-512.png` | ✅ Generated 2026-09-05 |
+| Phone screenshots | `store-assets/play/screenshots/` — lead with `03-explore.png` | ✅ Six at 1080×1920 |
+| Feature graphic 1024×500 | — | ❌ **Missing.** Needs design; blocked on `BRANDING.md` §4 |
+| Category | Lifestyle | From `docs/store-listing-copy.md` |
+| Privacy policy URL | — | ⛔ Blocked on the deploy |
+
+### App content — answers already derived
+
+- **Data safety** → §5 of this document. Full table, derived from the code
+- **Content rating (IARC)** → §6. Expect Everyone / PEGI 3
+- **App access** → §7. ⛔ Needs the demo account creating first
+- **Ads** → declare none. No ad SDKs exist in the project
+- **Target audience** → not directed at children
+- Short declarations for news app, government app, financial features, health: all no
+
+### ⛔ The three things still genuinely missing
+
+1. **Domain decision** — decides the contact email and the public URLs. See below.
+2. **Demo/reviewer account** — a real account walked through onboarding with one quest completed and
+   one memory saved, so the reviewer does not land on empty states. Needs the app installable, so it
+   follows the first build.
+3. **Feature graphic** — the only listing asset that cannot be generated from what exists.
+
+### The domain decision, framed for a quick answer
+
+`constants/legal.ts` currently promises `privacy@sidequestlife.com`, and that mailbox does not
+exist. Two ways out:
+
+**A — buy `sidequestlife.com`** (a few hundred CZK a year). `privacy@` becomes real, the legal pages
+deploy to a clean URL, and the domain is needed for the brand work anyway. **Recommended.**
+
+**B — skip the domain for now.** Deploy the web export to Vercel's free `*.vercel.app` subdomain;
+`/legal/privacy` and `/legal/delete-account` become public URLs immediately and satisfy Google. But
+`LEGAL_CONTACT_EMAIL` then has to change to a mailbox that really exists — in practice a personal
+Gmail, published on the store listing and inside the app.
+
+The real cost of B is not the ugly URL, it is a personal address on a public listing. That is why A
+is the recommendation despite costing money.
+
+Either way the deploy itself is quick: the repo is on GitHub, `vercel.json` is configured, and
+importing the repo in Vercel's web UI needs no CLI. One catch — set
+`EXPO_PUBLIC_SUPABASE_URL` and `EXPO_PUBLIC_SUPABASE_ANON_KEY` in Vercel's project settings too, or
+the deployed web app shows the "Configure Supabase" fallback. The legal pages render either way,
+since they are static.
+
+---
+
 ## 1. Things blocked on you, in order
 
 | # | Task | Why it is first / notes |

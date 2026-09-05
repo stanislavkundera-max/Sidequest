@@ -17,7 +17,7 @@ positioning has been reinforced more than once and is not up for casual revision
 
 | # | Decision | Status |
 |---|---|---|
-| 1 | Brand name | 🟡 Incumbent, needs confirming — **and there is a deadline, see below** |
+| 1 | Brand name | 🟢 **Confirmed `Side Quest Life`** 2026-09-05 — package `com.sidequestlife.app` is now locked in by choice |
 | 2 | Colours | 🟢 **Decided** — beige `#f3f2ec`, forest green `#33471f`, indigo-violet `#4a3f73`, brand-only |
 | 3 | Typography | 🟢 **Decided** — Fraunces + Inter. Body face has one open sub-question; not yet implemented |
 | 4 | Logo | 🟡 Unblocked on colour and type; waiting on the name and a short form |
@@ -25,6 +25,12 @@ positioning has been reinforced more than once and is not up for casual revision
 ---
 
 ## 1. Brand name
+
+## ✅ Confirmed 2026-09-05 — `Side Quest Life`
+
+Standa's call, made deliberately once the consequence below was clear. `com.sidequestlife.app` is
+therefore the package name for the life of the app, by choice rather than by drift. The rest of this
+section is kept because it explains why this was the one branding decision with a deadline.
 
 **Incumbent: `Side Quest Life`.** Already used consistently — 26 occurrences across the repo, the
 app config `name`, the slug `side-quest-life`, the Play/App bundle id `com.sidequestlife.app`, and
@@ -41,8 +47,8 @@ you upload an artifact, the package name for that app is fixed and cannot be cha
 first upload to **any** track — including a throwaway internal test build. So the name has to be
 settled before the very first build reaches Play Console, not before the production release.
 
-If there is any doubt about `Side Quest Life`, now is when it costs nothing to change it. After that
-first upload, it costs everything.
+That window is the reason this was settled before the first build reached Play. It is now closed by
+a decision rather than by accident.
 
 The store *display* name is separate and can be edited freely, so the two can diverge later if
 needed — but a package id that contradicts the brand is a small permanent embarrassment.
@@ -286,6 +292,7 @@ review.
 | 2026-08-21 | Dark mode structured but not written | `ThemePalette` type ready, values absent |
 | 2026-08-29 | **Ship as `Stanislav Kundera`, private individual** — settled after considering an OSVČ/Organization account | Fixes the public seller name, so it is a brand decision in effect. An Organization account is bound to a legal entity and the IČO is being dissolved — `docs/play-store-roadmap.md` §0.5 |
 | 2026-08-29 | Branding brief opened: name, 3 colours, 2 fonts, logo | This document |
+| 2026-09-05 | **Name confirmed: `Side Quest Life`** | Standa. Settles the one deadline-bound branding decision — the package name becomes permanent at the first upload to any Play track |
 | 2026-08-29 | Corrected: brand purple is boxed in by `relax` 286° *and* `social` 336° | Earlier blue-violet advice was wrong |
 | 2026-08-29 | **Type: Fraunces (headings) + Inter (body)** | Standa, after seeing the three pairings set in real copy |
 | 2026-08-29 | **Colour: brand-only palette — beige / `#33471f` / `#4a3f73`** | Standa. Settles the role question: brand surfaces, not UI |
