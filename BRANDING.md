@@ -22,7 +22,7 @@ positioning has been reinforced more than once and is not up for casual revision
 | 1 | Brand name | 🟢 **Confirmed `Side Quest Life`** 2026-09-05 — package `com.sidequestlife.app` is now locked in by choice |
 | 2 | Colours | 🟢 **Decided** — beige `#f3f2ec`, forest green `#33471f`, amber `#d9a441`, brand-only. Violet retired 2026-09-05 |
 | 3 | Typography | 🟢 **Decided** — Fraunces + Inter. Body face has one open sub-question; not yet implemented |
-| 4 | Logo | 🟢 **Chosen 2026-09-05: a cairn** — green ground, beige stones, amber top stone. Needs producing as real assets |
+| 4 | Logo | 🟢 **Done 2026-09-05: a cairn** — green ground, all stones amber. Icons and feature graphic generated |
 
 ---
 

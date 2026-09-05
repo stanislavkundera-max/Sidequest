@@ -51,6 +51,14 @@ const OUT_APP = path.join(ROOT, 'assets', 'images');
 const OUT_STORE = path.join(ROOT, 'store-assets', 'play');
 
 /** The cairn. Stones do not touch, so each reads against the ground behind it. */
+/**
+ * The cairn. All four stones carry the accent: the feature graphic settled on an
+ * all-amber mark, and an icon coloured differently would read as a second
+ * version of the same logo where the two sit together on the listing page.
+ * Costs some legibility at 48px — amber holds 4.53 against the green where
+ * beige held 9.08 — and the shape carries recognition more than the contrast
+ * does. Standa's call, 2026-09-05.
+ */
 function cairn({ stone, top }) {
   return `
     <ellipse cx="50" cy="71" rx="21"   ry="7.5" fill="${stone}"/>
@@ -97,12 +105,12 @@ async function render(page, markup, size, file, transparent) {
   console.log('Rendering the cairn mark:\n');
 
   // App icon — full bleed on the brand green.
-  await render(page, svg({ size: 1024, background: GREEN, scale: FULL_SCALE }), 1024,
+  await render(page, svg({ size: 1024, background: GREEN, scale: FULL_SCALE, stone: AMBER }), 1024,
     path.join(OUT_APP, 'icon.png'), false);
 
   // Adaptive foreground — transparent, scaled into the safe circle. The green
   // ground comes from android.adaptiveIcon.backgroundColor in app.config.ts.
-  await render(page, svg({ size: 1024, background: null, scale: SAFE_SCALE }), 1024,
+  await render(page, svg({ size: 1024, background: null, scale: SAFE_SCALE, stone: AMBER }), 1024,
     path.join(OUT_APP, 'adaptive-icon.png'), true);
 
   // Splash — transparent, sits on the splash backgroundColor.
@@ -110,7 +118,7 @@ async function render(page, markup, size, file, transparent) {
     path.join(OUT_APP, 'splash-icon.png'), true);
 
   // Play listing — 512 and no alpha channel, which Play rejects.
-  await render(page, svg({ size: 512, background: GREEN, scale: FULL_SCALE }), 512,
+  await render(page, svg({ size: 512, background: GREEN, scale: FULL_SCALE, stone: AMBER }), 512,
     path.join(OUT_STORE, 'icon-512.png'), false);
 
   await browser.close();
