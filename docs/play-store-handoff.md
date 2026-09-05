@@ -302,30 +302,40 @@ looked like the release path while quietly never starting the closed-test clock.
 
 ---
 
-## 9. The 12-tester / 14-day rule — confirm before planning around it
+## 9. The 12-tester / 14-day rule — confirmed, and it applies
 
-Google's requirement is a **closed test with at least 12 testers opted in and active for 14
-continuous days** before production access is granted. "Opted in" means they accepted the invite
-*and* installed the build under a matching Google account; dropping below 12 restarts the clock.
+**Settled 2026-09-05.** This section used to say "do not treat this as settled" and told you to check
+the console yourself. You did: the account was created and paid (`f6a4918`), it is a **personal**
+account created after 13 November 2023, and **the rule applies.** The hedge is gone; plan around the
+requirement, not around the uncertainty.
 
-**Do not treat this as settled for your account.** It has historically applied to *personal*
-developer accounts created after 13 November 2023 and not to organization accounts, Google has
-adjusted both the rule and its rollout more than once, and how it appears differs by region. It is
-also possible your account is simply not asked for it.
+The requirement is a **closed test with at least 12 testers opted in and active for 14 continuous
+days** before production access is granted. The mechanics are what actually bite, so they are worth
+keeping in front of you:
 
-Find out from your own Play Console rather than from any doc, including this one: once the account
-is verified, the requirement (or its absence) is stated on the dashboard when you request production
-access.
+- **"Opted in" means installed**, not invited. Each tester has to accept the invitation *and* install
+  the build under the same Google account the invitation went to. Twelve email addresses in a list
+  is worth zero days.
+- **Dropping below twelve restarts the clock** — not pauses it. One person uninstalling on day nine
+  costs you nine days.
+- **Since 2026 Google also checks the testers actually used the app**, not merely that they opted in.
+  Silent installs are no longer enough.
+- **`eas submit --profile closed`** (Play track `alpha`) is the one that counts. `internal` does not
+  start the clock — see §8b above, where that distinction is the whole reason the submit profiles
+  are named separately.
 
-Plan for both outcomes, because the cost is lopsided:
+**What this costs in practice:** round 1 had six people, so the group needs roughly doubling, and it
+needs doubling *with Android users specifically*. Recruit ~20 for buffer rather than exactly 12 —
+the reset rule makes a thin margin expensive. `docs/play-store-roadmap.md` → "Phase 3 — Testing"
+tracks this step by step, and it is calendar time that nothing shortens.
 
-- **If it applies**, it is the single longest pole in the launch — 14 days that run regardless of
-  what else is happening, so start it the moment there is any build worth installing.
-- **If it does not**, you have lost nothing by lining up testers: a real closed test before release
-  is worth running on its own merits, and this is the same group round 2 would need anyway.
+**Start it the moment there is any build worth installing**, well before the redesign or the content
+work is finished. The 14 days run in parallel with everything else; no engineering work in this
+document is waiting on them.
 
-Either way the engineering work is identical, so nothing else in this document is waiting on the
-answer.
+> Worth knowing, not acting on: Apple's TestFlight has no equivalent of this rule — no minimum
+> testers, no minimum duration. That asymmetry, and why it does *not* amount to a reason to switch
+> stores, is worked through in `docs/app-store-option.md` (researched and parked, same day).
 
 ---
 
