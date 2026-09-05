@@ -39,13 +39,13 @@ mismatch for this app (Martin, round-1 feedback — see
 
 ## 2. A quest is not finished until it has a journey
 
-A catalogue row on its own gives the runner nothing to run. Every quest needs an
-entry in  too: a  and three to five
-steps, each with its own title, detail, tip, time estimate and interaction
-(, , , , ).
+A catalogue row on its own gives the runner nothing to run. Every quest also needs
+an entry in [`src/constants/questJourneys.ts`](../src/constants/questJourneys.ts):
+a `journeyIntro` and three to five steps, each with its own title, detail, tip,
+time estimate and interaction (`confirm`, `timer`, `input`, `counter`, `photo`).
 
-**Why:** a half-written quest is worse than a missing one — it looks available and
-then does nothing.
+**Why:** a half-written quest is worse than a missing one — it looks available in
+the hub and then does nothing when someone picks it.
 
 *Origin: content pass, 2026-09-05.*
 
@@ -53,15 +53,20 @@ then does nothing.
 
 ## 3. Write every quest to both sources
 
-The catalogue exists twice:  is the offline fallback and
-the Supabase  table is what the app actually serves. Write to the
-TypeScript, then regenerate the SQL:
+The catalogue exists twice: [`src/constants/quests.ts`](../src/constants/quests.ts)
+is the offline fallback, and the Supabase `quests` table is what the app actually
+serves. Write the quest in TypeScript, then regenerate the SQL:
 
-\
-**Why:** they drifted once already. Every local quest was missing
-, which silently cut the Journey hub from nine suggested quests
-to two — invisible in normal use, because Supabase had the values and only the
-offline path degraded.
+```
+npx tsx scripts/export-quests-sql.cjs > supabase/quests_catalogue.sql
+```
+
+Then run the generated file in Supabase. Never hand-edit the SQL.
+
+**Why:** the two drifted once already. Every local quest was missing
+`suggestedGroup`, which silently cut the Journey hub from nine suggested quests to
+two. It stayed invisible in normal use because Supabase *did* have the values —
+only the offline path degraded.
 
 *Origin: found and fixed 2026-09-05.*
 
