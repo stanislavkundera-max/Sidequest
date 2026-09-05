@@ -341,13 +341,25 @@ document is waiting on them.
 
 ## 10. Store listing assets — status
 
+Updated 2026-09-05. Every dimension below was read out of the PNG headers rather than assumed from
+the filename, because Play rejects off-by-one sizes and a filename proves nothing.
+
 | Asset | Status |
 |---|---|
-| App name, short description, full description | Drafted in `docs/store-listing-copy.md` |
-| App icon (512×512 PNG for the listing) | Needs exporting from the real icon in `assets/images/icon.png` |
-| Phone screenshots | Not made — depends on Pillar 2 |
-| Feature graphic (1024×500) | Not made — depends on Pillar 2 |
-| Tablet screenshots | **Not required.** Without them Play flags the app as "not optimised for tablets"; that is a label, not a blocker. |
+| App name, short description, full description | ✅ Written in `docs/store-listing-copy.md`. Name **Side Quest Life** is confirmed; the descriptions still call themselves "a starting point, not final copy" at the top of that file, so read them once before pasting |
+| App icon (512×512 PNG) | ✅ **Done** — `store-assets/play/icon-512.png`, verified 512×512. Synced to the all-amber cairn mark (`1c88fcf`) so it matches the feature graphic |
+| Feature graphic (1024×500) | ✅ **Done** — `store-assets/play/feature-graphic/feature-graphic.png`, verified 1024×500. Settled on the all-amber cairn (`aec59ea`) |
+| Phone screenshots | ⚠️ **Made, but stale.** Six at 1080×1920 in `store-assets/play/screenshots/`, verified. They are the only listing asset still predating the branding work — captured 2026-08-29 from the **web** build (`8e13a0b`), so they show the old UI, no Android status bar, and the system font. Two of them (`05-memories`, `06-progress`) show empty states, because capture ran on a fresh anonymous account |
+| Tablet screenshots | **Not required.** Without them Play flags the app as "not optimised for tablets"; that is a label, not a blocker |
 
-Screenshots and the feature graphic can be swapped in the listing at any time **without a new app
-review**, so they are the right work to do *during* the closed-test window rather than before it.
+**The screenshots are now the odd one out, and that is a new problem rather than an old one.** The
+icon and the feature graphic were both deliberately pulled onto the same all-amber mark so they would
+not read as two versions of one logo sitting side by side. The screenshots never got that pass, so
+they are the asset that now makes the listing page look unconsidered. Reshoot them from a device
+build on the demo account (§7) once it has a completed quest and a saved memory — the script exists
+(`scripts/capture-store-screenshots.cjs`), only the capture target changes.
+
+Timing has not changed: all of these swap in the listing at any time **without a new app review**, so
+they remain the right work to do *during* the closed-test window rather than ahead of it. That now
+cuts in a specific direction — the two finished assets are good enough to fill the required fields
+today, so nothing here blocks starting the 14-day clock in §9.
