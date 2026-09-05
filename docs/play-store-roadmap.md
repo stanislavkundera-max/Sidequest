@@ -21,7 +21,7 @@ A week after the roadmap was written, verified rather than assumed:
 |---|---|
 | Expo account | ✅ Logged in 2026-09-05 |
 | `eas init` | ✅ Done 2026-09-05 — @sidequestlife/side-quest-life |
-| Play Console account | ❌ **Not created.** Still the critical path |
+| Play Console account | ✅ **Created and paid 2026-09-05** — personal account, identity verification now running on Google's clock |
 | EAS env vars (task 2.0) | ✅ Set for production and preview 2026-09-05 |
 | Supabase `{{ .Token }}` template | ✅ Done 2026-09-05 |
 | Domain / `privacy@` mailbox | ❌ Not done |
@@ -36,12 +36,16 @@ the above, and specifically does not remove the Play testing requirement.
 
 ## The critical path, in one line
 
-**Play Console personal account → identity verification (days, Google's clock) → create app →
-first AAB → closed test (12 testers, 14 continuous days) → production review (days to weeks).**
+~~Play Console personal account~~ → **identity verification (running now, days, Google's clock)** →
+create app → upload the AAB → closed test (12 testers, 14 continuous days) → production review
+(days to weeks).
 
-Everything else runs in parallel with those waits. Nothing else is on the critical path, which is
-why the account is worth creating before anything else on this page — and why the tester group is
-worth assembling while verification runs.
+**The account exists and is paid as of 2026-09-05**, so the first link is done and the clock that
+blocks everything else is finally running. What is left on the critical path is entirely Google's
+until verification clears.
+
+The tester group is now the thing worth assembling, because it is the next item nobody else can
+shorten — and it can be lined up entirely while verification runs.
 
 ---
 
@@ -87,7 +91,7 @@ These run while Google verifies the account. None of them depends on another.
 
 | # | Task | Owner | Status |
 |---|---|---|---|
-| 0.1 | **Create the Play Console account** ($25) as **Personal**, start identity verification | Standa | ❌ Not started — **critical path**. Needs a government ID and a card in your own name; prepaid cards are not accepted |
+| 0.1 | ~~Create the Play Console account ($25) as Personal~~ | Standa | ✅ Done 2026-09-05. Identity verification is running — days, on Google's side |
 | 0.2 | ~~Expo account + `npx eas-cli login`~~ | Standa | ✅ Done 2026-09-05 |
 | 0.3 | Register the domain for `privacy@sidequestlife.com` and make it receive mail | Standa | ❌ Blocks 1.3 and 3.4 |
 | 0.4 | ~~Supabase: `{{ .Token }}` in the reset-password template~~ | Standa | ✅ Done 2026-09-05 |
