@@ -112,7 +112,11 @@ export default function QuestSelectionScreen() {
 
   const questsInCategory = useMemo(() => {
     if (selectedCategory === 'recommended') return [];
-    return quests.filter((q) => q.categoryId === selectedCategory);
+    // isActive === false means retired. Every other surface honours it; this
+    // one did not, so a retired quest stayed listed here and could still be
+    // begun. This screen deliberately keeps showing completed quests — it is a
+    // catalogue browser, not a set of offers.
+    return quests.filter((q) => q.isActive !== false && q.categoryId === selectedCategory);
   }, [quests, selectedCategory]);
 
   const questsByTimeframe = useMemo(() => {

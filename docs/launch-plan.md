@@ -283,13 +283,14 @@ decision list, not a content draft.
 
 ### Current state (audited from the repo)
 
-- **19 quests total** (10 weekly, 5 monthly, 4 yearly) across the 4 categories — roughly 5 per
-  category. Round-1 tester M's exact remark was "content quantity is extremely important" —
-  this thin a catalog is a direct, confirmed match to that complaint, not a vague concern.
-- `docs/quest-content-guidelines.md` has exactly **one** rule (no abstention/negation quests). Its
-  own "More rules" section is an explicit stub: "_(Add as they are decided — e.g. quest
-  length/time framing, difficulty calibration, concreteness, category fit.)_" Nothing past rule #1
-  has actually been decided yet.
+- ~~**19 quests total** (10 weekly, 5 monthly, 4 yearly)~~ **41 as of 2026-09-05** — ten in each
+  category, eleven in Relax, split five weekly / three monthly / two yearly. Round-1 tester M's
+  exact remark was "content quantity is extremely important", and at nineteen this was a direct,
+  confirmed match to that complaint. The Journey tab now shows five per category at a time, so the
+  catalogue is deep enough that finishing one pulls a fresh one up rather than emptying the shelf.
+- ~~`docs/quest-content-guidelines.md` has exactly **one** rule~~ **Four as of 2026-09-05**: no
+  abstention quests, no quest without a journey, write to both catalogue sources, and Adventure
+  means risk rather than novelty. The "More rules" stub is still there for the rest.
 - ~~A live, known violation of rule #1 is still shipping: `q-m-04`, "Digital sunset: no screens
   after 9 p.m. for three nights."~~ **Resolved 2026-08-21** — Standa's call was to delete rather
   than reframe it. Removed from `quests.ts`, `questJourneys.ts`, `quest-journeys-data.cjs`, and

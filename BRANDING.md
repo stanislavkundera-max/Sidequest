@@ -361,6 +361,20 @@ on this — it can be replaced whenever the branding lands. Store screenshots an
 graphic are downstream of this too, and both can be swapped in the Play listing without a new app
 review.
 
+### Every icon comes out of one script
+
+`scripts/make-brand-icons.cjs` renders the cairn into all five assets — app icon, adaptive
+foreground, splash mark, favicon, and the 512×512 Play listing icon. Change the mark once, run the
+script, and they cannot disagree.
+
+Adding an asset outside the script is how they *do* disagree: `favicon.png` was left out of the
+first version, so the browser tab kept the pre-branding mark for a day while every other icon had
+been replaced. If a sixth size is ever needed, it goes in the script.
+
+The favicon is drawn slightly larger than the app icon (scale 1.35 against 1.2). It is read at
+16–32px, where four separate stones begin to merge, so it fills more of the frame — same mark, same
+colours, because a differently drawn favicon would be a second logo.
+
 ---
 
 ## Decision log

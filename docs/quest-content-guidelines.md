@@ -72,6 +72,42 @@ only the offline path degraded.
 
 ---
 
+
+## 4. Adventure means risk, not novelty
+
+An Adventure quest has to have something at stake — height, cold, speed,
+commitment, the dark, being somewhere you cannot easily get back from. Mild
+novelty does not qualify, however unfamiliar it is.
+
+**Not Adventure** (this was half the category until 2026-09-05):
+
+- "Take a bus one stop past your usual"
+- "Get off two stops early and walk the rest"
+- "Visit a shop you have never entered"
+- "Take the first turn you have never taken"
+
+Standa's verdict on the last one: walking down a street you have not walked
+down is *super nuda*. He is right — those are four variations on noticing your
+own neighbourhood, and noticing belongs in Nature or Relax.
+
+**Adventure:**
+
+| Weak (novelty) | Strong (stake) |
+|---|---|
+| "Ride one stop farther" | "Take the next train out, wherever it is going" |
+| "Try a new cuisine" | "Jump off something with a rope on your legs" |
+| "Sleep away from home" | "Sleep outside with nothing over your face" |
+| "Walk a new street" | "Walk up in the dark and be at the top for sunrise" |
+
+**Safety goes in the steps, not in a warning banner.** Book with a licensed
+operator; tell one person your route and your time back; check whether sleeping
+there is even allowed; the mat matters more than the bag. A quest that asks
+something real of someone should also tell them how not to get hurt doing it —
+inline, as part of the doing.
+
+*Origin: product-owner decision, 2026-09-05.*
+
+---
 ## More rules
 
 _(Add as they are decided — e.g. quest length/time framing, difficulty calibration,

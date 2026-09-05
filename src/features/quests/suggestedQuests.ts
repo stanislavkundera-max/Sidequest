@@ -5,8 +5,6 @@ import type {
 } from '@/src/features/onboarding/types';
 import type { Quest, QuestTimeframe, UserQuest } from '@/src/types/quest';
 
-export type SuggestedGroupId = 'do_now' | 'low_energy' | 'outside' | 'social' | 'weekend';
-
 /** Soonest cadence first, as a last tie-break. */
 const TIMEFRAME_RANK: Record<QuestTimeframe, number> = {
   weekly: 0,
@@ -173,38 +171,6 @@ export function orderCategoryQuests(params: {
     );
 }
 
-export const SUGGESTED_GROUP_ORDER: SuggestedGroupId[] = [
-  'do_now',
-  'low_energy',
-  'outside',
-  'social',
-  'weekend',
-];
-
-export const SUGGESTED_GROUP_LABEL: Record<SuggestedGroupId, string> = {
-  do_now: 'Do now',
-  low_energy: 'Low energy',
-  outside: 'Outside',
-  social: 'Social',
-  weekend: 'Weekend',
-};
-
-const DEFAULT_GROUP: SuggestedGroupId = 'do_now';
-
-function resolveGroup(quest: Quest): SuggestedGroupId {
-  const g = quest.suggestedGroup;
-  if (
-    g === 'do_now' ||
-    g === 'low_energy' ||
-    g === 'outside' ||
-    g === 'social' ||
-    g === 'weekend'
-  ) {
-    return g;
-  }
-  return DEFAULT_GROUP;
-}
-
 function isDismissedRecently(uq: UserQuest, horizonMs: number, now: number): boolean {
   if (uq.status !== 'dismissed' || !uq.dismissedAt) return false;
   const t = new Date(uq.dismissedAt).getTime();
@@ -282,10 +248,6 @@ export function claimedQuestIds(params: {
   return ids;
 }
 
-export type SuggestedPick = { quest: Quest; group: SuggestedGroupId };
-
-const TOTAL_CAP = 9;
-const PER_GROUP_CAP = 2;
 const DEFAULT_DISMISS_MS = 30 * 24 * 60 * 60 * 1000;
 
 /**
@@ -307,77 +269,4 @@ export function isRecentlyAdded(quest: Quest, now: number = Date.now()): boolean
   if (!quest.createdAt) return false;
   const t = new Date(quest.createdAt).getTime();
   return Number.isFinite(t) && now - t < NEW_QUEST_WINDOW_MS;
-}
-
-/**
- * Small curated suggested set for the Journey hub — virtual, not persisted as `suggested` rows.
- *
- * NOT CURRENTLY RENDERED. No screen imports this: the Journey tab shows the
- * per-category catalogue (`AllQuestsList`) and Explore shows
- * `recommendQuestsInCategory`. The grouped hub this was written for is gone,
- * so treat this as a spare part — either wire it up or delete it, but do not
- * assume a fix made here reaches the user.
- */
-export function pickSuggestedQuests(params: {
-  catalog: Quest[];
-  userQuests: UserQuest[];
-  /** Default 30 days — match dismissed horizon. */
-  dismissHorizonMs?: number;
-  now?: number;
-  /** When set, quests within each group are ordered by fit to these answers. */
-  preferences?: OnboardingPreferences;
-}): SuggestedPick[] {
-  const now = params.now ?? Date.now();
-  const claimed = claimedQuestIds({
-    userQuests: params.userQuests,
-    catalog: params.catalog,
-    now,
-    dismissHorizonMs: params.dismissHorizonMs,
-  });
-
-  const buckets: Record<SuggestedGroupId, Quest[]> = {
-    do_now: [],
-    low_energy: [],
-    outside: [],
-    social: [],
-    weekend: [],
-  };
-
-  for (const quest of params.catalog) {
-    if (quest.isActive === false) continue;
-    if (claimed.has(quest.id)) continue;
-    const g = resolveGroup(quest);
-    buckets[g].push(quest);
-  }
-
-  const prefs = params.preferences;
-  const preferredIds = prefs ? new Set(prefs.categories.map((c) => `cat-${c}`)) : null;
-  const score = (q: Quest) =>
-    prefs && preferredIds ? scoreQuestForPreferences(q, prefs, preferredIds) : 0;
-
-  for (const group of SUGGESTED_GROUP_ORDER) {
-    buckets[group].sort((a, b) => {
-      // Recently added quests come first, so new content is seen rather than
-      // buried under an established catalogue that already fits the user well.
-      // The window is deliberately finite: after it passes, ordering goes back
-      // to being about fit, not arrival.
-      const newness = Number(isRecentlyAdded(b, now)) - Number(isRecentlyAdded(a, now));
-      if (newness !== 0) return newness;
-      return score(b) - score(a);
-    });
-  }
-
-  const out: SuggestedPick[] = [];
-  for (const group of SUGGESTED_GROUP_ORDER) {
-    const list = buckets[group];
-    let n = 0;
-    for (const quest of list) {
-      if (n >= PER_GROUP_CAP) break;
-      if (out.length >= TOTAL_CAP) return out;
-      out.push({ quest, group });
-      n += 1;
-    }
-  }
-
-  return out;
 }
