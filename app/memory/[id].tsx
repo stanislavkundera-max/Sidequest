@@ -36,6 +36,7 @@ export default function MemoryDetailScreen() {
   const router = useRouter();
   const user = useSessionStore((s) => s.user);
   const getQuestById = useQuestDomainStore((s) => s.getQuestById);
+  const quests = useQuestDomainStore((s) => s.quests);
   const loading = useMemoryStore((s) => s.loading);
   const saving = useMemoryStore((s) => s.saving);
   const updateMemory = useMemoryStore((s) => s.updateMemory);
@@ -43,9 +44,13 @@ export default function MemoryDetailScreen() {
   const memory = useMemoryStore((s) =>
     id ? s.memories.find((m) => m.id === id) : undefined
   );
+  // Depends on `quests` rather than the stable `getQuestById` reference, which
+  // never changes — so if the catalog arrived after the memory did, the quest
+  // this memory came from stayed unnamed on screen. Same trap as quest/[id].
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   const quest = useMemo(
     () => (memory?.questId ? getQuestById(memory.questId) : undefined),
-    [memory, getQuestById]
+    [memory?.questId, quests]
   );
 
   const [editing, setEditing] = useState(false);

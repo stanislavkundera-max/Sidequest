@@ -1,6 +1,6 @@
 import type { ComponentProps } from 'react';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useFocusEffect } from '@react-navigation/native';
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 import {
@@ -68,6 +68,15 @@ export default function QuestSelectionScreen() {
   const userQuests = useQuestDomainStore((s) => s.userQuests);
   const getQuestById = useQuestDomainStore((s) => s.getQuestById);
   const refreshUserQuests = useQuestDomainStore((s) => s.refreshUserQuests);
+  const bootstrap = useQuestDomainStore((s) => s.bootstrap);
+
+  // Deep links / web reloads land here before the tabs layout ever mounts, and
+  // the catalog only loads there — so this screen showed "No quests in this
+  // category" for every category after a refresh. Same fix the runner already
+  // carries.
+  useEffect(() => {
+    if (user && quests.length === 0) void bootstrap(user.id);
+  }, [user, quests.length, bootstrap]);
 
   const [feedback, setFeedback] = useState<string | null>(null);
 

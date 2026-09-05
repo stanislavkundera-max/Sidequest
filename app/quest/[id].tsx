@@ -56,9 +56,25 @@ export default function QuestDetailScreen() {
   const refreshUserQuests = useQuestDomainStore((s) => s.refreshUserQuests);
   const assignQuestToUser = useQuestDomainStore((s) => s.assignQuestToUser);
   const deactivateQuest = useQuestDomainStore((s) => s.deactivateQuest);
+  const bootstrap = useQuestDomainStore((s) => s.bootstrap);
   const memories = useMemoryStore((s) => s.memories);
 
-  const quest = useMemo(() => (id ? getQuestById(String(id)) : undefined), [id, getQuestById]);
+  // Deep links / web reloads land here before the tabs layout ever mounts, and
+  // the catalog only loads there — so a shared quest link, or a refresh on this
+  // screen, rendered "Quest not found" for a quest that exists. Same fix the
+  // runner already carries.
+  useEffect(() => {
+    if (user && quests.length === 0) void bootstrap(user.id);
+  }, [user, quests.length, bootstrap]);
+
+  // Depend on `quests`, not on the stable `getQuestById` reference. That
+  // reference never changes, so this memo never re-ran once the catalog
+  // arrived — and since the catalog loads after the first render on any cold
+  // entry to this screen, the lookup stayed undefined and the screen showed
+  // "Quest not found" for a quest that exists, permanently. The runner screen
+  // already carries the same note.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const quest = useMemo(() => (id ? getQuestById(String(id)) : undefined), [id, quests]);
 
   const activeUq = useMemo(
     () =>

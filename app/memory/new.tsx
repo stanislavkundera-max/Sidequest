@@ -29,16 +29,38 @@ export default function NewMemoryScreen() {
   const { questId } = useLocalSearchParams<{ questId?: string }>();
   const user = useSessionStore((s) => s.user);
   const getQuestById = useQuestDomainStore((s) => s.getQuestById);
+  const quests = useQuestDomainStore((s) => s.quests);
+  const bootstrap = useQuestDomainStore((s) => s.bootstrap);
   const memoryError = useMemoryStore((s) => s.error);
   const memorySaving = useMemoryStore((s) => s.saving);
   const createMemoryForQuest = useMemoryStore((s) => s.createMemoryForQuest);
 
+  // The catalog only loads in the tabs layout, so a web refresh of this modal
+  // left it empty — and with a questId in the URL that rendered "Quest not
+  // available" for a quest that is perfectly available.
+  useEffect(() => {
+    if (user && questId && quests.length === 0) void bootstrap(user.id);
+  }, [user, questId, quests.length, bootstrap]);
+
+  // Depends on `quests`, not on the stable `getQuestById` reference: on a cold
+  // entry to this screen the catalog arrives after the first render, and
+  // without this the quest stayed undefined for the life of the screen.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   const quest = useMemo(
     () => (questId ? getQuestById(String(questId)) : undefined),
-    [questId]
+    [questId, quests]
   );
 
   const [title, setTitle] = useState<string>(quest?.title ?? '');
+  const titleTouchedRef = useRef(false);
+
+  // The initial useState above only runs once, so a quest that arrives later
+  // would never reach the field. Fill it in when it does — but never over
+  // something the person has typed.
+  useEffect(() => {
+    if (titleTouchedRef.current || !quest) return;
+    setTitle((current) => (current ? current : quest.title));
+  }, [quest]);
   const [body, setBody] = useState('');
   const [localUri, setLocalUri] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
@@ -144,7 +166,10 @@ export default function NewMemoryScreen() {
           placeholder={quest?.title ?? 'Memory title'}
           placeholderTextColor={Theme.textMuted}
           value={title}
-          onChangeText={setTitle}
+          onChangeText={(t) => {
+            titleTouchedRef.current = true;
+            setTitle(t);
+          }}
         />
 
         <Text style={styles.label}>What stayed with you?</Text>
