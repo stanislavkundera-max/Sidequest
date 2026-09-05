@@ -153,6 +153,13 @@ test.describe('User journeys on web', () => {
     const questTitle = page.locator('text=/.*· ~\\d+ min.*/').first();
     if ((await questTitle.count()) > 0) {
       await questTitle.click();
+      // TODO: drop the "Quest not found" branch. It was accepted here because
+      // the detail screen genuinely produced it — a stale useMemo meant the
+      // lookup never re-ran once the catalog loaded (fixed 2026-09-05). With
+      // that gone, "Quest not found" after clicking a listed quest is a real
+      // failure, and this assertion should say so. Left permissive only
+      // because the suite skips without dev-login credentials, so tightening
+      // it could not be verified here.
       await expect(
         page.getByText('Reflection', { exact: false }).or(
           page.getByText('Quest not found')
