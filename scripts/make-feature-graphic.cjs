@@ -26,13 +26,14 @@ const PALE = '#e0ecd1';
 const OUT = path.join(__dirname, '..', 'store-assets', 'play', 'feature-graphic');
 
 /** The cairn, sized to a given height in px and drawn as inline SVG. */
-function cairn(size, { stone = BEIGE, top = AMBER } = {}) {
+function cairn(size, stones = [BEIGE, BEIGE, BEIGE, AMBER]) {
+  const [s1, s2, s3, s4] = stones;
   return `<svg width="${size}" height="${size}" viewBox="0 0 100 100" style="display:block">
     <g transform="translate(50 46.2) scale(1.2) translate(-50 -50)">
-      <ellipse cx="50" cy="71" rx="21"   ry="7.5" fill="${stone}"/>
-      <ellipse cx="52" cy="57" rx="16"   ry="6.5" fill="${stone}"/>
-      <ellipse cx="48" cy="45" rx="11.5" ry="6"   fill="${stone}"/>
-      <ellipse cx="50" cy="34" rx="7"    ry="5"   fill="${top}"/>
+      <ellipse cx="50" cy="71" rx="21"   ry="7.5" fill="${s1}"/>
+      <ellipse cx="52" cy="57" rx="16"   ry="6.5" fill="${s2}"/>
+      <ellipse cx="48" cy="45" rx="11.5" ry="6"   fill="${s3}"/>
+      <ellipse cx="50" cy="34" rx="7"    ry="5"   fill="${s4}"/>
     </g></svg>`;
 }
 
@@ -50,39 +51,68 @@ const BASE = `
   .tag{font-size:23px;line-height:1.45;opacity:.85}
 `;
 
-/** Four directions, all inside a centred safe area so cropping cannot hurt. */
+/** Amber tints from BRANDING.md §2, used to give the accent real weight. */
+const AMBER_SOFT = '#face89';
+const AMBER_PALE = '#ffe3ac';
+
+/**
+ * Variations on the chosen layout — mark left, wordmark right.
+ *
+ * The first round put amber on the top stone only, and Standa's critique was
+ * right: one small oval carried the entire accent, so it read as a stray
+ * colour rather than a decision. These give the amber enough area to look
+ * intentional. All keep content in a centred safe area so Google's promotional
+ * crops cannot remove anything load-bearing.
+ */
 const OPTIONS = {
-  'a-mark-left': `
+  // Standa's suggestion: the whole cairn amber, wordmark in beige.
+  'a1-all-amber': `
     <div class="fg" style="background:${GREEN};display:flex;align-items:center;gap:52px;padding:0 96px">
-      ${cairn(210)}
+      ${cairn(210, [AMBER, AMBER, AMBER, AMBER])}
       <div style="color:${BEIGE}">
         <div class="wordmark" style="font-size:66px">Side Quest Life</div>
         <div class="tag" style="margin-top:18px;color:${PALE}">Break the routine. Start living.</div>
       </div>
     </div>`,
 
-  'b-centred': `
-    <div class="fg" style="background:${GREEN};display:flex;flex-direction:column;
-         align-items:center;justify-content:center;gap:14px">
-      ${cairn(190)}
-      <div class="wordmark" style="font-size:58px;color:${BEIGE}">Side Quest Life</div>
-      <div class="tag" style="color:${PALE}">Break the routine. Start living.</div>
-    </div>`,
-
-  'c-quiet': `
-    <div class="fg" style="background:${BEIGE};display:flex;align-items:center;gap:56px;padding:0 104px">
-      ${cairn(200, { stone: GREEN, top: AMBER })}
-      <div style="color:${GREEN}">
-        <div class="wordmark" style="font-size:64px">Side Quest Life</div>
-        <div class="tag" style="margin-top:18px;color:#5c6b49">
-          Small real-world quests, guided step by step.
-        </div>
+  // Light falling down the stack: warm at the top, cooling toward the base.
+  'a2-warm-rise': `
+    <div class="fg" style="background:${GREEN};display:flex;align-items:center;gap:52px;padding:0 96px">
+      ${cairn(210, [BEIGE, AMBER_PALE, AMBER_SOFT, AMBER])}
+      <div style="color:${BEIGE}">
+        <div class="wordmark" style="font-size:66px">Side Quest Life</div>
+        <div class="tag" style="margin-top:18px;color:${PALE}">Break the routine. Start living.</div>
       </div>
     </div>`,
 
-  'd-mark-only': `
-    <div class="fg" style="background:${GREEN};display:flex;align-items:center;justify-content:center">
-      ${cairn(330)}
+  // Amber everywhere, including the type — warmest, least contrast on the name.
+  'a3-amber-word': `
+    <div class="fg" style="background:${GREEN};display:flex;align-items:center;gap:52px;padding:0 96px">
+      ${cairn(210, [AMBER, AMBER, AMBER, AMBER])}
+      <div style="color:${AMBER}">
+        <div class="wordmark" style="font-size:66px">Side Quest Life</div>
+        <div class="tag" style="margin-top:18px;color:${AMBER_PALE};opacity:.75">Break the routine. Start living.</div>
+      </div>
+    </div>`,
+
+  // The reverse: stones stay beige, the accent moves into the wordmark.
+  'a4-amber-type': `
+    <div class="fg" style="background:${GREEN};display:flex;align-items:center;gap:52px;padding:0 96px">
+      ${cairn(210, [BEIGE, BEIGE, BEIGE, BEIGE])}
+      <div>
+        <div class="wordmark" style="font-size:66px;color:${AMBER}">Side Quest Life</div>
+        <div class="tag" style="margin-top:18px;color:${PALE}">Break the routine. Start living.</div>
+      </div>
+    </div>`,
+
+  // Half and half — the top two stones lit, the base still stone-coloured.
+  'a5-top-lit': `
+    <div class="fg" style="background:${GREEN};display:flex;align-items:center;gap:52px;padding:0 96px">
+      ${cairn(210, [BEIGE, BEIGE, AMBER, AMBER])}
+      <div style="color:${BEIGE}">
+        <div class="wordmark" style="font-size:66px">Side Quest Life</div>
+        <div class="tag" style="margin-top:18px;color:${PALE}">Break the routine. Start living.</div>
+      </div>
     </div>`,
 };
 
