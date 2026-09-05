@@ -27,8 +27,24 @@ const GREEN = '#33471f';
 const BEIGE = '#f3f2ec';
 const AMBER = '#d9a441';
 
-/** 66/108 of the canvas is the guaranteed-visible circle; leave a little margin. */
-const SAFE_SCALE = 0.58;
+/**
+ * Scale for the adaptive-icon foreground.
+ *
+ * Android guarantees only the centre 66 of 108 dp — a safe radius of 30.6 in
+ * this 100-unit viewBox. The cairn itself spans x 29–71 and y 29–78.5, so once
+ * optically centred its furthest content sits 27.2 from the middle. The largest
+ * scale that still fits is therefore 30.6 / 27.2 = 1.12, and this leaves a
+ * little margin under that.
+ *
+ * The first version of this script used 0.58, computed as though the mark
+ * filled the whole canvas. It does not — it fills about half — so the icon came
+ * out at roughly 29% of the frame and read as a tiny mark floating in a large
+ * green circle. Measure the shape, not the canvas.
+ */
+const SAFE_SCALE = 1.05;
+
+/** Full-bleed icons are not masked as tightly, so the mark can sit larger. */
+const FULL_SCALE = 1.2;
 
 const ROOT = path.join(__dirname, '..');
 const OUT_APP = path.join(ROOT, 'assets', 'images');
@@ -48,7 +64,7 @@ function cairn({ stone, top }) {
  * and the mark reads as sitting low in the frame. Nudging it up optically
  * centres it — the difference is small on screen and obvious once seen.
  */
-const OPTICAL_LIFT = -4;
+const OPTICAL_LIFT = -3.8;
 
 function svg({ size, background, scale = 1, stone = BEIGE, top = AMBER }) {
   const inner = cairn({ stone, top });
@@ -81,7 +97,7 @@ async function render(page, markup, size, file, transparent) {
   console.log('Rendering the cairn mark:\n');
 
   // App icon — full bleed on the brand green.
-  await render(page, svg({ size: 1024, background: GREEN }), 1024,
+  await render(page, svg({ size: 1024, background: GREEN, scale: FULL_SCALE }), 1024,
     path.join(OUT_APP, 'icon.png'), false);
 
   // Adaptive foreground — transparent, scaled into the safe circle. The green
@@ -94,7 +110,7 @@ async function render(page, markup, size, file, transparent) {
     path.join(OUT_APP, 'splash-icon.png'), true);
 
   // Play listing — 512 and no alpha channel, which Play rejects.
-  await render(page, svg({ size: 512, background: GREEN }), 512,
+  await render(page, svg({ size: 512, background: GREEN, scale: FULL_SCALE }), 512,
     path.join(OUT_STORE, 'icon-512.png'), false);
 
   await browser.close();
