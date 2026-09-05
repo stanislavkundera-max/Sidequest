@@ -55,6 +55,12 @@ create table if not exists public.quests (
   is_active boolean not null default true,
   journey_intro text,
   action_steps jsonb not null default '[]'::jsonb,
+  -- When the quest entered the catalogue. Drives the "newly added first"
+  -- ordering in pickSuggestedQuests, so a quest written today surfaces instead
+  -- of sinking under the original seed set. Added 2026-09-05; existing rows are
+  -- backfilled to a past date by supabase/quests_created_at.sql, otherwise the
+  -- whole catalogue would read as new at once.
+  created_at timestamptz not null default now(),
   suggested_group text
     check (
       suggested_group is null

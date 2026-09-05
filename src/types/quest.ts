@@ -99,6 +99,15 @@ export type Quest = {
   /** When false, excluded from suggested picks. Omitted = treat as active in catalog. */
   isActive?: boolean;
   suggestedGroup?: QuestSuggestedGroup | null;
+  /**
+   * When the quest entered the catalogue.
+   *
+   * Recently added quests sort to the top of the suggested set — see
+   * `NEW_QUEST_WINDOW_MS` in `src/features/quests/suggestedQuests.ts`. Undefined
+   * means "already established", which is how the original seed catalogue reads
+   * and why adding the column did not make everything look new at once.
+   */
+  createdAt?: string;
 };
 
 /** Persisted user ↔ quest engagement (suggested is virtual UI only). */

@@ -160,14 +160,56 @@ function isDismissedRecently(uq: UserQuest, horizonMs: number, now: number): boo
   return Number.isFinite(t) && now - t < horizonMs;
 }
 
+/**
+ * How long a finished quest stays out of the suggested set, by its own cadence.
+ *
+ * A quest declares how often it is meant to happen, so that is the honest
+ * interval to respect: a weekly walk can come round again in a fortnight, a
+ * yearly trip should not reappear for a year. A single flat horizon would
+ * either bury the repeatable quests or keep offering the big ones straight
+ * after they were done.
+ */
+const COMPLETED_HORIZON_MS: Record<Quest['timeframe'], number> = {
+  weekly: 14 * 24 * 60 * 60 * 1000,
+  monthly: 60 * 24 * 60 * 60 * 1000,
+  yearly: 365 * 24 * 60 * 60 * 1000,
+};
+
+/**
+ * Whether a quest was completed recently enough to keep it out of suggestions.
+ *
+ * Completed quests were not excluded at all before 2026-09-05, so finishing one
+ * left it sitting in the suggested set — the opposite of what completing
+ * something should feel like.
+ */
+function isCompletedRecently(
+  uq: UserQuest,
+  quest: Quest | undefined,
+  now: number
+): boolean {
+  if (uq.status !== 'completed' || !uq.completedAt) return false;
+  const t = new Date(uq.completedAt).getTime();
+  if (!Number.isFinite(t)) return false;
+  const horizon = COMPLETED_HORIZON_MS[quest?.timeframe ?? 'monthly'];
+  return now - t < horizon;
+}
+
 /** Quest ids the user already has in a non-suggested engagement row. */
-function claimedQuestIds(userQuests: UserQuest[], now: number, dismissHorizonMs: number): Set<string> {
+function claimedQuestIds(
+  userQuests: UserQuest[],
+  now: number,
+  dismissHorizonMs: number,
+  byId?: Map<string, Quest>
+): Set<string> {
   const ids = new Set<string>();
   for (const uq of userQuests) {
     if (uq.status === 'active' || uq.status === 'chosen' || uq.status === 'saved_for_later') {
       ids.add(uq.questId);
     }
     if (isDismissedRecently(uq, dismissHorizonMs, now)) {
+      ids.add(uq.questId);
+    }
+    if (isCompletedRecently(uq, byId?.get(uq.questId), now)) {
       ids.add(uq.questId);
     }
   }
@@ -179,6 +221,27 @@ export type SuggestedPick = { quest: Quest; group: SuggestedGroupId };
 const TOTAL_CAP = 9;
 const PER_GROUP_CAP = 2;
 const DEFAULT_DISMISS_MS = 30 * 24 * 60 * 60 * 1000;
+
+/**
+ * How long a quest counts as "newly added" for ordering purposes.
+ *
+ * Standa's rule, 2026-09-05: new quests go to the top. The window keeps that
+ * from becoming a permanent newest-first sort, which would quietly replace
+ * personalisation with arrival order — the suggested set is meant to be about
+ * fit, with fresh content surfaced, not the other way round.
+ */
+const NEW_QUEST_WINDOW_MS = 30 * 24 * 60 * 60 * 1000;
+
+/**
+ * Quests with no `createdAt` are the original seed catalogue and are treated as
+ * established, never new. That is what keeps the whole catalogue from reading
+ * as new the day the column was added.
+ */
+function isRecentlyAdded(quest: Quest, now: number): boolean {
+  if (!quest.createdAt) return false;
+  const t = new Date(quest.createdAt).getTime();
+  return Number.isFinite(t) && now - t < NEW_QUEST_WINDOW_MS;
+}
 
 /**
  * Small curated suggested set for the Journey hub — virtual, not persisted as `suggested` rows.
@@ -194,7 +257,10 @@ export function pickSuggestedQuests(params: {
 }): SuggestedPick[] {
   const now = params.now ?? Date.now();
   const dismissHorizonMs = params.dismissHorizonMs ?? DEFAULT_DISMISS_MS;
-  const claimed = claimedQuestIds(params.userQuests, now, dismissHorizonMs);
+  // Completion horizons depend on the quest's own timeframe, so the exclusion
+  // check needs to look the quest up rather than work from the row alone.
+  const byId = new Map(params.catalog.map((q) => [q.id, q]));
+  const claimed = claimedQuestIds(params.userQuests, now, dismissHorizonMs, byId);
 
   const buckets: Record<SuggestedGroupId, Quest[]> = {
     do_now: [],
@@ -212,12 +278,20 @@ export function pickSuggestedQuests(params: {
   }
 
   const prefs = params.preferences;
-  if (prefs) {
-    const preferredIds = new Set(prefs.categories.map((c) => `cat-${c}`));
-    const score = (q: Quest) => scoreQuestForPreferences(q, prefs, preferredIds);
-    for (const group of SUGGESTED_GROUP_ORDER) {
-      buckets[group].sort((a, b) => score(b) - score(a));
-    }
+  const preferredIds = prefs ? new Set(prefs.categories.map((c) => `cat-${c}`)) : null;
+  const score = (q: Quest) =>
+    prefs && preferredIds ? scoreQuestForPreferences(q, prefs, preferredIds) : 0;
+
+  for (const group of SUGGESTED_GROUP_ORDER) {
+    buckets[group].sort((a, b) => {
+      // Recently added quests come first, so new content is seen rather than
+      // buried under an established catalogue that already fits the user well.
+      // The window is deliberately finite: after it passes, ordering goes back
+      // to being about fit, not arrival.
+      const newness = Number(isRecentlyAdded(b, now)) - Number(isRecentlyAdded(a, now));
+      if (newness !== 0) return newness;
+      return score(b) - score(a);
+    });
   }
 
   const out: SuggestedPick[] = [];

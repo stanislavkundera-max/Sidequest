@@ -125,6 +125,7 @@ function mapQuestRow(row: any): Quest {
     actionSteps: parseActionSteps(row.action_steps),
     isActive: row.is_active !== false,
     suggestedGroup: parseSuggestedGroup(row.suggested_group) ?? null,
+    createdAt: (row.created_at as string | null | undefined) ?? undefined,
   };
   return enrichQuestWithJourney(base);
 }
