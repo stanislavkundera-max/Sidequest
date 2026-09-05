@@ -4,6 +4,14 @@
 result of it. This is a handoff so the research does not have to be redone if the question comes
 back.
 
+> **Corrected later the same day.** The Android track moved a long way in the hours after this was
+> written — EAS project linked (`0f3bb07`), first native build succeeded (`edebd04`), Play Console
+> created and paid (`f6a4918`). Three claims below went stale immediately and have been fixed in
+> place: §1's "never built natively," §2's hedge on the 12/14 rule, and §5's step 4. The
+> recommendation in §4 is unaffected — if anything §4 got stronger, since the closed-test
+> requirement is now confirmed rather than assumed. The four config deltas in §1 were re-checked
+> against the current `eas.json` and `app.config.ts` and are all still outstanding.
+
 **The question that prompted it:** "How hard would it be to put the app on the App Store instead of
 Google Play? Most of my friends have iPhones — I'm the one on Android."
 
@@ -48,9 +56,15 @@ splits calendar consent into write-only vs. full access, and `getDefaultCalendar
 full-access side), the image picker, the `KeyboardAvoidingView behavior="padding"` branches in
 `app/(auth)/sign-in.tsx` and `app/(auth)/forgot-password.tsx`, and safe-area insets on notched devices.
 
-**The standing caveat:** the app has never been built natively for *either* platform.
-`docs/launch-plan.md` still lists "First production build — ❌ Never attempted. The one real technical
-unknown left." A first iOS build carries that same unknown plus code signing on top.
+**The standing caveat, ~~as written~~ corrected 2026-09-05:** ~~the app has never been built natively
+for *either* platform.~~ It has now — but **Android only** (`edebd04`: AAB, versionCode 2, 14.5
+minutes, `targetSdkVersion` 36 read back from the manifest rather than trusted from config). That
+retires the general "does this thing even compile" unknown, which was the larger half of the risk.
+
+What it does *not* retire is the iOS-specific half: no iOS build has ever run, and the parts that
+differ are exactly the parts that were never exercised — Apple code signing, provisioning profiles,
+and the App Store Connect upload path. EAS handles all three, but "handles it" and "has done it once
+for this project" are different states.
 
 ---
 
@@ -72,9 +86,19 @@ platforms and the reason the question was worth asking at all.
 
 **2026 update on the Play side:** Google now also checks that the 12 testers *genuinely used* the app,
 not merely that they opted in. The requirement applies to personal Play Console accounts created on or
-after 2023-11-13. Per commit `ec8dbbd` the account type was settled as **Personal**, so this almost
-certainly applies — `docs/launch-plan.md` still hedges on it and `docs/play-store-handoff.md` §9
-describes how to confirm it from the console itself. The hedge is looking optimistic.
+after 2023-11-13.
+
+~~Per commit `ec8dbbd` the account type was settled as **Personal**, so this almost certainly applies
+— `docs/launch-plan.md` still hedges on it. The hedge is looking optimistic.~~ **Settled 2026-09-05,
+and the optimism did not survive the day.** The account was created and paid (`f6a4918`), and
+`docs/play-store-roadmap.md:118` now states it flatly: the account is Personal and post-2023-11-13,
+so **the closed test is required.** Round 1 had six people; the roadmap's advice is to recruit ~20
+Android users for buffer, since dropping below twelve restarts the clock.
+
+This matters for §4 rather than just being bookkeeping. The central argument there — that the twelve
+cannot be filled with friends, because the friends are on iPhones — was written while the requirement
+was still hypothetical. It is now a confirmed constraint, so the argument no longer depends on an
+assumption.
 
 **The strategically important fact:** *TestFlight does not require ever publishing to the App Store.*
 Create the App Store Connect record, upload a build, clear the light beta review, and you have a
@@ -145,8 +169,13 @@ than a delay.
    else while waiting.
 2. `app.config.ts`: add `ios.config.usesNonExemptEncryption: false`; decide `supportsTablet`.
 3. `eas.json`: iOS blocks on the build profiles + an iOS submit profile.
-4. First `eas build --platform ios`. Still gated on `eas init` / an Expo login, same as the Android
-   build.
+4. First `eas build --platform ios`. ~~Still gated on `eas init` / an Expo login, same as the Android
+   build.~~ **No longer gated on Expo at all** — the project was linked on 2026-09-05 (`0f3bb07`),
+   projectId `47896bf8-1a57-4fb8-9f0c-6c84df8e4a6a` under the `sidequestlife` owner, pinned by hand in
+   `app.config.ts` because `eas init` cannot write to a dynamic TypeScript config. The only remaining
+   gate is step 1: Apple enrollment and the signing credentials that come with it. Note the Supabase
+   env vars were set for the `production` and `preview` EAS environments, which are platform-agnostic
+   — an iOS build inherits them and will not hit the "Configure Supabase env vars" fallback.
 5. App Store Connect record + TestFlight internal group (no review needed) → then external + the light
    beta review.
 6. Demo/reviewer account with credentials — needed for both stores, blocking for Apple.
@@ -155,11 +184,14 @@ than a delay.
 
 ## Open questions this document does not answer
 
-- Whether the Play 12/14 requirement actually applies to the account — still unconfirmed from the
-  console itself. It changes how lopsided the comparison in §2 really is.
+- ~~Whether the Play 12/14 requirement actually applies to the account.~~ **Closed 2026-09-05: it
+  does.** See §2.
 - Whether enough friends would install TestFlight to make the iOS channel worth $99 — the entire
-  argument in §4 rests on this and it has never been asked out loud.
-- How the app behaves on any iOS device. Nobody has ever run it on one.
+  argument in §4 rests on this and it has never been asked out loud. **Still the one that matters**,
+  and now the only one of the three that is cheap to answer: it is a question for Standa, not an
+  engineering task.
+- How the app behaves on any iOS device. Nobody has ever run it on one — still true after the first
+  native build, which was Android.
 
 ## 6. Sources (checked 2026-09-05)
 
