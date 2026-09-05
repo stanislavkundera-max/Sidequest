@@ -278,6 +278,157 @@ const SEED_QUESTS_RAW: Array<Omit<Quest, 'journeyIntro' | 'actionSteps'>> = [
     suggestedProofType: 'text',
     suggestedGroup: 'weekend',
   },
+
+  // —— Added 2026-09-05 ——————————————————————————————————————————————
+  // Written to bring every category/timeframe bucket to at least three, after
+  // round-1 testers called the catalogue thin. Relax/monthly was empty
+  // entirely. `createdAt` is deliberately omitted here: the local catalogue is
+  // the offline fallback, and the Supabase rows carry the real dates that drive
+  // the "newly added first" ordering.
+
+  // —— Nature ——
+  {
+    id: 'q-w-11',
+    title: 'Eat one meal outside, whatever the weather',
+    shortDescription: 'A step, a bench, a wall — anywhere with sky above it.',
+    fullDescription:
+      'Take one meal you were going to eat anyway and eat it outdoors. A doorstep counts. Rain counts. Bring the coat instead of changing the plan.',
+    categoryId: 'cat-nature',
+    timeframe: 'weekly',
+    difficulty: 'easy',
+    estimatedDurationMinutes: 30,
+    promptForReflection: 'What did you notice that the kitchen table never shows you?',
+    suggestedProofType: 'photo',
+    suggestedGroup: 'outside',
+  },
+  {
+    id: 'q-w-12',
+    title: 'Find the oldest tree on your street',
+    shortDescription: 'Look up. Decide which one was here first.',
+    fullDescription:
+      'Walk your street and pick the tree that has been there longest — thickest trunk, highest crown, most stubborn roots in the pavement. You do not need to be right, only to look properly.',
+    categoryId: 'cat-nature',
+    timeframe: 'weekly',
+    difficulty: 'medium',
+    estimatedDurationMinutes: 30,
+    promptForReflection: 'How long had you walked past it without seeing it?',
+    suggestedProofType: 'photo',
+    suggestedGroup: 'outside',
+  },
+  {
+    id: 'q-m-07',
+    title: 'Watch the sun come up somewhere outdoors',
+    shortDescription: 'Be in place before the light is.',
+    fullDescription:
+      'Pick somewhere with an open view — a hill, a field, a bridge, a long street facing east — and be there before the sun clears the horizon. Stay until it is fully up.',
+    categoryId: 'cat-nature',
+    timeframe: 'monthly',
+    difficulty: 'medium',
+    estimatedDurationMinutes: 90,
+    promptForReflection: 'What was the place like before the light reached it?',
+    suggestedProofType: 'photo',
+    suggestedGroup: 'weekend',
+  },
+  {
+    id: 'q-m-08',
+    title: 'Walk a river from one bridge to the next',
+    shortDescription: 'Follow moving water instead of a route.',
+    fullDescription:
+      'Find a river, canal or stream and walk its bank from one crossing to the next. Let the water decide the direction — you are following it, not navigating.',
+    categoryId: 'cat-nature',
+    timeframe: 'monthly',
+    difficulty: 'medium',
+    estimatedDurationMinutes: 120,
+    promptForReflection: 'What was on the bank that you would never have driven past?',
+    suggestedProofType: 'photo',
+    suggestedGroup: 'outside',
+  },
+  {
+    id: 'q-y-05',
+    title: 'Spend a night somewhere with no street lights',
+    shortDescription: 'Far enough out that the sky actually has stars in it.',
+    fullDescription:
+      'Get far enough from a town that the sky goes properly dark — a cabin, a campsite, a friend’s place in the middle of nowhere. Go outside after dark and stay out long enough for your eyes to adjust.',
+    categoryId: 'cat-nature',
+    timeframe: 'yearly',
+    difficulty: 'hard',
+    estimatedDurationMinutes: 720,
+    promptForReflection: 'How long did it take before you could see more than you expected?',
+    suggestedProofType: 'text',
+    suggestedGroup: 'weekend',
+  },
+
+  // —— Adventure ——
+  {
+    id: 'q-w-13',
+    title: 'Get off two stops early and walk the rest',
+    shortDescription: 'Same journey, different last mile.',
+    fullDescription:
+      'On a trip you were making anyway, get off two stops before yours and walk. Take whichever way looks more interesting rather than the shortest.',
+    categoryId: 'cat-adventure',
+    timeframe: 'weekly',
+    difficulty: 'easy',
+    estimatedDurationMinutes: 35,
+    promptForReflection: 'What was on that stretch you had only ever seen through a window?',
+    suggestedProofType: 'photo',
+    suggestedGroup: 'do_now',
+  },
+  {
+    id: 'q-w-14',
+    title: 'Order the thing you cannot pronounce',
+    shortDescription: 'Point at the menu and find out.',
+    fullDescription:
+      'In any café, bakery or restaurant, order the item you do not recognise instead of your usual. Ask what it is only after it arrives.',
+    categoryId: 'cat-adventure',
+    timeframe: 'weekly',
+    difficulty: 'easy',
+    estimatedDurationMinutes: 45,
+    promptForReflection: 'Was it better or worse than the thing you would have ordered?',
+    suggestedProofType: 'photo',
+    suggestedGroup: 'do_now',
+  },
+  {
+    id: 'q-w-15',
+    title: 'Take the first turn you have never taken',
+    shortDescription: 'Leave your door and turn the wrong way on purpose.',
+    fullDescription:
+      'Walk out and take the first turning you have never been down. Follow it as far as it stays interesting, then find your own way back.',
+    categoryId: 'cat-adventure',
+    timeframe: 'weekly',
+    difficulty: 'easy',
+    estimatedDurationMinutes: 40,
+    promptForReflection: 'How close to home was something you had never seen?',
+    suggestedProofType: 'photo',
+    suggestedGroup: 'outside',
+  },
+  {
+    id: 'q-m-09',
+    title: 'Swim in a river you had to walk to reach',
+    shortDescription: 'Moving water, trees around it, no car park.',
+    fullDescription:
+      'Find wild water you have to walk to — a river, a stream pool, a forest lake — and get in. Not a swimming pool and not a beach you can park at. Check the depth and the current before you commit, and take someone with you.',
+    categoryId: 'cat-adventure',
+    timeframe: 'monthly',
+    difficulty: 'hard',
+    estimatedDurationMinutes: 180,
+    promptForReflection: 'How long did it take to get in?',
+    suggestedProofType: 'photo',
+    suggestedGroup: 'weekend',
+  },
+  {
+    id: 'q-y-06',
+    title: 'Travel somewhere by a way you have never used',
+    shortDescription: 'Night train, ferry, bike, on foot — anything but your default.',
+    fullDescription:
+      'Make a real journey using a means of transport you have never taken: a sleeper train, a ferry, a long ride, two days of walking. The destination matters less than how you get there.',
+    categoryId: 'cat-adventure',
+    timeframe: 'yearly',
+    difficulty: 'hard',
+    estimatedDurationMinutes: 1440,
+    promptForReflection: 'What did the slower way show you that flying would have skipped?',
+    suggestedProofType: 'photo',
+    suggestedGroup: 'weekend',
+  },
 ];
 
 /** Local catalog: 10 weekly, 6 monthly, 4 yearly — concrete, executable quests. */

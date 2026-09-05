@@ -701,6 +701,396 @@ export const QUEST_JOURNEY_BY_ID: Record<
       },
     ],
   },
+
+  // —— Added 2026-09-05 ——————————————————————————————————————————————
+
+  'q-w-11': {
+    journeyIntro: 'The same meal, with weather in it.',
+    actionSteps: [
+      {
+        id: 's1',
+        title: 'Pick the meal and grab it to go',
+        detail: 'Breakfast, lunch, whatever was already happening.',
+        tip: 'Do not upgrade the food. The point is the location, not the menu.',
+        estimateMinutes: 5,
+        interaction: { kind: 'confirm' },
+      },
+      {
+        id: 's2',
+        title: 'Find somewhere outside to sit',
+        detail: 'A step, a low wall, a bench, the edge of a planter.',
+        tip: 'Closer than you think is fine — this is not a picnic expedition.',
+        estimateMinutes: 5,
+        interaction: { kind: 'confirm' },
+      },
+      {
+        id: 's3',
+        title: 'Eat there, without hurrying',
+        detail: 'Stay until the food is gone.',
+        estimateMinutes: 15,
+        interaction: {
+          kind: 'timer',
+          minSeconds: 10 * 60,
+          runningHint: 'Put the phone down — the timer runs on its own.',
+        },
+      },
+      {
+        id: 's4',
+        title: 'Take one photo of the view from where you sat',
+        estimateMinutes: 1,
+        interaction: { kind: 'photo', prompt: 'Whatever you were looking at while you ate.' },
+      },
+    ],
+  },
+
+  'q-w-12': {
+    journeyIntro: 'Every street has one that was here first.',
+    actionSteps: [
+      {
+        id: 's1',
+        title: 'Walk your street looking up',
+        detail: 'The whole length of it, at least once.',
+        tip: 'Trunk width tells you more than height — a tall thin tree is usually younger than a fat short one.',
+        estimateMinutes: 15,
+        interaction: { kind: 'confirm' },
+      },
+      {
+        id: 's2',
+        title: 'Pick the one you think is oldest',
+        detail: 'Commit to a single tree.',
+        tip: 'Look for roots lifting the pavement, bark that has gone deeply grooved, or a crown wider than the ones beside it.',
+        estimateMinutes: 5,
+        interaction: { kind: 'photo', prompt: 'Photograph your candidate.' },
+      },
+      {
+        id: 's3',
+        title: 'Say why you picked it',
+        estimateMinutes: 3,
+        interaction: {
+          kind: 'input',
+          prompt: 'What made you choose that one?',
+          placeholder: 'Trunk twice as thick as the rest, and the pavement has given up around it…',
+        },
+      },
+    ],
+  },
+
+  'q-m-07': {
+    journeyIntro: 'Being somewhere before the light gets there.',
+    actionSteps: [
+      {
+        id: 's1',
+        title: 'Look up when the sun rises tomorrow',
+        detail: 'Then decide where you need to be, and when to leave.',
+        tip: 'Aim to be in place twenty minutes early — the sky does most of its work before the sun appears.',
+        estimateMinutes: 5,
+        interaction: {
+          kind: 'input',
+          prompt: 'Where are you going, and what time do you need to leave?',
+          placeholder: 'The hill behind the allotments, out the door by 05:40…',
+        },
+      },
+      {
+        id: 's2',
+        title: 'Get there in the dark',
+        detail: 'Somewhere with an open view to the east.',
+        tip: 'Take a warm layer more than you think you need. Standing still at dawn is colder than walking at midnight.',
+        estimateMinutes: 30,
+        interaction: { kind: 'confirm' },
+      },
+      {
+        id: 's3',
+        title: 'Stay until the sun is fully up',
+        detail: 'Not just the first edge — all of it.',
+        estimateMinutes: 30,
+        interaction: {
+          kind: 'timer',
+          minSeconds: 20 * 60,
+          runningHint: 'Watch the colour change. The timer keeps counting.',
+        },
+      },
+      {
+        id: 's4',
+        title: 'Photograph it once the light has arrived',
+        estimateMinutes: 1,
+        interaction: { kind: 'photo', prompt: 'The view, with the sun in it.' },
+      },
+    ],
+  },
+
+  'q-m-08': {
+    journeyIntro: 'Let the water pick the route.',
+    actionSteps: [
+      {
+        id: 's1',
+        title: 'Find water and a bridge to start from',
+        detail: 'A river, canal, or stream — anything with a bank you can walk.',
+        tip: 'Map apps show blue lines clearly. Pick a crossing you have driven over but never stood on.',
+        estimateMinutes: 15,
+        interaction: { kind: 'confirm' },
+      },
+      {
+        id: 's2',
+        title: 'Walk the bank to the next crossing',
+        detail: 'Follow the water, not a planned route.',
+        tip: 'If the bank runs out, cross and carry on the other side — that counts.',
+        estimateMinutes: 75,
+        interaction: {
+          kind: 'timer',
+          minSeconds: 40 * 60,
+          runningHint: 'Keep the water on one side. The timer runs on its own.',
+        },
+      },
+      {
+        id: 's3',
+        title: 'Photograph the bridge you finished at',
+        estimateMinutes: 1,
+        interaction: { kind: 'photo', prompt: 'Where the walk ended.' },
+      },
+      {
+        id: 's4',
+        title: 'Note one thing on the bank you would have missed',
+        estimateMinutes: 3,
+        interaction: {
+          kind: 'input',
+          prompt: 'What was down there that you never see from the road?',
+          placeholder: 'A heron that let me get closer than it should have…',
+        },
+      },
+    ],
+  },
+
+  'q-y-05': {
+    journeyIntro: 'Somewhere the sky still gets properly dark.',
+    actionSteps: [
+      {
+        id: 's1',
+        title: 'Find somewhere far enough from town',
+        detail: 'A cabin, a campsite, a friend’s place out in the nowhere.',
+        tip: 'Light-pollution maps make this easy — you usually need less distance than you would guess.',
+        estimateMinutes: 30,
+        interaction: {
+          kind: 'input',
+          prompt: 'Where are you going, and when?',
+          placeholder: 'The cottage in October, once the clocks change…',
+        },
+      },
+      {
+        id: 's2',
+        title: 'Get there and stay the night',
+        estimateMinutes: 600,
+        interaction: { kind: 'confirm' },
+      },
+      {
+        id: 's3',
+        title: 'Go outside after dark and let your eyes adjust',
+        detail: 'Twenty minutes with no torch and no screen.',
+        tip: 'The first five minutes look like nothing. Stay past that — it keeps arriving.',
+        estimateMinutes: 20,
+        interaction: {
+          kind: 'timer',
+          minSeconds: 15 * 60,
+          runningHint: 'Let your eyes do the work. Keep the screen face down.',
+        },
+      },
+      {
+        id: 's4',
+        title: 'Write down what you could see by the end',
+        estimateMinutes: 5,
+        interaction: {
+          kind: 'input',
+          prompt: 'What was visible once your eyes had adjusted?',
+          placeholder: 'The Milky Way, faintly. And the outline of the hills I could not see at all at first…',
+        },
+      },
+    ],
+  },
+
+  'q-w-13': {
+    journeyIntro: 'The last mile, on foot, for once.',
+    actionSteps: [
+      {
+        id: 's1',
+        title: 'Get off two stops before yours',
+        detail: 'On a journey you were making anyway.',
+        tip: 'Decide before you board, or you will talk yourself out of it as the doors open.',
+        estimateMinutes: 1,
+        interaction: { kind: 'confirm' },
+      },
+      {
+        id: 's2',
+        title: 'Walk the rest, the interesting way',
+        detail: 'Not the shortest route — the one that looks better.',
+        estimateMinutes: 25,
+        interaction: {
+          kind: 'timer',
+          minSeconds: 15 * 60,
+          runningHint: 'No need to hurry. The timer keeps counting while you walk.',
+        },
+      },
+      {
+        id: 's3',
+        title: 'Photograph one thing you had only seen from the bus',
+        estimateMinutes: 1,
+        interaction: { kind: 'photo', prompt: 'Something on the stretch you usually ride past.' },
+      },
+    ],
+  },
+
+  'q-w-14': {
+    journeyIntro: 'The menu item you always skip.',
+    actionSteps: [
+      {
+        id: 's1',
+        title: 'Go somewhere with a menu you do not know by heart',
+        detail: 'A café, bakery, takeaway, anywhere.',
+        tip: 'Somewhere you have walked past a hundred times works better than somewhere new across town.',
+        estimateMinutes: 15,
+        interaction: { kind: 'confirm' },
+      },
+      {
+        id: 's2',
+        title: 'Order the thing you do not recognise',
+        detail: 'Do not look it up first.',
+        tip: 'If nothing is unfamiliar, order whatever the person before you had.',
+        estimateMinutes: 5,
+        interaction: { kind: 'confirm' },
+      },
+      {
+        id: 's3',
+        title: 'Photograph it before you find out what it is',
+        estimateMinutes: 1,
+        interaction: { kind: 'photo', prompt: 'Whatever arrived.' },
+      },
+      {
+        id: 's4',
+        title: 'Say what it turned out to be',
+        estimateMinutes: 3,
+        interaction: {
+          kind: 'input',
+          prompt: 'What was it, and would you order it again?',
+          placeholder: 'Some kind of buckwheat pancake. Better than it looked…',
+        },
+      },
+    ],
+  },
+
+  'q-w-15': {
+    journeyIntro: 'The turning you have walked past for years.',
+    actionSteps: [
+      {
+        id: 's1',
+        title: 'Leave your door and turn somewhere new',
+        detail: 'The first turning you have genuinely never been down.',
+        tip: 'It is usually closer than you expect — most people use three routes out of their own street.',
+        estimateMinutes: 5,
+        interaction: { kind: 'confirm' },
+      },
+      {
+        id: 's2',
+        title: 'Follow it while it stays interesting',
+        detail: 'Turn again whenever you feel like it.',
+        estimateMinutes: 25,
+        interaction: {
+          kind: 'timer',
+          minSeconds: 15 * 60,
+          runningHint: 'Wander. The timer runs on its own.',
+        },
+      },
+      {
+        id: 's3',
+        title: 'Find your own way back',
+        detail: 'Map only if you are properly lost.',
+        estimateMinutes: 10,
+        interaction: { kind: 'photo', prompt: 'One thing you found out there.' },
+      },
+    ],
+  },
+
+  'q-m-09': {
+    journeyIntro: 'Water you have to walk to.',
+    actionSteps: [
+      {
+        id: 's1',
+        title: 'Find wild water within reach',
+        detail: 'A river, a stream pool, a forest lake — somewhere with no car park.',
+        tip: 'Ask locally or check a map for blue lines with footpaths beside them. Swimming spots are usually known.',
+        estimateMinutes: 20,
+        interaction: {
+          kind: 'input',
+          prompt: 'Where are you going, and who is coming with you?',
+          placeholder: 'The pool below the weir, with Tom, Saturday morning…',
+        },
+      },
+      {
+        id: 's2',
+        title: 'Check it before you get in',
+        detail: 'Depth, current, and how you will get out again.',
+        tip: 'Cold water takes your breath for the first thirty seconds — that is normal, and it passes. Get in slowly and never alone.',
+        estimateMinutes: 10,
+        interaction: { kind: 'confirm' },
+      },
+      {
+        id: 's3',
+        title: 'Get in',
+        estimateMinutes: 15,
+        interaction: { kind: 'confirm' },
+      },
+      {
+        id: 's4',
+        title: 'Photograph the water once you are out',
+        estimateMinutes: 1,
+        interaction: { kind: 'photo', prompt: 'The spot you swam in.' },
+      },
+      {
+        id: 's5',
+        title: 'Say how long it took to commit',
+        estimateMinutes: 3,
+        interaction: {
+          kind: 'input',
+          prompt: 'How long did it take to get in?',
+          placeholder: 'Stood on the rock for about ten minutes talking myself into it…',
+        },
+      },
+    ],
+  },
+
+  'q-y-06': {
+    journeyIntro: 'The going is the point, not the arriving.',
+    actionSteps: [
+      {
+        id: 's1',
+        title: 'Pick a way of travelling you have never used',
+        detail: 'Sleeper train, ferry, long ride, two days of walking.',
+        tip: 'Choose the transport first and the destination second — that is what makes it a different trip rather than the same one, slower.',
+        estimateMinutes: 30,
+        interaction: {
+          kind: 'input',
+          prompt: 'How are you travelling, and roughly where to?',
+          placeholder: 'Night train to Kraków, because I have never slept on a train…',
+        },
+      },
+      {
+        id: 's2',
+        title: 'Book it',
+        estimateMinutes: 20,
+        interaction: { kind: 'confirm' },
+      },
+      {
+        id: 's3',
+        title: 'Make the journey',
+        estimateMinutes: 720,
+        interaction: { kind: 'confirm' },
+      },
+      {
+        id: 's4',
+        title: 'Photograph something from the way there',
+        detail: 'Not the destination — the travelling.',
+        estimateMinutes: 1,
+        interaction: { kind: 'photo', prompt: 'Somewhere in the middle of the journey.' },
+      },
+    ],
+  },
 };
 
 const CALENDAR_STEP_ID = 'calendar_reminder';
