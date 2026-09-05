@@ -19,12 +19,13 @@ A week after the roadmap was written, verified rather than assumed:
 
 | | Status |
 |---|---|
-| Expo account | ✅ Exists. **Not logged in on this machine** — `npx eas-cli login` is the next command |
-| `eas init` | ❌ Not run; no `projectId` in `app.config.ts` |
+| Expo account | ✅ Logged in 2026-09-05 |
+| `eas init` | ✅ Done 2026-09-05 — @sidequestlife/side-quest-life |
 | Play Console account | ❌ **Not created.** Still the critical path |
-| EAS env vars (task 2.0) | ❌ Blocked on the login |
-| Supabase `{{ .Token }}` template | ❌ Not done — password reset stays inert until it is |
+| EAS env vars (task 2.0) | ✅ Set for production and preview 2026-09-05 |
+| Supabase `{{ .Token }}` template | ✅ Done 2026-09-05 |
 | Domain / `privacy@` mailbox | ❌ Not done |
+| First production build | 🔄 Running for the first time ever, 2026-09-05 |
 | Code and native readiness | ✅ Done and merged |
 
 Nothing technical moved in that week because everything technical is downstream of two logins.
@@ -87,11 +88,11 @@ These run while Google verifies the account. None of them depends on another.
 | # | Task | Owner | Status |
 |---|---|---|---|
 | 0.1 | **Create the Play Console account** ($25) as **Personal**, start identity verification | Standa | ❌ Not started — **critical path**. Needs a government ID and a card in your own name; prepaid cards are not accepted |
-| 0.2 | Expo account + `npx eas-cli login` | Standa | ❌ Blocks 2.1 |
+| 0.2 | ~~Expo account + `npx eas-cli login`~~ | Standa | ✅ Done 2026-09-05 |
 | 0.3 | Register the domain for `privacy@sidequestlife.com` and make it receive mail | Standa | ❌ Blocks 1.3 and 3.4 |
-| 0.4 | Supabase → Authentication → Emails: add `{{ .Token }}` to the reset-password template | Standa | ❌ Password reset is inert without it — handoff §2 |
+| 0.4 | ~~Supabase: `{{ .Token }}` in the reset-password template~~ | Standa | ✅ Done 2026-09-05 |
 | 0.5 | Line up 12+ testers with Android devices — aim for 20 | Standa | ❌ Applies. The longest pole once the account is verified |
-| 0.6 | Merge `play-store-prep` and `play-store-roadmap` into `main` | Standa | ❌ The analytics fix must ship before testers install anything |
+| 0.6 | ~~Merge both branches into `main`~~ | Standa | ✅ Done and pushed 2026-09-05 |
 | 0.7 | Brand name confirmed or changed | Standa | 🟡 See the permanence table above |
 
 ### About 0.5 — why Personal, and why the testing gate is accepted
@@ -364,6 +365,29 @@ of it is your problem:
 | **Signed universal APK** | Only needed to distribute outside Play |
 | **Migrating an existing app's signing key** | This is a new app; Google generates the key |
 | **Quantum-ready hybrid signing** | Opt-in, Android 17+, and incompatible with v4 signing. No reason to take it on for a first release |
+
+---
+
+## Backlog — real, but not blocking launch
+
+### Custom SMTP for Supabase auth emails
+
+Supabase's dashboard warns it plainly: *"You're using the built-in email service. This service has
+rate limits and is not meant to be used for production apps."* The limit is a handful of emails per
+hour.
+
+**Why it is not urgent.** The app signs in anonymously on launch (`app/index.tsx` calls
+`signInAnonymously()`), so a tester opens it and starts using it without ever creating an account or
+triggering an email. Closed-test email volume should be near zero.
+
+**Why it cannot be ignored forever.** Every account signup and every password reset goes through it.
+The moment real users arrive, the rate limit becomes the thing that stops people getting into the
+app — and a tester who cannot receive a confirmation or reset email is a tester who drops out, which
+is what breaks a 14-day streak.
+
+Fix when convenient: Supabase → Authentication → Emails → SMTP Settings. Resend has a free tier
+around 3,000 emails a month and takes minutes to wire up. Deferred deliberately 2026-09-05 — Standa's
+call, and the right one.
 
 ---
 
