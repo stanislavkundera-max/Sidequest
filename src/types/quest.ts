@@ -49,8 +49,14 @@ export type QuestStepInteraction =
       kind: 'input';
       /** Question the user answers in writing. */
       prompt: string;
-      /** Minimum trimmed length before the step can complete (default 20). */
+      /**
+       * @deprecated Ignored since 2026-09-05. Writing on an input step is
+       * optional now — the guidance lives in `placeholder` instead of gating the
+       * button on a word count. Existing journey data still carries values and
+       * they are inert; see `components/quest-run/InputStepAction.tsx`.
+       */
       minChars?: number;
+      /** Suggests what to write. This is where guidance belongs. */
       placeholder?: string;
     }
   | {

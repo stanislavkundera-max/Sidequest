@@ -6,23 +6,35 @@ import { stepInteractionStyles as styles } from '@/components/quest-run/stepInte
 import { Theme } from '@/constants/Theme';
 import type { UserQuestStepEvidence } from '@/src/types/quest';
 
-const DEFAULT_MIN_CHARS = 20;
-
 type Props = {
   prompt: string;
+  /**
+   * @deprecated Ignored since 2026-09-05 and kept only so the existing journey
+   * data still type-checks. Writing is optional now — see the note below.
+   */
   minChars?: number;
   placeholder?: string;
   busy: boolean;
   onComplete: (evidence: UserQuestStepEvidence) => void;
 };
 
-/** Written-answer step: the question is specific, so faking costs more than doing. */
-export function InputStepAction({ prompt, minChars, placeholder, busy, onComplete }: Props) {
+/**
+ * Written-answer step. The question is specific, so what someone writes is
+ * worth something — but writing it is optional.
+ *
+ * This used to block the step until 20 characters (sometimes 40) had been
+ * typed, counting down the ones still "missing". That is a word count standing
+ * between a person and finishing a quest they actually did, which reads as a
+ * test rather than an invitation and contradicts the minimal-friction principle
+ * in AGENTS.md. Standa's call, 2026-09-05.
+ *
+ * The guidance moved into the placeholder, where it suggests instead of
+ * demanding. An empty answer is allowed and handled downstream — the memory
+ * builder already has a no-evidence path for exactly this case.
+ */
+export function InputStepAction({ prompt, placeholder, busy, onComplete }: Props) {
   const [text, setText] = useState('');
-  const required = Math.max(1, minChars ?? DEFAULT_MIN_CHARS);
   const trimmed = text.trim();
-  const missing = Math.max(0, required - trimmed.length);
-  const ready = missing === 0;
 
   return (
     <View style={styles.block}>
@@ -31,19 +43,13 @@ export function InputStepAction({ prompt, minChars, placeholder, busy, onComplet
         style={styles.input}
         multiline
         textAlignVertical="top"
-        placeholder={placeholder ?? 'Write it in your own words…'}
+        placeholder={placeholder ?? 'A sentence or two, in your own words — or skip it.'}
         placeholderTextColor={Theme.textMuted}
         value={text}
         onChangeText={setText}
       />
-      <Text style={styles.helper}>
-        {ready
-          ? 'Looks good — finish when it feels true.'
-          : `A few more words (${missing} characters to go).`}
-      </Text>
       <PrimaryButton
         label="Finish this step"
-        disabled={!ready}
         loading={busy}
         onPress={() => onComplete({ kind: 'text', text: trimmed })}
       />
