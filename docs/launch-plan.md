@@ -156,6 +156,11 @@ Standa," and "waiting on the redesign" — and those three run in parallel, whic
 - ~~**Android-first, or both stores at once?**~~ **Decided 2026-08-29: Play Store only for this
   round.** Skips the $99 Apple fee, the iPad screenshot size, and a second review queue. iOS can
   follow whenever, and `supportsTablet` stops mattering until it does.
+  Reopened and re-parked 2026-09-05 — the iOS question was researched properly and written up in
+  `docs/app-store-option.md`. Short version: there is nothing to port (managed Expo, one day of
+  config), TestFlight has no equivalent of the 12-tester/14-day rule, and the recommendation is
+  *both* rather than *instead* — Play as the release target, TestFlight as the testing channel,
+  since most of the round-1 testers are on iPhones. Not acted on.
 - **Individual or Organization** for the Google account? Depends on whether there's a registered
   company (IČO) you want as the public seller name, or whether shipping under your own name is fine.
   The same answer settles the governing-law placeholder in `app/legal/terms.tsx`.
