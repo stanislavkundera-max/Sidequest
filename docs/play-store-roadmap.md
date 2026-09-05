@@ -503,4 +503,9 @@ Done and verified: `eas.json` with three named submit tracks, real app icon, in-
 privacy policy, terms, the public deletion page, password reset, and the analytics anonymization fix
 (script run against production 2026-08-29, both counts 0).
 
-Not started: everything requiring the Play Console account, and the first build.
+Since then, as of 2026-09-05: the Play Console account exists and is paid, three production builds
+have run, and the app icon is the real cairn mark rather than a placeholder — verified by pulling the
+launcher icon back out of the AAB. `versionCode` is at 6.
+
+Not started: uploading anything to Play, which waits on identity verification; the demo/reviewer
+account, which needs an installable build in someone's hands; and the domain.
