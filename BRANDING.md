@@ -12,15 +12,17 @@ calm, grounded UI; restrained typography; no loud patterns; no gamification or s
 visuals. See also `[[sidequest-mentor-philosophy]]`: the "quiet companion, zero pressure"
 positioning has been reinforced more than once and is not up for casual revision.
 
-**Visual comparison** (colour candidates and type specimens, set in the palette itself):
-<https://claude.ai/code/artifact/4718686a-8596-4fc8-9cfe-a8d9245f2222>
+**Visual references, both set in the palette they describe:**
+
+- Colour candidates and type specimens — <https://claude.ai/code/artifact/4718686a-8596-4fc8-9cfe-a8d9245f2222>
+- Logo concepts, colourways and the amber search — <https://claude.ai/code/artifact/219a906b-33cb-4fa5-96fa-e76df120a338>
 
 | # | Decision | Status |
 |---|---|---|
 | 1 | Brand name | 🟢 **Confirmed `Side Quest Life`** 2026-09-05 — package `com.sidequestlife.app` is now locked in by choice |
-| 2 | Colours | 🟢 **Decided** — beige `#f3f2ec`, forest green `#33471f`, indigo-violet `#4a3f73`, brand-only |
+| 2 | Colours | 🟢 **Decided** — beige `#f3f2ec`, forest green `#33471f`, amber `#d9a441`, brand-only. Violet retired 2026-09-05 |
 | 3 | Typography | 🟢 **Decided** — Fraunces + Inter. Body face has one open sub-question; not yet implemented |
-| 4 | Logo | 🟢 **Direction chosen 2026-09-05: a cairn**, in all three brand colours ("earth → dusk"). Needs drawing as a final asset |
+| 4 | Logo | 🟢 **Chosen 2026-09-05: a cairn** — green ground, beige stones, amber top stone. Needs producing as real assets |
 
 ---
 
@@ -77,7 +79,63 @@ surfaces never show category colours.
 |---|---|---|
 | Ground | `#f3f2ec` beige | Unchanged from the app, so brand and product share a ground |
 | Primary | `#33471f` forest green | Deeper and more saturated than the UI moss — a brand green does not have to carry body text |
-| Contrast | `#4a3f73` deep indigo-violet | Dusk, not decoration: the violet of the sky after the orange goes |
+| Contrast | **`#d9a441` amber** | Replaced the violet on 2026-09-05 — see below |
+
+### The contrast colour changed: violet → amber
+
+**Decided 2026-09-05, and arrived at the right way round: by testing it in the actual logo rather
+than choosing it in the abstract.**
+
+Standa's challenge was the useful one — *if the contrast colour cannot sit next to the primary, it is
+a badly chosen contrast colour.* Testing it in the chosen composition (green ground, beige cairn, one
+lit top stone) exposed exactly that. The top stone sits **on the green**, and the violet's contrast
+against the green is **1.09**: on that ground it simply disappears.
+
+The search that followed produced a rule worth keeping: **against a dark green ground you need a
+light colour, not merely a different one.** Rust, terracotta and warm red fail identically to the
+violet — all of them are dark on dark. Only the light warm end works.
+
+| Candidate | On green | On beige |
+|---|---|---|
+| **Amber `#d9a441`** | **4.53** | 2.01 |
+| Gold `#e8c87a` | 6.29 | 1.44 |
+| Apricot `#e8a87c` | 5.01 | 1.81 |
+| Orange `#d9762b` | 3.19 | 2.85 |
+| Terracotta `#c15f3c` | 2.41 | 3.77 |
+| Violet `#4a3f73` *(previous)* | **1.09** | 8.32 |
+
+Gold scores higher but is so light it stops reading as a *top* stone and becomes just another beige
+one. Amber is the highest value that still reads as a stone catching the last light.
+
+**And it is measurably more robust than the violet ever was.** This is where the old palette was
+weakest, and the new one is strongest:
+
+| | Amber vs green | Violet vs green |
+|---|---|---|
+| Normal vision | ΔE 61.5 · contrast 4.53 | ΔE 60.2 · contrast 1.09 |
+| Protanopia | ΔE 50.1 · 4.07 | ΔE 56.1 |
+| Deuteranopia | ΔE 60.0 · 4.80 | ΔE 52.6 |
+| Tritanopia | ΔE 108.6 · 5.33 | **ΔE 3.7 — collapses** |
+
+Amber never drops below ΔE 50 or contrast 4.07 under any form of colour blindness. The violet
+collapsed entirely under tritanopia. The whole "green and violet must never share an edge" caveat
+disappears with it.
+
+Amber tints, derived the same way as the others — hue and part of the chroma kept, L\* moved:
+
+| Pale (L\* 92) | Soft (L\* 85) | Deep (L\* 55) |
+|---|---|---|
+| `#ffe3ac` | `#face89` | `#ab7b14` |
+
+**The violet is retired.** Standa's reasoning stands: a contrast colour that does not work in the
+logo is not a contrast colour. Nothing in the repo used it, so nothing needs changing. The whole
+analysis of it is kept below because it is *why* the amber test was run the way it was.
+
+**One thing to watch:** amber sits at hue 80°, close to the app's `adventure: #8d6025` at 72°. That
+does not matter while these stay brand-only colours and never appear beside a category chip — but it
+is the reason the brand palette should stay out of the UI, which was already the decision.
+
+### Superseded: the violet analysis
 
 Derived tints, for social backgrounds and larger fills. Hue and a share of the chroma are kept while
 L\* is raised, so they stay *the same colour* rather than washing out to grey:
@@ -316,6 +374,7 @@ review.
 | 2026-09-05 | **Name confirmed: `Side Quest Life`** | Standa. Settles the one deadline-bound branding decision — the package name becomes permanent at the first upload to any Play track |
 | 2026-09-05 | **Logo direction: a cairn**, all three brand colours, "earth → dusk" | Chosen from five natural concepts. A trail marker left by whoever walked first — closer to what the app does than a leaf or a star |
 | 2026-09-05 | Corrected: the green/violet warning had been over-applied | Standa's challenge was right — it governs load-bearing distinction, not decoration. See §2 |
+| 2026-09-05 | **Contrast colour changed: violet → amber `#d9a441`** | Chosen by testing it in the actual logo, not in the abstract. The violet had 1.09 contrast on the green ground it would sit on, and collapsed under tritanopia; amber holds above 4.0 under every form of colour blindness |
 | 2026-08-29 | Corrected: brand purple is boxed in by `relax` 286° *and* `social` 336° | Earlier blue-violet advice was wrong |
 | 2026-08-29 | **Type: Fraunces (headings) + Inter (body)** | Standa, after seeing the three pairings set in real copy |
 | 2026-08-29 | **Colour: brand-only palette — beige / `#33471f` / `#4a3f73`** | Standa. Settles the role question: brand surfaces, not UI |

@@ -27,7 +27,10 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   splash: {
     image: './assets/images/splash-icon.png',
     resizeMode: 'contain',
-    backgroundColor: '#f4f1ec',
+    // The brand beige from BRANDING.md §2. Was #f4f1ec — a near-miss that
+    // predated the palette being decided. The splash mark is drawn in forest
+    // green so it reads at 9.08 against this.
+    backgroundColor: '#f3f2ec',
   },
   ios: {
     supportsTablet: true,
@@ -36,7 +39,10 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   android: {
     adaptiveIcon: {
       foregroundImage: './assets/images/adaptive-icon.png',
-      backgroundColor: '#f4f1ec',
+      // The forest green from BRANDING.md §2. The foreground is beige stones on
+      // a transparent canvas, so this is what they actually sit on — leaving the
+      // old beige here would have rendered beige stones on a beige ground.
+      backgroundColor: '#33471f',
     },
     edgeToEdgeEnabled: true,
     package: 'com.sidequestlife.app',
