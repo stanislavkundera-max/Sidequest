@@ -37,6 +37,36 @@ mismatch for this app (Martin, round-1 feedback — see
 
 ---
 
+## 2. A quest is not finished until it has a journey
+
+A catalogue row on its own gives the runner nothing to run. Every quest needs an
+entry in  too: a  and three to five
+steps, each with its own title, detail, tip, time estimate and interaction
+(, , , , ).
+
+**Why:** a half-written quest is worse than a missing one — it looks available and
+then does nothing.
+
+*Origin: content pass, 2026-09-05.*
+
+---
+
+## 3. Write every quest to both sources
+
+The catalogue exists twice:  is the offline fallback and
+the Supabase  table is what the app actually serves. Write to the
+TypeScript, then regenerate the SQL:
+
+\
+**Why:** they drifted once already. Every local quest was missing
+, which silently cut the Journey hub from nine suggested quests
+to two — invisible in normal use, because Supabase had the values and only the
+offline path degraded.
+
+*Origin: found and fixed 2026-09-05.*
+
+---
+
 ## More rules
 
 _(Add as they are decided — e.g. quest length/time framing, difficulty calibration,

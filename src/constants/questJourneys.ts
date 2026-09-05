@@ -1091,6 +1091,403 @@ export const QUEST_JOURNEY_BY_ID: Record<
       },
     ],
   },
+
+  'q-w-16': {
+    journeyIntro: 'One real question instead of the weather.',
+    actionSteps: [
+      {
+        id: 's1',
+        title: 'Pick who you will ask',
+        detail: 'Anyone you will speak to anyway this week.',
+        tip: 'It works best with people you see often but know almost nothing about.',
+        estimateMinutes: 2,
+        interaction: { kind: 'confirm' },
+      },
+      {
+        id: 's2',
+        title: 'Ask how they got into it',
+        detail: 'Then stop talking.',
+        tip: 'The good part usually arrives after the first pause. Let the silence sit rather than filling it.',
+        estimateMinutes: 15,
+        interaction: { kind: 'confirm' },
+      },
+      {
+        id: 's3',
+        title: 'Write down the part you did not expect',
+        estimateMinutes: 3,
+        interaction: {
+          kind: 'input',
+          prompt: 'What surprised you about their answer?',
+          placeholder: 'Turns out he trained as a vet before any of this…',
+        },
+      },
+    ],
+  },
+
+  'q-w-17': {
+    journeyIntro: 'A meal with nothing else on the table.',
+    actionSteps: [
+      {
+        id: 's1',
+        title: 'Arrange to eat with someone',
+        detail: 'At home or out, cooked or bought.',
+        estimateMinutes: 5,
+        interaction: { kind: 'confirm' },
+      },
+      {
+        id: 's2',
+        title: 'Put both phones somewhere else',
+        detail: 'A bag, a shelf, the next room — not face down on the table.',
+        tip: 'Say why you are doing it. It lands better than quietly disappearing your phone.',
+        estimateMinutes: 1,
+        interaction: { kind: 'confirm' },
+      },
+      {
+        id: 's3',
+        title: 'Eat, and stay at the table afterwards',
+        estimateMinutes: 45,
+        interaction: {
+          kind: 'timer',
+          minSeconds: 30 * 60,
+          runningHint: 'Leave this running and go back to the table.',
+        },
+      },
+      {
+        id: 's4',
+        title: 'Note where the conversation went',
+        estimateMinutes: 3,
+        interaction: {
+          kind: 'input',
+          prompt: 'What did you end up talking about?',
+          placeholder: 'Started with work, ended somewhere near his dad…',
+        },
+      },
+    ],
+  },
+
+  'q-w-18': {
+    journeyIntro: 'Say the specific thing, not the general one.',
+    actionSteps: [
+      {
+        id: 's1',
+        title: 'Pick the person and the exact thing',
+        detail: 'Not "thanks for everything" — one identifiable act.',
+        tip: 'The more specific it is, the harder it is for them to wave it off.',
+        estimateMinutes: 3,
+        interaction: {
+          kind: 'input',
+          prompt: 'Who, and what did they do?',
+          placeholder: 'Milan — he drove out at eleven at night when the car died…',
+        },
+      },
+      {
+        id: 's2',
+        title: 'Tell them, in person or by voice',
+        detail: 'A message does not count for this one.',
+        estimateMinutes: 10,
+        interaction: { kind: 'confirm' },
+      },
+      {
+        id: 's3',
+        title: 'Note how they took it',
+        estimateMinutes: 2,
+        interaction: {
+          kind: 'input',
+          prompt: 'How did they react?',
+          placeholder: 'Went a bit awkward, then said nobody had mentioned it since…',
+        },
+      },
+    ],
+  },
+
+  'q-m-10': {
+    journeyIntro: 'The person you always say "we should" to.',
+    actionSteps: [
+      {
+        id: 's1',
+        title: 'Name the person and the thing',
+        detail: 'Something specific, with a date on it.',
+        tip: '"Coffee sometime" gets nowhere. "Coffee Thursday morning?" gets an answer either way.',
+        estimateMinutes: 5,
+        interaction: {
+          kind: 'input',
+          prompt: 'Who are you asking, and to do what, when?',
+          placeholder: 'Petra from the climbing gym — the Saturday market, this weekend…',
+        },
+      },
+      {
+        id: 's2',
+        title: 'Send the invitation',
+        estimateMinutes: 5,
+        interaction: { kind: 'confirm' },
+      },
+      {
+        id: 's3',
+        title: 'Go, if they say yes',
+        detail: 'And if they cannot, ask someone else rather than shelving it.',
+        estimateMinutes: 90,
+        interaction: { kind: 'confirm' },
+      },
+      {
+        id: 's4',
+        title: 'Say how the asking felt',
+        estimateMinutes: 3,
+        interaction: {
+          kind: 'input',
+          prompt: 'What made it easier or harder than you expected?',
+          placeholder: 'Took three goes to send it. She replied in about a minute…',
+        },
+      },
+    ],
+  },
+
+  'q-y-07': {
+    journeyIntro: 'The same person, without the clock.',
+    actionSteps: [
+      {
+        id: 's1',
+        title: 'Pick the person and find the day',
+        detail: 'Someone you normally see in short bursts.',
+        tip: 'Say it is a whole day up front. Half of what makes it different is them knowing there is no cut-off.',
+        estimateMinutes: 15,
+        interaction: {
+          kind: 'input',
+          prompt: 'Who, and when?',
+          placeholder: 'Dad, the second Saturday in November…',
+        },
+      },
+      {
+        id: 's2',
+        title: 'Spend the day',
+        detail: 'No agenda beyond being there for the length of it.',
+        estimateMinutes: 420,
+        interaction: { kind: 'confirm' },
+      },
+      {
+        id: 's3',
+        title: 'Write down what came up late in the day',
+        detail: 'The part that would not have fitted into an hour.',
+        estimateMinutes: 5,
+        interaction: {
+          kind: 'input',
+          prompt: 'What came up once you were past the first two hours?',
+          placeholder: 'He talked about the year after the divorce. I had never heard any of it…',
+        },
+      },
+    ],
+  },
+
+  'q-w-19': {
+    journeyIntro: 'Paper, and somewhere that is not your flat.',
+    actionSteps: [
+      {
+        id: 's1',
+        title: 'Take something printed and go out',
+        detail: 'Café, park, library, a bench.',
+        tip: 'Anything on paper counts — an old magazine off the shelf is fine.',
+        estimateMinutes: 10,
+        interaction: { kind: 'confirm' },
+      },
+      {
+        id: 's2',
+        title: 'Read for half an hour',
+        estimateMinutes: 30,
+        interaction: {
+          kind: 'timer',
+          minSeconds: 25 * 60,
+          runningHint: 'Screen down, page open. The timer runs on its own.',
+        },
+      },
+      {
+        id: 's3',
+        title: 'Note one thing that stayed with you',
+        estimateMinutes: 3,
+        interaction: {
+          kind: 'input',
+          prompt: 'What stuck?',
+          placeholder: 'One line about how rivers get their names…',
+        },
+      },
+    ],
+  },
+
+  'q-w-20': {
+    journeyIntro: 'Fifteen minutes you were not going to have.',
+    actionSteps: [
+      {
+        id: 's1',
+        title: 'On a journey home, pick the longer way',
+        detail: 'No errand attached — just the extra distance.',
+        tip: 'Decide before you set off. The long way never wins an argument made halfway.',
+        estimateMinutes: 2,
+        interaction: { kind: 'confirm' },
+      },
+      {
+        id: 's2',
+        title: 'Walk it without rushing',
+        estimateMinutes: 25,
+        interaction: {
+          kind: 'timer',
+          minSeconds: 15 * 60,
+          runningHint: 'No destination but home. The timer keeps counting.',
+        },
+      },
+      {
+        id: 's3',
+        title: 'Say what the extra time gave you',
+        estimateMinutes: 3,
+        interaction: {
+          kind: 'input',
+          prompt: 'What did the extra fifteen minutes do?',
+          placeholder: 'Arrived home already finished with the day instead of bringing it in…',
+        },
+      },
+    ],
+  },
+
+  'q-m-11': {
+    journeyIntro: 'Heat, water, and nothing useful to do.',
+    actionSteps: [
+      {
+        id: 's1',
+        title: 'Find somewhere and book two hours',
+        detail: 'Public sauna, bathhouse, thermal pool.',
+        tip: 'Book a slot rather than planning to drop in — a booking survives a busy week, an intention does not.',
+        estimateMinutes: 15,
+        interaction: {
+          kind: 'input',
+          prompt: 'Where, and when?',
+          placeholder: 'The old baths on the other side of town, Sunday afternoon…',
+        },
+      },
+      {
+        id: 's2',
+        title: 'Go, with nothing planned afterwards',
+        detail: 'The empty hour after is part of it.',
+        estimateMinutes: 120,
+        interaction: { kind: 'confirm' },
+      },
+      {
+        id: 's3',
+        title: 'Note when you stopped checking the time',
+        estimateMinutes: 3,
+        interaction: {
+          kind: 'input',
+          prompt: 'How long before you stopped checking the time?',
+          placeholder: 'About forty minutes, somewhere in the second round…',
+        },
+      },
+    ],
+  },
+
+  'q-m-12': {
+    journeyIntro: 'A table, alone, and nowhere to be after.',
+    actionSteps: [
+      {
+        id: 's1',
+        title: 'Pick a morning with nothing after it',
+        detail: 'The empty hour afterwards matters as much as the meal.',
+        estimateMinutes: 5,
+        interaction: { kind: 'confirm' },
+      },
+      {
+        id: 's2',
+        title: 'Go out and order properly',
+        detail: 'Sit in. Leave the laptop at home.',
+        tip: 'Bring something to read if eating alone feels exposed — but try the first ten minutes without it.',
+        estimateMinutes: 60,
+        interaction: {
+          kind: 'timer',
+          minSeconds: 40 * 60,
+          runningHint: 'Stay at the table. The timer runs on its own.',
+        },
+      },
+      {
+        id: 's3',
+        title: 'Photograph the table',
+        estimateMinutes: 1,
+        interaction: { kind: 'photo', prompt: 'What was in front of you.' },
+      },
+    ],
+  },
+
+  'q-m-13': {
+    journeyIntro: 'Finished, and then gone.',
+    actionSteps: [
+      {
+        id: 's1',
+        title: 'Decide what you are making and who gets it',
+        detail: 'Bread, a shelf, a drawing, a jar of something.',
+        tip: 'Choosing the person first makes it much likelier to get finished.',
+        estimateMinutes: 10,
+        interaction: {
+          kind: 'input',
+          prompt: 'What are you making, and for whom?',
+          placeholder: 'Sourdough for the neighbours who keep taking our parcels in…',
+        },
+      },
+      {
+        id: 's2',
+        title: 'Make it, start to finish',
+        detail: 'It does not need to be good.',
+        estimateMinutes: 150,
+        interaction: { kind: 'confirm' },
+      },
+      {
+        id: 's3',
+        title: 'Photograph it before it leaves',
+        estimateMinutes: 1,
+        interaction: { kind: 'photo', prompt: 'The finished thing.' },
+      },
+      {
+        id: 's4',
+        title: 'Give it away',
+        estimateMinutes: 15,
+        interaction: { kind: 'confirm' },
+      },
+    ],
+  },
+
+  'q-y-08': {
+    journeyIntro: 'Two nights somewhere with less going on.',
+    actionSteps: [
+      {
+        id: 's1',
+        title: 'Book two nights somewhere quieter than home',
+        detail: 'A village, a cabin, a coast out of season.',
+        tip: 'Out of season is the trick — the same place in November costs less and asks less of you.',
+        estimateMinutes: 30,
+        interaction: {
+          kind: 'input',
+          prompt: 'Where, and when?',
+          placeholder: 'The cottage near the lake, first weekend of March…',
+        },
+      },
+      {
+        id: 's2',
+        title: 'Go without a list of things to see',
+        detail: 'Arriving with no plan is the whole exercise.',
+        estimateMinutes: 2400,
+        interaction: { kind: 'confirm' },
+      },
+      {
+        id: 's3',
+        title: 'Photograph the view you kept coming back to',
+        estimateMinutes: 1,
+        interaction: { kind: 'photo', prompt: 'Wherever you ended up sitting most.' },
+      },
+      {
+        id: 's4',
+        title: 'Note when you actually slowed down',
+        estimateMinutes: 5,
+        interaction: {
+          kind: 'input',
+          prompt: 'Which day did you start to slow down?',
+          placeholder: 'Not until Sunday morning, honestly…',
+        },
+      },
+    ],
+  },
 };
 
 const CALENDAR_STEP_ID = 'calendar_reminder';
