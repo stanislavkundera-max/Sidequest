@@ -1,12 +1,12 @@
 /**
- * Renders Play Store feature graphic options at the required 1024x500.
+ * Renders the Play Store feature graphic at the required 1024x500.
  *
  * The feature graphic is the banner at the top of the store listing and a
  * required field. Google also reuses it in promotional placements, where it can
  * be cropped — so nothing load-bearing goes near the edges, and every option
  * keeps its content inside a centred safe area.
  *
- * Brand from BRANDING.md: forest green ground, beige cairn, amber top stone,
+ * Brand from BRANDING.md: forest green ground, amber cairn, beige wordmark,
  * Fraunces for the wordmark. No transparency, which Play rejects.
  *
  * Usage: node scripts/make-feature-graphic.cjs
@@ -51,64 +51,24 @@ const BASE = `
   .tag{font-size:23px;line-height:1.45;opacity:.85}
 `;
 
-/** Amber tints from BRANDING.md §2, used to give the accent real weight. */
-const AMBER_SOFT = '#face89';
-const AMBER_PALE = '#ffe3ac';
-
 /**
- * Variations on the chosen layout — mark left, wordmark right.
+ * The chosen design, settled 2026-09-05.
  *
- * The first round put amber on the top stone only, and Standa's critique was
- * right: one small oval carried the entire accent, so it read as a stray
- * colour rather than a decision. These give the amber enough area to look
- * intentional. All keep content in a centred safe area so Google's promotional
- * crops cannot remove anything load-bearing.
+ * The first round put amber on the top stone alone, and Standa's critique was
+ * right: one small oval carried the entire accent of a 1024x500 banner, so it
+ * read as a stray colour rather than a decision. The whole cairn in amber gives
+ * the accent the area it needs, and the wordmark stays beige — which holds 9.08
+ * against the green where amber would manage only 4.53.
+ *
+ * Rejected, recorded so the exploration is not repeated: a warm gradient up the
+ * stack (washed-out base, top-heavy), amber in the type as well (the name loses
+ * contrast at thumbnail size), amber only in the type (leaves the mark looking
+ * like the first round), and a half-lit stack.
  */
 const OPTIONS = {
-  // Standa's suggestion: the whole cairn amber, wordmark in beige.
-  'a1-all-amber': `
+  'feature-graphic': `
     <div class="fg" style="background:${GREEN};display:flex;align-items:center;gap:52px;padding:0 96px">
       ${cairn(210, [AMBER, AMBER, AMBER, AMBER])}
-      <div style="color:${BEIGE}">
-        <div class="wordmark" style="font-size:66px">Side Quest Life</div>
-        <div class="tag" style="margin-top:18px;color:${PALE}">Break the routine. Start living.</div>
-      </div>
-    </div>`,
-
-  // Light falling down the stack: warm at the top, cooling toward the base.
-  'a2-warm-rise': `
-    <div class="fg" style="background:${GREEN};display:flex;align-items:center;gap:52px;padding:0 96px">
-      ${cairn(210, [BEIGE, AMBER_PALE, AMBER_SOFT, AMBER])}
-      <div style="color:${BEIGE}">
-        <div class="wordmark" style="font-size:66px">Side Quest Life</div>
-        <div class="tag" style="margin-top:18px;color:${PALE}">Break the routine. Start living.</div>
-      </div>
-    </div>`,
-
-  // Amber everywhere, including the type — warmest, least contrast on the name.
-  'a3-amber-word': `
-    <div class="fg" style="background:${GREEN};display:flex;align-items:center;gap:52px;padding:0 96px">
-      ${cairn(210, [AMBER, AMBER, AMBER, AMBER])}
-      <div style="color:${AMBER}">
-        <div class="wordmark" style="font-size:66px">Side Quest Life</div>
-        <div class="tag" style="margin-top:18px;color:${AMBER_PALE};opacity:.75">Break the routine. Start living.</div>
-      </div>
-    </div>`,
-
-  // The reverse: stones stay beige, the accent moves into the wordmark.
-  'a4-amber-type': `
-    <div class="fg" style="background:${GREEN};display:flex;align-items:center;gap:52px;padding:0 96px">
-      ${cairn(210, [BEIGE, BEIGE, BEIGE, BEIGE])}
-      <div>
-        <div class="wordmark" style="font-size:66px;color:${AMBER}">Side Quest Life</div>
-        <div class="tag" style="margin-top:18px;color:${PALE}">Break the routine. Start living.</div>
-      </div>
-    </div>`,
-
-  // Half and half — the top two stones lit, the base still stone-coloured.
-  'a5-top-lit': `
-    <div class="fg" style="background:${GREEN};display:flex;align-items:center;gap:52px;padding:0 96px">
-      ${cairn(210, [BEIGE, BEIGE, AMBER, AMBER])}
       <div style="color:${BEIGE}">
         <div class="wordmark" style="font-size:66px">Side Quest Life</div>
         <div class="tag" style="margin-top:18px;color:${PALE}">Break the routine. Start living.</div>
@@ -132,7 +92,7 @@ const OPTIONS = {
     console.log(`  ${name.padEnd(16)} ${b.readUInt32BE(16)}x${b.readUInt32BE(20)}  ${(b.length / 1024).toFixed(0)} kB`);
   }
   await browser.close();
-  console.log('\nPick one, delete the rest.');
+  console.log('\nDone. Colours from BRANDING.md §2.');
 })().catch((e) => {
   console.error('FAILED:', e.message);
   process.exit(1);
