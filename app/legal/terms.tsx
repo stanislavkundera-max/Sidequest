@@ -12,8 +12,11 @@ import { Theme } from '@/constants/Theme';
 const LAST_UPDATED = LEGAL_LAST_UPDATED;
 
 /**
- * DRAFT — has a bracketed placeholder (governing-law entity/jurisdiction)
- * that needs a real value before this ships. See docs/launch-plan.md, Pillar 1.
+ * ~~DRAFT — has a bracketed placeholder~~ — stale as of 2026-09-06. The
+ * governing-law entity and jurisdiction are real values in `constants/legal.ts`
+ * (`Stanislav Kundera`, `the Czech Republic`) and no bracketed placeholder
+ * remains in any section. The warning outlived the problem by two weeks and
+ * would have sent the next reader looking for a blocker that was already gone.
  */
 const SECTIONS: { heading: string; body: string }[] = [
   {

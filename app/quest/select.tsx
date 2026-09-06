@@ -128,7 +128,6 @@ export default function QuestSelectionScreen() {
   // error screen's "Browse quests". It also listed quests retired with
   // isActive: false and let them be begun.
   const questsInCategory = useMemo(() => {
-    if (selectedCategory === 'recommended') return [] as Quest[];
     return openQuestsInCategory({
       catalog: quests,
       userQuests,
@@ -266,17 +265,10 @@ export default function QuestSelectionScreen() {
             <Text style={styles.sectionTitle}>{CATEGORY_TAB_LABEL[selectedCategory]}</Text>
           </View>
 
-          {selectedCategory === 'recommended' ? (
+          {questsInCategory.length === 0 ? (
             <EmptyState
-              title="Recommended"
-              message="Personalized suggestions will appear here soon. Pick Nature, Adventure, Relax, or Social to browse the catalog."
-              actionLabel="Back to home"
-              onAction={() => router.replace('/(tabs)/journey')}
-            />
-          ) : questsInCategory.length === 0 ? (
-            <EmptyState
-              title="No quests in this category"
-              message="Try another category or check back later."
+              title="Nothing open here right now"
+              message="You have taken on everything this place is offering. Finish one and the next appears."
               actionLabel="Back to home"
               onAction={() => router.replace('/(tabs)/journey')}
             />
