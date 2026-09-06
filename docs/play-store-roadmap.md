@@ -13,9 +13,22 @@ Play Console documentation (supplied 2026-08-29) and checked against this repo.
 
 ---
 
-## Where this actually stands — checked 2026-09-05
+## Start here — where this stands, checked 2026-09-06
 
-A week after the roadmap was written, verified rather than assumed:
+**Two things are left, and neither is code.** Google's identity verification is
+running on their clock, and twelve-plus Android testers need recruiting. Everything
+else on Pillar 1 is done.
+
+If you are picking this up fresh, read this section and the critical path below,
+then go to Phase 3. Phases 0–2 are complete and kept only for their reasoning.
+
+| Left to do | Owner |
+|---|---|
+| Identity verification clears | Google |
+| Recruit 12+ testers (aim ~20) — message and checklist in `docs/closed-test-brief.md` | Standa |
+| Then: create the app record, upload `versionCode 7`, run the closed test | Standa + Claude |
+
+Everything below was verified rather than assumed:
 
 | | Status |
 |---|---|
@@ -27,10 +40,12 @@ A week after the roadmap was written, verified rather than assumed:
 | Contact mailbox | ✅ **Settled 2026-09-06** — `sidequestlifeapp@gmail.com`, the account already used for Play. The domain was the nicer option and is still open; a working mailbox was the needed one |
 | First production build | ✅ **Succeeded 2026-09-05.** Rebuilt 2026-09-06 as `versionCode 7` — the first artifact containing the 41-quest catalogue, the five-per-category rule and the deep-link fixes |
 | Code and native readiness | ✅ Done and merged |
+| Legal pages public | ✅ Live on Vercel, auto-deploying from `main`; verified 2026-09-06 |
+| Listing assets | ✅ Icon, feature graphic, six screenshots (recaptured 2026-09-06 against the current UI) |
+| App content answers | ✅ Data safety, IARC and App access all pre-derived in `docs/play-store-handoff.md` |
 
-Nothing technical moved in that week because everything technical is downstream of two logins.
-`docs/app-store-option.md` was researched and parked in the meantime — it does **not** change any of
-the above, and specifically does not remove the Play testing requirement.
+`docs/app-store-option.md` was researched and parked — it does **not** change any of the above, and
+specifically does not remove the Play testing requirement.
 
 ---
 
@@ -44,8 +59,15 @@ create app → upload the AAB → closed test (12 testers, 14 continuous days) �
 blocks everything else is finally running. What is left on the critical path is entirely Google's
 until verification clears.
 
-The tester group is now the thing worth assembling, because it is the next item nobody else can
-shorten — and it can be lined up entirely while verification runs.
+The tester group is the thing worth assembling now — the next item nobody else can shorten, and it
+can be lined up entirely while verification runs.
+
+**Whether a closed test can start before verification clears is not settled.** Google's own wording
+covers *submission* ("you must verify your developer account before you can submit apps for
+consideration"), and says nothing either way about publishing to a test track. The sites claiming
+the two run in parallel sell tester services, which is the same conflict of interest flagged under
+0.5. Find out from the Console rather than from a blog — and note that it barely matters in
+practice, since the tester group has to exist either way.
 
 ---
 
