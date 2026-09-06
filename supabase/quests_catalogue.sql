@@ -71,9 +71,17 @@ on conflict (id) do update set
   -- created_at is deliberately not updated: re-running this must not make the
   -- whole catalogue look newly added.
 
--- Verify.
+-- Retire quests that are no longer in the catalogue.
+update public.quests
+   set is_active = false
+ where is_active is not false
+   and id not in ('q-w-01', 'q-w-02', 'q-w-03', 'q-w-04', 'q-w-05', 'q-w-06', 'q-w-07', 'q-w-08', 'q-w-09', 'q-w-10', 'q-m-01', 'q-m-02', 'q-m-03', 'q-m-05', 'q-m-06', 'q-y-01', 'q-y-02', 'q-y-03', 'q-y-04', 'q-w-11', 'q-w-12', 'q-m-07', 'q-m-08', 'q-y-05', 'q-w-13', 'q-w-14', 'q-w-15', 'q-m-09', 'q-y-06', 'q-w-16', 'q-w-17', 'q-w-18', 'q-m-10', 'q-y-07', 'q-w-19', 'q-w-20', 'q-m-11', 'q-m-12', 'q-m-13', 'q-m-14', 'q-y-08');
+
+-- Verify. retired counts anything the catalogue dropped; it should
+-- be 0 on a routine run, and the count of what you removed otherwise.
 select
   count(*) as total,
+  count(*) filter (where is_active is false) as retired,
   count(*) filter (where suggested_group is null) as missing_group,
   count(*) filter (where jsonb_array_length(action_steps) = 0) as missing_steps
 from public.quests;

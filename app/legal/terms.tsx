@@ -25,9 +25,12 @@ const SECTIONS: { heading: string; body: string }[] = [
   {
     heading: 'What the app is',
     body:
-      'Side Quest Life suggests small real-world activities ("quests") and helps you keep a record ' +
-      "of them. It's a personal companion, not a safety, medical, or professional service — quests " +
-      'happen in the real world, and you take part in them at your own judgment and risk.',
+      'Side Quest Life suggests real-world activities ("quests") and helps you keep a record of ' +
+      "them. It's a personal companion, not a safety, medical, or professional service. Some " +
+      'quests involve physical activity or risk — cold water, heights, being outdoors after dark, ' +
+      'or booking an activity with a commercial operator. Judging whether one is right for you, ' +
+      'and doing it safely, is yours to do: check the conditions, use licensed operators where ' +
+      "they're involved, and stop if something isn't right. You take part at your own risk.",
   },
   {
     heading: 'Your account',

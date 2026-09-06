@@ -34,27 +34,35 @@ Prepared 2026-09-05 so the next session is clicking, not deciding. Work top to b
 | Short description | `docs/store-listing-copy.md` — "Small real-world quests that pull you out of routine and into your life." | ✅ 72 / 80 characters |
 | Full description | `docs/store-listing-copy.md` | ✅ ~1,140 / 4,000 characters |
 | App icon 512×512 | `store-assets/play/icon-512.png` | ✅ Generated 2026-09-05 |
-| Phone screenshots | `store-assets/play/screenshots/` — lead with `03-explore.png` | ✅ Six at 1080×1920 |
-| Feature graphic 1024×500 | — | ❌ **Missing.** Needs design; blocked on `BRANDING.md` §4 |
+| Phone screenshots | `store-assets/play/screenshots/` — lead with `03-explore.png` | ✅ Six at 1080×1920, recaptured 2026-09-06 |
+| Feature graphic 1024×500 | `store-assets/play/feature-graphic/feature-graphic.png` | ✅ Generated 2026-09-05 |
 | Category | Lifestyle | From `docs/store-listing-copy.md` |
-| Privacy policy URL | — | ⛔ Blocked on the deploy |
+| Privacy policy URL | `https://sidequest-cyan.vercel.app/legal/privacy` | ✅ Live and public, verified 2026-09-06 |
+| Deletion URL | `https://sidequest-cyan.vercel.app/legal/delete-account` | ✅ Live and public, verified 2026-09-06 |
 
 ### App content — answers already derived
 
 - **Data safety** → §5 of this document. Full table, derived from the code
 - **Content rating (IARC)** → §6. Expect Everyone / PEGI 3
-- **App access** → §7. ⛔ Needs the demo account creating first
+- **App access** → §7. ✅ "Available without special access" — the app self-authenticates
 - **Ads** → declare none. No ad SDKs exist in the project
 - **Target audience** → not directed at children
 - Short declarations for news app, government app, financial features, health: all no
 
-### ⛔ The three things still genuinely missing
+### ⛔ What is still genuinely missing — one thing, plus a build
 
-1. **Domain decision** — decides the contact email and the public URLs. See below.
-2. **Demo/reviewer account** — a real account walked through onboarding with one quest completed and
-   one memory saved, so the reviewer does not land on empty states. Needs the app installable, so it
-   follows the first build.
-3. **Feature graphic** — the only listing asset that cannot be generated from what exists.
+Re-audited 2026-09-06 against the live deployment, the live database and EAS.
+
+1. **A contact mailbox that receives mail.** `constants/legal.ts` promises
+   `privacy@sidequestlife.com` and it does not exist, yet both published legal pages tell people to
+   write to it. This is the only item that blocks submission. See below.
+2. **A fresh build.** The newest AAB is `versionCode 6` from commit `f385e30` — twenty-two commits
+   behind `main`, so it contains none of the quest catalogue, none of the five-per-category rule and
+   none of the deep-link fixes. Whatever goes to testers has to be rebuilt.
+
+~~Demo/reviewer account~~ — not needed; the app signs in anonymously (§7).
+~~Feature graphic~~ — generated 2026-09-05.
+~~Deploy the web export~~ — live on Vercel and auto-deploying from `main`.
 
 ### The domain decision, framed for a quick answer
 
@@ -88,10 +96,10 @@ since they are static.
 | 2 | **Expo account + `npx eas-cli login`** | Needed before `eas init` can link the project. Takes a minute; I cannot do it because it requires your password. |
 | 3 | **Supabase: add `{{ .Token }}` to the reset-password email template** | See §2. Without it, password reset silently sends nothing. |
 | 4 | ~~**Fill the three privacy placeholders**~~ | ✅ Done 2026-08-29. One follow-up: make privacy@sidequestlife.com a real mailbox — see §3. |
-| 5 | **Deploy the web export** | Play needs public URLs for the privacy policy and account deletion. `vercel.json` is already configured; the routes already exist. See §4. |
+| 5 | ~~**Deploy the web export**~~ | ✅ Done. Live at `sidequest-cyan.vercel.app`, auto-deploying from `main`; both legal pages verified public 2026-09-06. |
 | 6 | ~~**Run `supabase/analytics_pii_scrub.sql`**~~ | ✅ Done 2026-08-29, both verification counts returned 0. See §2b for the one remaining catch. |
 | 7 | **Check whether the 12-tester rule applies to you** | Not a given — see §9. Find out early, because if it does apply it is the longest pole in the launch. |
-| 8 | **Create a demo account for the Google reviewer** | See §7. |
+| 8 | ~~**Create a demo account for the Google reviewer**~~ | ✅ Not needed — the app signs in anonymously on first launch. See §7. |
 
 ---
 
@@ -272,17 +280,34 @@ interact" is a policy violation, not a paperwork slip.
 
 ---
 
-## 7. Demo account for the Google reviewer
+## 7. App access — no demo account needed
 
-The app requires sign-in, so Play Console's **App access** section needs working credentials.
+**Answer: "All functionality is available without special access."**
 
-Create a normal account through the app's own sign-up (do not reuse your own), then:
-- Walk it through onboarding once, so the reviewer does not land on a blank first-run state.
-- Start and complete one quest and save one memory, so there is something to look at.
-- Put the email and password into **App access → All functionality is restricted**.
+~~The app requires sign-in, so App access needs working credentials.~~ **It does not.**
+`app/index.tsx` calls `supabase.auth.signInAnonymously()` on first launch whenever there is no
+session, so a reviewer who installs the app is signed in before they see a screen. No email, no
+password, no sign-up.
 
-Do **not** use the `EXPO_PUBLIC_DEV_LOGIN_*` credentials for this. Those are stripped from production
-builds on purpose (`app.config.ts`, verified 2026-08-29) and will not work in the build you upload.
+Verified on the live deployment 2026-09-06 rather than read off the code: the session that
+`sidequest-cyan.vercel.app` had created for itself decodes to `is_anonymous: true`,
+`role: authenticated`, no email — so anonymous sign-in is enabled in the Supabase project and
+working in production, not just permitted in the client.
+
+This retires the "demo account" task that sat in this document and in the roadmap (2.5) for two
+weeks. The reviewer will land on empty states — no quests done, no memories — which is simply what a
+new user sees, and is fine.
+
+Two things to keep in mind rather than act on:
+
+- The answer stops being true the moment anything real sits behind a required sign-in. If that
+  changes, this section changes with it.
+- If anonymous sign-in is ever turned off in Supabase, first launch falls through to the sign-in
+  screen and the app becomes credential-gated with no code change at all. Worth knowing before
+  touching that setting.
+
+Do **not** use the `EXPO_PUBLIC_DEV_LOGIN_*` credentials for anything here. Those are stripped from
+production builds on purpose (`app.config.ts`, verified 2026-08-29) and would not work anyway.
 
 ---
 

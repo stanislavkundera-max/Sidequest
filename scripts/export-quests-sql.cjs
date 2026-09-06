@@ -74,9 +74,29 @@ console.log(`on conflict (id) do update set
   -- created_at is deliberately not updated: re-running this must not make the
   -- whole catalogue look newly added.
 `);
-console.log(`-- Verify.
+// Retire anything the catalogue no longer contains.
+//
+// The upsert alone only ever adds and updates, so a quest deleted from the
+// TypeScript stayed live in Supabase forever. That is not hypothetical: q-m-04
+// ("Digital sunset: no screens after 9 p.m.") was removed from the repo on
+// 2026-08-21 for breaking content rule 1, the one-off deactivation query was
+// handed over and never run, and it was still being served to users on
+// 2026-09-06 — found only by counting the live table against the source.
+//
+// Deactivated rather than deleted: `user_quests` rows reference these ids, and
+// someone who did the quest should keep their history.
+console.log(`-- Retire quests that are no longer in the catalogue.
+update public.quests
+   set is_active = false
+ where is_active is not false
+   and id not in (${SEED_QUESTS.map((quest) => q(quest.id)).join(', ')});
+`);
+
+console.log(`-- Verify. retired counts anything the catalogue dropped; it should
+-- be 0 on a routine run, and the count of what you removed otherwise.
 select
   count(*) as total,
+  count(*) filter (where is_active is false) as retired,
   count(*) filter (where suggested_group is null) as missing_group,
   count(*) filter (where jsonb_array_length(action_steps) = 0) as missing_steps
 from public.quests;`);

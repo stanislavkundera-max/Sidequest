@@ -51,4 +51,4 @@ export const DATA_HOSTING_LOCATION =
   'Frankfurt, Germany (AWS eu-central-1), inside the European Union';
 
 /** Shown on every legal screen. Bump when any of them changes meaningfully. */
-export const LEGAL_LAST_UPDATED = 'August 2026';
+export const LEGAL_LAST_UPDATED = 'September 2026';

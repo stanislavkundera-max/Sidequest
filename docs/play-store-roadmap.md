@@ -160,7 +160,7 @@ inaccurate answer is a rejection risk. Answers for the two substantial ones are 
 
 - **Data safety** — handoff §5 has the full table, derived from the code
 - **Content rating (IARC)** — handoff §6, expect Everyone / PEGI 3
-- **App access** — reviewer credentials, since the app requires sign-in (handoff §7)
+- **App access** — "available without special access"; the app signs itself in anonymously (handoff §7)
 - **Ads** — no ads, no ad SDKs; declare none
 - **Target audience and content** — not directed at children; the privacy policy already says under-16 is not a target
 - Also expect short declarations for: news app (no), government app (no), financial features (none), health apps (none)
@@ -178,7 +178,7 @@ Gate: **0.2 done (Expo login).** Can run in parallel with Phase 1.
 | 2.2 | First production build: `eas build --platform android --profile production` | Claude | Produces an AAB. **The one real technical unknown left** |
 | 2.3 | Read the build output and confirm `targetSdkVersion` is 36 | Claude | Expected to pass — see the API level note below |
 | 2.4 | Deploy the web export so `/legal/privacy` and `/legal/delete-account` are public | Standa | `vercel.json` is ready; needs the domain from 0.3 |
-| 2.5 | Create the reviewer demo account and walk it through onboarding once | Claude + Standa | Not the dev-login credentials — those are stripped from production builds |
+| 2.5 | ~~Create the reviewer demo account~~ | — | ✅ Not needed. First launch signs in anonymously, so App access is "available without special access" — verified on the live deployment 2026-09-06, handoff §7 |
 
 ### 🚨 2.0 — the build will ship dead without this
 
