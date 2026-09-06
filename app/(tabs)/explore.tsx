@@ -181,7 +181,7 @@ const styles = StyleSheet.create({
   sheetTitle: {
     fontSize: 20,
     fontFamily: 'Inter_700Bold',
-    fontWeight: '800',
+    fontWeight: '700',
     color: Theme.text,
     letterSpacing: 0.2,
   },

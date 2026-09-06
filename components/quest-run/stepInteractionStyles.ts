@@ -55,7 +55,7 @@ export const stepInteractionStyles = StyleSheet.create({
   clock: {
     fontSize: 44,
     fontFamily: 'Inter_700Bold',
-    fontWeight: '800',
+    fontWeight: '700',
     color: Theme.text,
     textAlign: 'center',
     fontVariant: ['tabular-nums'],
@@ -80,7 +80,7 @@ export const stepInteractionStyles = StyleSheet.create({
     paddingHorizontal: 12,
     backgroundColor: Theme.bg,
   },
-  itemIndex: { fontSize: 13, fontFamily: 'Inter_700Bold', fontWeight: '800', width: 20, textAlign: 'center' },
+  itemIndex: { fontSize: 13, fontFamily: 'Inter_700Bold', fontWeight: '700', width: 20, textAlign: 'center' },
   itemText: { flex: 1, fontSize: 15, fontFamily: 'Inter_400Regular', color: Theme.text },
   itemRemove: { padding: 4 },
   addRow: { flexDirection: 'row', gap: 8, alignItems: 'center' },

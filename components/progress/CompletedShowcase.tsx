@@ -182,7 +182,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     marginBottom: 10,
   },
-  heroCount: { fontSize: 48, fontFamily: 'Fraunces_700Bold', fontWeight: '800', color: '#fff', lineHeight: 52 },
+  heroCount: { fontSize: 48, fontFamily: 'Fraunces_700Bold', fontWeight: '700', color: '#fff', lineHeight: 52 },
   heroLabel: {
     fontSize: 14,
     fontFamily: 'Inter_600SemiBold',
@@ -215,7 +215,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
     alignItems: 'center',
   },
-  statNum: { fontSize: 26, fontFamily: 'Fraunces_700Bold', fontWeight: '800', color: Theme.text },
+  statNum: { fontSize: 26, fontFamily: 'Fraunces_700Bold', fontWeight: '700', color: Theme.text },
   statLabel: {
     marginTop: 2,
     fontSize: 12,
@@ -245,7 +245,7 @@ const styles = StyleSheet.create({
   },
   medalDot: { width: 8, height: 8, borderRadius: 4 },
   medalName: { fontSize: 13, fontFamily: 'Inter_700Bold', fontWeight: '700', color: Theme.text },
-  medalCount: { fontSize: 13, fontFamily: 'Inter_700Bold', fontWeight: '800' },
+  medalCount: { fontSize: 13, fontFamily: 'Inter_700Bold', fontWeight: '700' },
   timeline: { paddingHorizontal: 16 },
   timelineHead: {
     fontSize: 14,
@@ -274,7 +274,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  trophyRank: { fontSize: 9, fontFamily: 'Inter_700Bold', fontWeight: '800', color: '#fff', marginTop: -1 },
+  trophyRank: { fontSize: 9, fontFamily: 'Inter_700Bold', fontWeight: '700', color: '#fff', marginTop: -1 },
   trophyBody: { flex: 1, minWidth: 0 },
   trophyCategory: {
     fontSize: 11,

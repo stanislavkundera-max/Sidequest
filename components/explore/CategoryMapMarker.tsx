@@ -163,7 +163,7 @@ const styles = StyleSheet.create({
     color: '#ffffff',
     fontSize: 12,
     fontFamily: 'Inter_700Bold',
-    fontWeight: '800',
+    fontWeight: '700',
     letterSpacing: 0.2,
   },
 });

@@ -78,8 +78,10 @@ export function AccountCard() {
     };
   }, [admin]);
 
+  // Gated on the flag as well as the user: with the control hidden, this was a
+  // profile fetch on every visit to Progress to populate something nobody sees.
   useEffect(() => {
-    if (!user) return;
+    if (!user || !NOTIFICATIONS_IMPLEMENTED) return;
     let alive = true;
     getProfile(user.id)
       .then((profile) => {

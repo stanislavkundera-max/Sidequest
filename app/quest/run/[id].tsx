@@ -995,7 +995,7 @@ const styles = StyleSheet.create({
   stepIndex: {
     fontSize: 12,
     fontFamily: 'Inter_700Bold',
-    fontWeight: '800',
+    fontWeight: '700',
     textTransform: 'uppercase',
     letterSpacing: 0.8,
   },
@@ -1044,7 +1044,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignSelf: 'center',
   },
-  doneTitle: { fontSize: 19, fontFamily: 'Fraunces_700Bold', fontWeight: '800', color: Theme.text, textAlign: 'center' },
+  doneTitle: { fontSize: 19, fontFamily: 'Fraunces_700Bold', fontWeight: '700', color: Theme.text, textAlign: 'center' },
   doneBody: { fontSize: 14, fontFamily: 'Inter_400Regular', lineHeight: 20, color: Theme.textMuted, textAlign: 'center' },
   evidenceList: { gap: 10, marginVertical: 4 },
   evidenceRow: {
