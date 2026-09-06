@@ -173,11 +173,11 @@ Gate: **0.2 done (Expo login).** Can run in parallel with Phase 1.
 
 | # | Task | Owner | Notes |
 |---|---|---|---|
-| 2.0 | 🚨 **Set `EXPO_PUBLIC_SUPABASE_URL` and `EXPO_PUBLIC_SUPABASE_ANON_KEY` as EAS environment variables** | Standa | **Without this the build ships dead** — see below |
-| 2.1 | `eas init` — links the project, writes `projectId` into `app.config.ts` | Claude | `eas.json` is already configured |
-| 2.2 | First production build: `eas build --platform android --profile production` | Claude | Produces an AAB. **The one real technical unknown left** |
+| 2.0 | ~~Set the EAS environment variables~~ | Standa | ✅ Done. Both present in `production` and `preview`; no dev-login credentials in any environment (checked 2026-09-06) |
+| 2.1 | ~~`eas init`~~ | Claude | ✅ Done 2026-09-05 |
+| 2.2 | ~~First production build~~ | Claude | ✅ Done. Latest is `versionCode 7` from `da536a1`, built 2026-09-06 — the first build containing the 41-quest catalogue and the five-per-category rule |
 | 2.3 | Read the build output and confirm `targetSdkVersion` is 36 | Claude | Expected to pass — see the API level note below |
-| 2.4 | Deploy the web export so `/legal/privacy` and `/legal/delete-account` are public | Standa | `vercel.json` is ready; needs the domain from 0.3 |
+| 2.4 | ~~Deploy the web export~~ | Standa | ✅ Live at `sidequest-cyan.vercel.app`, auto-deploying from `main`. Both legal pages verified public 2026-09-06 |
 | 2.5 | ~~Create the reviewer demo account~~ | — | ✅ Not needed. First launch signs in anonymously, so App access is "available without special access" — verified on the live deployment 2026-09-06, handoff §7 |
 
 ### 🚨 2.0 — the build will ship dead without this
@@ -271,8 +271,8 @@ Gate: **an AAB exists and Phase 1 forms are submitted.**
 | 3.3 | Provide the required **feedback URL or email** on the opt-in page | Standa | Mandatory field; testers cannot leave public reviews |
 | 3.4 | Invite testers; confirm each opted in **and** installed | Standa | The clock starts when 12 are actually active |
 | 3.5 | Hold 12+ active for 14 continuous days | — | Calendar time. Nothing shortens it |
-| 3.6 | Meanwhile: screenshots, feature graphic, 512×512 icon | Standa (design) | Swappable later without a new review — see below |
-| 3.7 | Meanwhile: quest content | Standa | Server-side, no build needed — see below |
+| 3.6 | ~~Screenshots, feature graphic, 512×512 icon~~ | — | ✅ All three exist. Screenshots recaptured 2026-09-06 against the current UI |
+| 3.7 | ~~Quest content~~ | Standa | ✅ 41 quests, ten per category. Server-side, so it can still grow mid-test without a build |
 
 ### Run an internal test before anything else
 
