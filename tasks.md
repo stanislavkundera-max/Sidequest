@@ -15,11 +15,16 @@
 - "Backed by research" paragraph (White, Bratman, Killingsworth & Gilbert)
   approved and live in the doc; 3 more citations kept as backup/reference.
 
-## 4) Finish `docs/story.md`
-- Write up the actual "breaking point" scene — the Morocco surfing trip — as a
-  concrete moment, not just the general "stuck in a rut" description.
-- Once written, draft the trimmed welcome-screen cut and update the landing
-  page / marketing copy to use the specific scene.
+## 4) ~~Finish `docs/story.md`~~ — Done 2026-09-06
+- Morocco scene written up from Standa's own account: the beach, the sea, the
+  sunset, and thinking about cancelling the flight home. Shaped, not invented.
+- Three lengths drafted — full, two-sentence, and a one-line welcome-screen cut
+  — so how prominent it should be can be decided by reading rather than in the
+  abstract.
+- **One thing left, and it is a product decision rather than a writing one:**
+  the welcome screen still runs "Turn ordinary days into small adventures" and
+  does not use the story at all. Swapping in the personal line is worth
+  deciding deliberately, not by default.
 
 ## 5) ~~Clarify: onboarding is recommendations only~~ — Done (found already shipped, 2026-08-21)
 - Footnote copy live on both the onboarding summary screen and Explore's

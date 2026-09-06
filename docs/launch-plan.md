@@ -301,9 +301,11 @@ decision list, not a content draft.
   for every one of the 60 existing steps. Not user-facing today (a runtime fallback compensates),
   but whatever process ends up authoring new quests needs to update the real source
   (`questJourneys.ts`), not just this generator script, or the two will drift further apart.
-- `docs/value-proposition.md` and `docs/story.md` already have real voice and content, each with
-  one clearly marked, Standa-owned placeholder: the "green notes" research citations, and the
-  Morocco surfing-trip breaking-point scene. Both already tracked in `tasks.md` (#3, #4).
+- ~~`docs/value-proposition.md` and `docs/story.md` each have one Standa-owned placeholder~~ — both
+  closed. The green-notes citations were researched 2026-08-21 (six checked studies, each marked
+  correlational or experimental); the Morocco breaking-point scene was written up 2026-09-06 from
+  Standa's own account, in three lengths so its prominence can be chosen by reading rather than in
+  the abstract.
 - There's no written process for *how* a new quest actually gets authored — what fields are
   required, how to pick an interaction type (confirm / timer / input / counter / photo), how
   `tip` differs from `detail`, how `estimateMinutes` gets chosen. It's implicit in the TypeScript
@@ -329,9 +331,10 @@ decision list, not a content draft.
    question (parked pending real usage data, per the mentor's 2026-08-06 call) — worth deciding
    whether new-quest volume should wait on that, or proceed independently since writing more quests
    doesn't actually block that structural question either way.
-7. **The two doc placeholders** — the green-notes citations and the Morocco scene are explicitly
-   yours to write, but I can help structure the citation research (point at real nature/screen-time
-   literature to review) even though the selection and the actual writing stay yours.
+7. ~~**The two doc placeholders**~~ — both closed. Citations 2026-08-21, Morocco scene 2026-09-06.
+   The scene came from Standa's own account and was shaped rather than invented; the one open
+   question it leaves is a product decision, not a writing one — whether the welcome screen should
+   carry the personal line instead of the current "Turn ordinary days into small adventures."
 
 ### What's needed from you specifically
 

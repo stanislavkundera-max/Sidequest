@@ -80,10 +80,13 @@ bore everyone else.
 
 ## C — Building it
 
-The material is in `docs/story.md`, and it has one gap worth closing before posting: the breaking
-point is still marked as a placeholder — the actual turning point is not written up. That is
-probably the single strongest piece of content available, and it cannot be posted until it is
-written.
+The material is in `docs/story.md`, and the gap in it is now closed — the Morocco scene was written
+up on 2026-09-06 in three lengths, so there is a version for a caption and a version for a carousel.
+
+The detail to lead with is **thinking about cancelling the flight home**, not the sunset. Everyone
+has a sunset; almost nobody has seriously considered not coming back. Second-strongest is going
+alone and having people to spend it with within a day — the Social category's argument, made as
+evidence rather than a claim.
 
 What else is genuinely postable here:
 
