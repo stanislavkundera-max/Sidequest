@@ -64,3 +64,69 @@
 - `components/progress/ScienceNote.tsx`: a collapsed "Why this works" row at
   the bottom of the Progress tab, expands on tap to the approved research
   paragraph. Verified in the browser preview (expand + collapse both work).
+
+## 11) Reminders: the calendar step, then a notification ecosystem
+
+Raised by Standa 2026-09-06. Two related pieces, deliberately not started —
+half a notification system is worse than none, and both change what testers see.
+
+### 11a) Calendar step — add a Google Calendar route, do not replace the native one
+
+Today a calendar step calls `expo-calendar` and writes an event to the device
+calendar (`app/quest/run/[id].tsx`, evidence `{ kind: 'calendar', eventId }`).
+On web there is no device calendar, so it shows a confirm dialog saying to add
+it yourself — honest, but a dead end.
+
+**The web fix is a Google Calendar template URL**, which needs no library and no
+permission:
+
+```
+https://calendar.google.com/calendar/render?action=TEMPLATE
+  &text=<quest title>&dates=<start>/<end>&details=<step detail>
+```
+
+Dates are UTC basic format, e.g. `20260912T170000Z/20260912T180000Z`. The
+`template` on `QuestStepAction` already carries title, notes and duration, so
+everything the URL needs is in the data model.
+
+**Do not swap the native path for it.** Writing to the device calendar works
+with whatever calendar the person actually uses — Samsung, Outlook, Apple — and
+needs no browser round-trip or Google account. A Google link on Android would be
+a downgrade for anyone not living in Google Calendar. Right shape: native write
+on device, Google link on web, and possibly a "use Google Calendar instead" link
+underneath on device for people who want it.
+
+### 11b) Notifications — nothing exists yet, and one decision shrinks the job
+
+**Current state:** no notification library in `package.json`, no permission
+requested, no scheduling code. The preference is real and already stored —
+`profiles.notification_intensity` is quiet / occasional / chatty — and the
+control is hidden behind `NOTIFICATIONS_IMPLEMENTED` in `AccountCard.tsx` until
+this lands.
+
+**The decision that halves the work: local notifications, not push.** Push needs
+a server, credentials and a delivery service. Local scheduled notifications need
+none of that, and cover essentially everything this app would say — a quest is
+tomorrow, a quest has been sitting untouched for a fortnight, the calendar slot
+you chose is in an hour. Push only earns its keep when the *server* has something
+to say that the phone could not have known, and with no social features there is
+almost nothing in that category yet.
+
+**Constraints worth knowing before starting:**
+
+- `expo-notifications` needs `POST_NOTIFICATIONS` on Android 13+. That is a **new
+  permission on the store listing**, and permissions were deliberately trimmed
+  (`blockedPermissions` in `app.config.ts`) because unused ones invite reviewer
+  questions. Adding one back means updating the Data safety answers too.
+- **The product bans nagging.** `AGENTS.md` rules out streak pressure and
+  gamification, and Standa has reinforced it repeatedly. A notification that says
+  "you have not done a quest in 5 days!" is the streak mechanic wearing a
+  different coat. The three intensity levels are the right shape — the writing
+  work is making even "chatty" feel like an invitation.
+- Local notifications fire off the device clock, so they keep working offline and
+  cost nothing to run.
+
+**Timing: after the closed test.** Doing it before puts a new permission prompt
+in front of twelve testers and changes a Data safety form mid-review, for a
+feature nobody has asked for yet. The test may also say what reminder people
+actually want, which is cheaper than guessing.

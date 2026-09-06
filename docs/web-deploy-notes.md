@@ -39,10 +39,19 @@ keeps its own pre-rendered HTML instead of every URL booting the same empty
 shell, and a genuinely unknown path still 404s rather than loading the whole app
 to say "not found".
 
-**Unverified until the next deploy.** The cleanUrls collision is inferred from
-the behaviour, not proven — Vercel's routing cannot be reproduced locally. If
-dynamic routes still 404 after this deploys, the next thing to check is whether
-the project's dashboard settings are overriding `vercel.json` at all.
+**✅ Verified after deploy, 2026-09-06.** All four dynamic routes return 200 and
+render, static routes still resolve to their own files, and a genuinely unknown
+path still 404s — which is the wanted behaviour, not a leftover:
+
+| Path | After |
+|---|---|
+| `/quest/q-w-05` | 200, renders the quest |
+| `/quest/run/<id>`, `/memory/<id>` | 200 |
+| `/quest/select`, `/journey`, `/legal/privacy` | 200, unchanged |
+| `/nonexistent-path` | 404, correctly |
+
+So the cleanUrls explanation held up in practice, even though it was inferred
+rather than proven.
 
 ## Scope: this never affected the Android app
 
