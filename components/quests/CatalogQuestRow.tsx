@@ -5,7 +5,6 @@ import { journeyHubStyles as styles } from '@/components/journey/journeyHubStyle
 import { Theme } from '@/constants/Theme';
 import { categoryAccentForCategoryId } from '@/lib/categoryAccent';
 import { questDurationLabel, QUEST_COPY } from '@/src/features/quests/questCopy';
-import { isRecentlyAdded } from '@/src/features/quests/suggestedQuests';
 import type { Quest } from '@/src/types/quest';
 
 const TF_META: Record<Quest['timeframe'], string> = {
@@ -24,6 +23,8 @@ type Props = {
   quest: Quest;
   categoryLabel: string;
   busy?: boolean;
+  /** Show the NEW badge. Recently added *and* not yet opened — parent's call. */
+  isNew?: boolean;
   onOpen: (questId: string) => void;
   onStart: (questId: string) => void;
   onLike?: (questId: string) => void;
@@ -34,6 +35,7 @@ export function CatalogQuestRow({
   quest,
   categoryLabel,
   busy = false,
+  isNew = false,
   onOpen,
   onStart,
   onLike,
@@ -56,8 +58,9 @@ export function CatalogQuestRow({
           <Text style={[styles.questRowMeta, { color: accent }]}>{categoryLabel}</Text>
           {/* The catalogue already sorts new quests to the top; this is the
               only thing that says so. Amber on dark text — the one pairing the
-              brand colour passes contrast in (6.61:1). */}
-          {isRecentlyAdded(quest) ? (
+              brand colour passes contrast in (6.61:1).
+              The parent decides: recently added *and* not yet opened. */}
+          {isNew ? (
             <View style={styles.newBadge}>
               <Text style={styles.newBadgeText}>NEW</Text>
             </View>

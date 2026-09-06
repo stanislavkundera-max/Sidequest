@@ -22,6 +22,7 @@ import {
   incompleteJourneyStepsCount,
 } from '@/src/features/quests/questHelpers';
 import { useQuestDomainStore } from '@/src/features/quests/questStore';
+import { markQuestSeen } from '@/src/features/quests/seenQuests';
 import { trackEvent } from '@/src/lib/analytics';
 import { logError } from '@/src/lib/monitoring/errorLogger';
 import type { QuestTimeframe } from '@/src/types/quest';
@@ -122,8 +123,16 @@ export default function QuestDetailScreen() {
   useLayoutEffect(() => {
     navigation.setOptions({
       title: quest?.title ?? 'Quest',
+      // headerLeft comes from the Stack's screenOptions — see HeaderBackButton.
     });
   }, [navigation, quest?.title]);
+
+  // Opening the detail screen is what "seen" means, so the NEW badge clears on
+  // the way in rather than on the way back.
+  useEffect(() => {
+    if (!quest) return;
+    void markQuestSeen(quest.id);
+  }, [quest?.id]);
 
   useLayoutEffect(() => {
     if (!quest) return;

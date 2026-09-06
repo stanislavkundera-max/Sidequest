@@ -20,6 +20,7 @@ import { CounterStepAction } from '@/components/quest-run/CounterStepAction';
 import { InputStepAction } from '@/components/quest-run/InputStepAction';
 import { PhotoStepAction } from '@/components/quest-run/PhotoStepAction';
 import { TimerStepAction } from '@/components/quest-run/TimerStepAction';
+import { HeaderBackButton } from '@/components/ui/HeaderBackButton';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { ErrorState } from '@/components/ui/ErrorState';
 import { LoadingState } from '@/components/ui/LoadingState';
@@ -269,6 +270,13 @@ export default function QuestRunScreen() {
   useLayoutEffect(() => {
     navigation.setOptions({
       title: quest ? quest.title : 'Run quest',
+      // Back and Leave are different promises and the runner only had the
+      // second: with no screen behind it, the one control in the header
+      // abandoned the quest. Back steps out without touching it — falling back
+      // to the quest's own page, since that is what "one step back" means here.
+      headerLeft: () => (
+        <HeaderBackButton fallback={quest ? `/quest/${quest.id}` : '/(tabs)/journey'} />
+      ),
       headerRight: activeUq
         ? () => (
             <Pressable

@@ -1,5 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useFocusEffect } from '@react-navigation/native';
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import { journeyHubStyles as hub } from '@/components/journey/journeyHubStyles';
@@ -10,7 +11,9 @@ import { categoryAccentForCategoryId } from '@/lib/categoryAccent';
 import { categoryIoniconNameForCategoryId } from '@/lib/categoryIcons';
 import type { OnboardingPreferences } from '@/src/features/onboarding/types';
 import { useQuestDomainStore } from '@/src/features/quests/questStore';
+import { loadSeenQuestIds } from '@/src/features/quests/seenQuests';
 import {
+  isRecentlyAdded,
   orderCategoryQuests,
   QUESTS_OPEN_PER_CATEGORY,
 } from '@/src/features/quests/suggestedQuests';
@@ -74,6 +77,22 @@ export function AllQuestsList({ initialCategoryId, preferences, actions }: Props
   const visibleQuests = categoryQuests.slice(0, QUESTS_OPEN_PER_CATEGORY);
   const lockedCount = Math.max(0, categoryQuests.length - visibleQuests.length);
 
+  // Re-read on focus, not just on mount: the badge has to be gone when you come
+  // back from the quest you just opened, and this screen stays mounted while
+  // the detail screen sits on top of it.
+  const [seenQuestIds, setSeenQuestIds] = useState<Set<string>>(new Set());
+  useFocusEffect(
+    useCallback(() => {
+      let alive = true;
+      loadSeenQuestIds().then((s) => {
+        if (alive) setSeenQuestIds(s);
+      });
+      return () => {
+        alive = false;
+      };
+    }, [])
+  );
+
   if (quests.length === 0) {
     return (
       <View style={styles.loadingWrap}>
@@ -133,6 +152,7 @@ export function AllQuestsList({ initialCategoryId, preferences, actions }: Props
             key={q.id}
             quest={q}
             categoryLabel={activeCategoryId ? categoryLabel(activeCategoryId) : ''}
+            isNew={isRecentlyAdded(q) && !seenQuestIds.has(q.id)}
             busy={actions.primaryBusy}
             onOpen={actions.openQuest}
             onStart={(id) => void actions.onStartNow(id)}

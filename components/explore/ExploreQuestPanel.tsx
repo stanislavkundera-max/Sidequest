@@ -1,5 +1,6 @@
 import { useRouter } from 'expo-router';
-import { useMemo } from 'react';
+import { useCallback, useMemo, useState } from 'react';
+import { useFocusEffect } from '@react-navigation/native';
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
@@ -18,7 +19,11 @@ import {
   getNextActionableStepLabel,
 } from '@/src/features/quests/questHelpers';
 import { useQuestDomainStore } from '@/src/features/quests/questStore';
-import { openQuestsInCategory } from '@/src/features/quests/suggestedQuests';
+import { loadSeenQuestIds } from '@/src/features/quests/seenQuests';
+import {
+  isRecentlyAdded,
+  openQuestsInCategory,
+} from '@/src/features/quests/suggestedQuests';
 import type { Quest, UserQuest } from '@/src/types/quest';
 
 type Props = {
@@ -70,6 +75,15 @@ export function ExploreQuestPanel({ userId, categoryId, preferences }: Props) {
       limit: 3,
     });
   }, [categoryId, quests, userQuests, preferences]);
+
+  const [seenQuestIds, setSeenQuestIds] = useState<Set<string>>(new Set());
+  useFocusEffect(
+    useCallback(() => {
+      let alive = true;
+      loadSeenQuestIds().then((v) => { if (alive) setSeenQuestIds(v); });
+      return () => { alive = false; };
+    }, [])
+  );
 
   const nothingToShow =
     categoryId != null && inProgress.length === 0 && recommended.length === 0;
@@ -153,6 +167,7 @@ export function ExploreQuestPanel({ userId, categoryId, preferences }: Props) {
                     key={q.id}
                     quest={q}
                     categoryLabel={categoryLabel(q.categoryId)}
+                    isNew={isRecentlyAdded(q) && !seenQuestIds.has(q.id)}
                     busy={actions.primaryBusy}
                     onOpen={actions.openQuest}
                     onStart={(id) => void actions.onStartNow(id)}

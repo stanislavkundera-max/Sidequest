@@ -17,6 +17,8 @@ import * as SplashScreen from 'expo-splash-screen';
 import { useEffect } from 'react';
 import { Platform, StyleSheet, View } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
+
+import { HeaderBackButton } from '@/components/ui/HeaderBackButton';
 import 'react-native-reanimated';
 import { MD3DarkTheme, MD3LightTheme, PaperProvider } from 'react-native-paper';
 
@@ -166,7 +168,12 @@ function RootLayoutNav() {
     <PaperProvider theme={paperTheme}>
       <NavigationThemeProvider value={navTheme}>
         <StatusBar style={colorScheme === 'dark' ? 'light' : 'dark'} />
-        <Stack>
+        {/* Every screen with a header gets a back control that works even when
+            the stack is empty behind it — see HeaderBackButton for why the
+            default one is not enough. Screens whose natural home is not the
+            Journey tab override `headerLeft` with their own fallback below.
+            Harmless on the groups that hide their header entirely. */}
+        <Stack screenOptions={{ headerLeft: () => <HeaderBackButton /> }}>
           <Stack.Screen name="index" options={{ headerShown: false }} />
           <Stack.Screen
             name="onboarding"
@@ -204,6 +211,9 @@ function RootLayoutNav() {
               title: 'New memory',
               presentation: 'modal',
               headerBackTitle: 'Cancel',
+              headerLeft: () => (
+                <HeaderBackButton fallback="/(tabs)/memories" accessibilityLabel="Cancel" />
+              ),
             }}
           />
           <Stack.Screen
@@ -211,6 +221,7 @@ function RootLayoutNav() {
             options={{
               title: 'Memory',
               headerBackTitle: 'Back',
+              headerLeft: () => <HeaderBackButton fallback="/(tabs)/memories" />,
             }}
           />
           <Stack.Screen
