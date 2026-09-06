@@ -290,8 +290,8 @@ Gate: **an AAB exists and Phase 1 forms are submitted.**
 | 3.0 | **Internal test first** — `eas submit --profile internal` | Claude | Up to 100 testers, and it can run *before app setup is complete*. Cheapest way to prove the whole pipeline works |
 | 3.1 | Upload the AAB to **closed testing** — `eas submit --profile closed` (Play track `alpha`) | Claude | **Not `internal`.** Internal testing does not count toward the 14 days |
 | 3.2 | Set up a **Google Group** for testers rather than an email list | Standa | See below — far less admin |
-| 3.3 | Provide the required **feedback URL or email** on the opt-in page | Standa | Mandatory field; testers cannot leave public reviews |
-| 3.4 | Invite testers; confirm each opted in **and** installed | Standa | The clock starts when 12 are actually active |
+| 3.3 | Provide the required **feedback URL or email** on the opt-in page | Standa | Use `sidequestlifeapp@gmail.com` — settled 2026-09-06. Mandatory field; testers cannot leave public reviews |
+| 3.4 | Invite testers; confirm each opted in **and** installed | Standa | The clock starts when 12 are actually active. Message to send and what to check when: `docs/closed-test-brief.md` |
 | 3.5 | Hold 12+ active for 14 continuous days | — | Calendar time. Nothing shortens it |
 | 3.6 | ~~Screenshots, feature graphic, 512×512 icon~~ | — | ✅ All three exist. Screenshots recaptured 2026-09-06 against the current UI |
 | 3.7 | ~~Quest content~~ | Standa | ✅ 41 quests, ten per category. Server-side, so it can still grow mid-test without a build |
