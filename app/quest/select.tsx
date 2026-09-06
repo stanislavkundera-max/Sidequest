@@ -26,6 +26,7 @@ import {
   MAX_ACTIVE_QUESTS,
 } from '@/src/features/quests';
 import { useQuestDomainStore } from '@/src/features/quests';
+import { openQuestsInCategory } from '@/src/features/quests/suggestedQuests';
 import { questDurationLabel } from '@/src/features/quests/questCopy';
 import {
   CATEGORY_TAB_ICON,
@@ -119,14 +120,21 @@ export default function QuestSelectionScreen() {
     [categoryParam]
   );
 
+  // The same five the Journey tab and the map offer — not the whole category.
+  //
+  // This screen listed every quest in a category, which made it a way round the
+  // rule that new quests are earned by finishing old ones: whatever the Journey
+  // tab held back was one tap away here, via the Memories empty state or any
+  // error screen's "Browse quests". It also listed quests retired with
+  // isActive: false and let them be begun.
   const questsInCategory = useMemo(() => {
-    if (selectedCategory === 'recommended') return [];
-    // isActive === false means retired. Every other surface honours it; this
-    // one did not, so a retired quest stayed listed here and could still be
-    // begun. This screen deliberately keeps showing completed quests — it is a
-    // catalogue browser, not a set of offers.
-    return quests.filter((q) => q.isActive !== false && q.categoryId === selectedCategory);
-  }, [quests, selectedCategory]);
+    if (selectedCategory === 'recommended') return [] as Quest[];
+    return openQuestsInCategory({
+      catalog: quests,
+      userQuests,
+      categoryId: selectedCategory,
+    });
+  }, [quests, userQuests, selectedCategory]);
 
   const questsByTimeframe = useMemo(() => {
     const map: Record<QuestTimeframe, Quest[]> = {
@@ -188,8 +196,9 @@ export default function QuestSelectionScreen() {
       <ScrollView contentContainerStyle={styles.scroll}>
         <Text style={styles.title}>Pick your quests</Text>
         <Text style={styles.sub}>
-          Choose a category, then browse by cadence. Your active path fits up to {MAX_ACTIVE_QUESTS}{' '}
-          quests at once — open one and let it wait, or tap the heart on a new pick when you want room.
+          Each place opens a few quests at a time; finishing one brings the next.
+          Your active path fits up to {MAX_ACTIVE_QUESTS} at once — open one and let it wait, or tap
+          the heart on a new pick when you want room.
         </Text>
         <Text style={styles.pathLine}>
           On your active path now: {activePathCount} / {MAX_ACTIVE_QUESTS}

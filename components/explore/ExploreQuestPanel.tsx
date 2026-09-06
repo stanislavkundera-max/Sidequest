@@ -18,10 +18,7 @@ import {
   getNextActionableStepLabel,
 } from '@/src/features/quests/questHelpers';
 import { useQuestDomainStore } from '@/src/features/quests/questStore';
-import {
-  claimedQuestIds,
-  recommendQuestsInCategory,
-} from '@/src/features/quests/suggestedQuests';
+import { openQuestsInCategory } from '@/src/features/quests/suggestedQuests';
 import type { Quest, UserQuest } from '@/src/types/quest';
 
 type Props = {
@@ -55,27 +52,24 @@ export function ExploreQuestPanel({ userId, categoryId, preferences }: Props) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [categoryId, userQuests]);
 
-  // Shared with the Journey catalogue so a finished quest disappears from both
-  // and returns to both. This screen used to exclude completed quests forever,
-  // which quietly retired a weekly walk after doing it once.
-  const claimedIds = useMemo(
-    () => claimedQuestIds({ userQuests, catalog: quests }),
-    [userQuests, quests]
-  );
-
   // A pool of picks, not one forced choice — testers (all 4) wanted to choose
   // from a few options instead of a single slot that vanishes once taken.
-  // "Discover more" still leads to the full category in Journey.
+  //
+  // Drawn from the same five the Journey tab offers, top three. It used to have
+  // its own ranking and its own exclusion rule, which meant the map could
+  // surface a quest the Journey tab was still holding back — five plus three
+  // reachable per category instead of five. "Discover more" leads to the rest
+  // of the same five.
   const recommended = useMemo(() => {
     if (!categoryId) return [] as Quest[];
-    return recommendQuestsInCategory({
+    return openQuestsInCategory({
       catalog: quests,
+      userQuests,
       categoryId,
       preferences,
-      excludeQuestIds: claimedIds,
       limit: 3,
     });
-  }, [categoryId, quests, preferences, claimedIds]);
+  }, [categoryId, quests, userQuests, preferences]);
 
   const nothingToShow =
     categoryId != null && inProgress.length === 0 && recommended.length === 0;

@@ -10,19 +10,11 @@ import { categoryAccentForCategoryId } from '@/lib/categoryAccent';
 import { categoryIoniconNameForCategoryId } from '@/lib/categoryIcons';
 import type { OnboardingPreferences } from '@/src/features/onboarding/types';
 import { useQuestDomainStore } from '@/src/features/quests/questStore';
-import { orderCategoryQuests } from '@/src/features/quests/suggestedQuests';
+import {
+  orderCategoryQuests,
+  QUESTS_OPEN_PER_CATEGORY,
+} from '@/src/features/quests/suggestedQuests';
 import type { Quest } from '@/src/types/quest';
-
-/**
- * How many quests a category shows before asking to be expanded.
- *
- * Standa's call, 2026-09-05: the catalogue reached ten per category and a wall
- * of ten reads as homework rather than an invitation. Five is a page you can
- * take in at a glance. Every category shows the same number so no category
- * looks richer than another — that is why this is a flat constant and not a
- * proportion of the category's size.
- */
-const VISIBLE_PER_CATEGORY = 5;
 
 type Props = {
   /** Preselects a category chip (e.g. arriving from Explore's "Discover more"). */
@@ -76,18 +68,11 @@ export function AllQuestsList({ initialCategoryId, preferences, actions }: Props
     });
   }, [quests, userQuests, preferences, activeCategoryId]);
 
-  const [expanded, setExpanded] = useState(false);
-  // Collapse again when switching chips, or the cap silently stops applying
-  // for the rest of the session after one expand.
-  useEffect(() => {
-    setExpanded(false);
-  }, [activeCategoryId]);
-
-  const hiddenCount = Math.max(0, categoryQuests.length - VISIBLE_PER_CATEGORY);
-  const visibleQuests =
-    expanded || hiddenCount === 0
-      ? categoryQuests
-      : categoryQuests.slice(0, VISIBLE_PER_CATEGORY);
+  // A "show more" control lived here for a day. It was removed because it
+  // handed over the whole shelf: the rest of the catalogue is meant to be
+  // earned by finishing something, so there is deliberately no way to reach it.
+  const visibleQuests = categoryQuests.slice(0, QUESTS_OPEN_PER_CATEGORY);
+  const lockedCount = Math.max(0, categoryQuests.length - visibleQuests.length);
 
   if (quests.length === 0) {
     return (
@@ -134,13 +119,11 @@ export function AllQuestsList({ initialCategoryId, preferences, actions }: Props
         </ScrollView>
       </View>
 
-      {activeCategoryId && categoryQuests.length > 0 ? (
+      {activeCategoryId && visibleQuests.length > 0 ? (
         <Text style={styles.countLine}>
-          {hiddenCount > 0 && !expanded
-            ? `${VISIBLE_PER_CATEGORY} picks for you`
-            : categoryQuests.length === 1
-              ? '1 quest in this category'
-              : `${categoryQuests.length} quests in this category`}
+          {visibleQuests.length === 1
+            ? '1 quest open to you here'
+            : `${visibleQuests.length} quests open to you here`}
         </Text>
       ) : null}
 
@@ -164,24 +147,18 @@ export function AllQuestsList({ initialCategoryId, preferences, actions }: Props
           </Text>
         ) : null}
 
-        {hiddenCount > 0 ? (
-          <Pressable
-            accessibilityRole="button"
-            onPress={() => setExpanded((v) => !v)}
-            style={({ pressed }) => [styles.moreButton, pressed && hub.pressed]}>
-            <Text style={styles.moreButtonText}>
-              {expanded
-                ? 'Show fewer'
-                : hiddenCount === 1
-                  ? 'Show 1 more quest'
-                  : `Show ${hiddenCount} more quests`}
+        {/* Says the rule out loud. Without it five quests looks like all there
+            is, and the reason to finish one is invisible. Deliberately not a
+            control — there is nothing to tap. */}
+        {lockedCount > 0 ? (
+          <View style={styles.lockedRow}>
+            <Ionicons name="lock-closed-outline" size={14} color={Theme.textMuted} />
+            <Text style={styles.lockedText}>
+              {lockedCount === 1
+                ? '1 more waiting here — finish one of these to reach it.'
+                : `${lockedCount} more waiting here — finish one of these to reach the next.`}
             </Text>
-            <Ionicons
-              name={expanded ? 'chevron-up' : 'chevron-down'}
-              size={15}
-              color={Theme.textMuted}
-            />
-          </Pressable>
+          </View>
         ) : null}
       </View>
 
@@ -212,13 +189,18 @@ const styles = StyleSheet.create({
     paddingVertical: 24,
     textAlign: 'center',
   },
-  moreButton: {
+  lockedRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     gap: 6,
-    paddingVertical: 12,
-    marginTop: 2,
+    paddingVertical: 14,
+    paddingHorizontal: 8,
   },
-  moreButtonText: { fontSize: 14, fontWeight: '600', color: Theme.textMuted },
+  lockedText: {
+    flexShrink: 1,
+    fontSize: 13,
+    lineHeight: 18,
+    color: Theme.textMuted,
+  },
 });

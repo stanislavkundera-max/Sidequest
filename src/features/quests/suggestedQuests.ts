@@ -88,52 +88,45 @@ export function recommendQuestsForPreferences(params: {
 }
 
 /**
- * Top picks for a single category, ranked by onboarding fit.
- * Used by the Explore map panel. Falls back to gentlest-first when no answers.
+ * How many quests a category offers at once, across every screen.
+ *
+ * This is a game rule, not a layout choice: the rest of the catalogue is
+ * earned, and a sixth quest appears only when one of these five is finished or
+ * turned down. Standa, 2026-09-06 — "pointa je ta, že aby se dostali k novým
+ * questům tak musí splnit starý quest."
+ *
+ * It therefore has to hold everywhere a category can be browsed, or the rule
+ * is only as strong as the loosest screen. Use `openQuestsInCategory` rather
+ * than slicing an ordered list yourself.
  */
-export function recommendQuestsInCategory(params: {
+export const QUESTS_OPEN_PER_CATEGORY = 5;
+
+/**
+ * The quests a category is currently offering — already capped.
+ *
+ * One pool per category, shared by the Journey tab, the Explore panel and the
+ * picker, so none of them can widen access past the rule.
+ */
+export function openQuestsInCategory(params: {
   catalog: Quest[];
+  userQuests: UserQuest[];
   categoryId: string;
   preferences?: OnboardingPreferences | null;
-  excludeQuestIds?: Set<string>;
+  now?: number;
+  /** Show fewer than the cap (Explore's panel takes the top three). Never more. */
   limit?: number;
 }): Quest[] {
-  const { catalog, categoryId, preferences, excludeQuestIds, limit = 4 } = params;
-  const pool = catalog.filter(
-    (q) =>
-      q.isActive !== false &&
-      q.categoryId === categoryId &&
-      !(excludeQuestIds?.has(q.id) ?? false)
-  );
-  if (!preferences) {
-    return [...pool]
-      .sort((a, b) => a.estimatedDurationMinutes - b.estimatedDurationMinutes)
-      .slice(0, limit);
-  }
-  const preferredIds = new Set(preferences.categories.map((c) => `cat-${c}`));
-  return pool
-    .map((quest, index) => ({
-      quest,
-      index,
-      score: scoreQuestForPreferences(quest, preferences, preferredIds),
-    }))
-    .sort(
-      (a, b) =>
-        b.score - a.score ||
-        a.quest.estimatedDurationMinutes - b.quest.estimatedDurationMinutes ||
-        a.index - b.index
-    )
-    .slice(0, limit)
-    .map((e) => e.quest);
+  const limit = Math.min(params.limit ?? QUESTS_OPEN_PER_CATEGORY, QUESTS_OPEN_PER_CATEGORY);
+  return orderCategoryQuests(params).slice(0, limit);
 }
 
 /**
- * What one category tab offers: everything in that category the user could
- * still take on, best first.
+ * Every quest in a category the user could still take on, best first and
+ * uncapped. Callers that put quests in front of someone want
+ * `openQuestsInCategory`; this exists so they can also say how many are locked.
  *
- * Capping happens at the call site — this returns the full ordered list so the
- * caller can say how many are hidden. Order is: newly added, then fit to the
- * onboarding answers, then gentlest (soonest cadence, then shortest).
+ * Order is: newly added, then fit to the onboarding answers, then gentlest
+ * (soonest cadence, then shortest).
  */
 export function orderCategoryQuests(params: {
   catalog: Quest[];
@@ -221,7 +214,7 @@ function isCompletedRecently(
  * horizon — so the same finished quest could be gone from one tab, back in
  * another, and never returning in a third.
  */
-export function claimedQuestIds(params: {
+function claimedQuestIds(params: {
   userQuests: UserQuest[];
   /** Needed to read each quest's timeframe for the completion horizon. */
   catalog: Quest[];
