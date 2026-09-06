@@ -192,6 +192,21 @@ export const journeyHubStyles = StyleSheet.create({
     lineHeight: 23,
   },
   questRowSub: { fontSize: 14, fontFamily: 'Inter_400Regular', lineHeight: 20, color: Theme.textMuted },
+  metaRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  // Brand amber, carrying dark text at 6.61:1. Amber is a fill here and never a
+  // foreground — see the note on `accentWarm` in constants/Theme.ts.
+  newBadge: {
+    backgroundColor: Theme.accentWarm,
+    borderRadius: 4,
+    paddingHorizontal: 5,
+    paddingVertical: 1,
+  },
+  newBadgeText: {
+    fontSize: 10,
+    fontFamily: 'Inter_700Bold',
+    letterSpacing: 0.6,
+    color: Theme.accentWarmText,
+  },
   questRowActions: { flexDirection: 'row', gap: 8, flexWrap: 'wrap', marginTop: 4 },
   likedSectionLabel: {
     paddingHorizontal: 16,

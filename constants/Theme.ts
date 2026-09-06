@@ -34,6 +34,9 @@ export type ThemePalette = {
   adventure: string;
   social: string;
   relax: string;
+  /** Brand amber. A fill behind dark text only — see the note on the value. */
+  accentWarm: string;
+  accentWarmText: string;
   danger: string;
   dangerSoft: string;
   dangerBorder: string;
@@ -53,6 +56,22 @@ export const lightPalette: ThemePalette = {
   adventure: '#8d6025',
   social: '#824071',
   relax: '#4264b3',
+  /**
+   * The brand amber from BRANDING.md §2 — the cairn's top stone, the one
+   * catching the last light. Until now it lived only in the logo and the
+   * feature graphic and appeared nowhere in the app.
+   *
+   * **Only ever as a fill behind dark text.** Measured: amber carries 6.61:1
+   * against `text`, which clears AA comfortably — but only 2.01:1 against `bg`
+   * and 2.25:1 against white, so amber *as* a foreground fails even the 3:1
+   * that non-text UI needs. A soft amber tint was tried too and sits at 1.05
+   * against the beige, which is to say invisible.
+   *
+   * So it marks things by filling a small shape, and never by colouring a word
+   * or an icon on the page background.
+   */
+  accentWarm: '#d9a441',
+  accentWarmText: '#28281f',
   danger: '#b13a2f',
   // The pale fill and hairline behind error states. These were hardcoded in
   // five different files against the previous red, which is exactly how a

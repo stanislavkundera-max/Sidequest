@@ -5,6 +5,7 @@ import { journeyHubStyles as styles } from '@/components/journey/journeyHubStyle
 import { Theme } from '@/constants/Theme';
 import { categoryAccentForCategoryId } from '@/lib/categoryAccent';
 import { questDurationLabel, QUEST_COPY } from '@/src/features/quests/questCopy';
+import { isRecentlyAdded } from '@/src/features/quests/suggestedQuests';
 import type { Quest } from '@/src/types/quest';
 
 const TF_META: Record<Quest['timeframe'], string> = {
@@ -51,7 +52,17 @@ export function CatalogQuestRow({
       style={({ pressed }) => [styles.discoverQuestRow, pressed && styles.pressed]}>
       <View style={[styles.discoverQuestAccent, { backgroundColor: accent }]} />
       <View style={styles.discoverQuestRowBody}>
-        <Text style={[styles.questRowMeta, { color: accent }]}>{categoryLabel}</Text>
+        <View style={styles.metaRow}>
+          <Text style={[styles.questRowMeta, { color: accent }]}>{categoryLabel}</Text>
+          {/* The catalogue already sorts new quests to the top; this is the
+              only thing that says so. Amber on dark text — the one pairing the
+              brand colour passes contrast in (6.61:1). */}
+          {isRecentlyAdded(quest) ? (
+            <View style={styles.newBadge}>
+              <Text style={styles.newBadgeText}>NEW</Text>
+            </View>
+          ) : null}
+        </View>
         <Text style={styles.questRowTitle} numberOfLines={3}>
           {quest.title}
         </Text>
