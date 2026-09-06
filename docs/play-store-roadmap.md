@@ -24,8 +24,8 @@ A week after the roadmap was written, verified rather than assumed:
 | Play Console account | ✅ **Created and paid 2026-09-05** — personal account, identity verification now running on Google's clock |
 | EAS env vars (task 2.0) | ✅ Set for production and preview 2026-09-05 |
 | Supabase `{{ .Token }}` template | ✅ Done 2026-09-05 |
-| Domain / `privacy@` mailbox | ❌ Not done |
-| First production build | ✅ **Succeeded 2026-09-05** — verified from the artifact, see below |
+| Contact mailbox | ✅ **Settled 2026-09-06** — `sidequestlifeapp@gmail.com`, the account already used for Play. The domain was the nicer option and is still open; a working mailbox was the needed one |
+| First production build | ✅ **Succeeded 2026-09-05.** Rebuilt 2026-09-06 as `versionCode 7` — the first artifact containing the 41-quest catalogue, the five-per-category rule and the deep-link fixes |
 | Code and native readiness | ✅ Done and merged |
 
 Nothing technical moved in that week because everything technical is downstream of two logins.
@@ -93,7 +93,7 @@ These run while Google verifies the account. None of them depends on another.
 |---|---|---|---|
 | 0.1 | ~~Create the Play Console account ($25) as Personal~~ | Standa | ✅ Done 2026-09-05. Identity verification is running — days, on Google's side |
 | 0.2 | ~~Expo account + `npx eas-cli login`~~ | Standa | ✅ Done 2026-09-05 |
-| 0.3 | Register the domain for `privacy@sidequestlife.com` and make it receive mail | Standa | ❌ Blocks 1.3 and 3.4 |
+| 0.3 | ~~Register the domain for `privacy@sidequestlife.com`~~ | Standa | ✅ Resolved differently 2026-09-06 — `LEGAL_CONTACT_EMAIL` now points at `sidequestlifeapp@gmail.com`, which exists and is read. Buying the domain later means editing one constant |
 | 0.4 | ~~Supabase: `{{ .Token }}` in the reset-password template~~ | Standa | ✅ Done 2026-09-05 |
 | 0.5 | Line up 12+ testers with Android devices — aim for 20 | Standa | ❌ Applies. The longest pole once the account is verified |
 | 0.6 | ~~Merge both branches into `main`~~ | Standa | ✅ Done and pushed 2026-09-05 |
@@ -176,7 +176,7 @@ Gate: **0.2 done (Expo login).** Can run in parallel with Phase 1.
 | 2.0 | ~~Set the EAS environment variables~~ | Standa | ✅ Done. Both present in `production` and `preview`; no dev-login credentials in any environment (checked 2026-09-06) |
 | 2.1 | ~~`eas init`~~ | Claude | ✅ Done 2026-09-05 |
 | 2.2 | ~~First production build~~ | Claude | ✅ Done. Latest is `versionCode 7` from `da536a1`, built 2026-09-06 — the first build containing the 41-quest catalogue and the five-per-category rule |
-| 2.3 | Read the build output and confirm `targetSdkVersion` is 36 | Claude | Expected to pass — see the API level note below |
+| 2.3 | ~~Confirm `targetSdkVersion` is 36~~ | Claude | ✅ 36. See the note below for what that rests on |
 | 2.4 | ~~Deploy the web export~~ | Standa | ✅ Live at `sidequest-cyan.vercel.app`, auto-deploying from `main`. Both legal pages verified public 2026-09-06 |
 | 2.5 | ~~Create the reviewer demo account~~ | — | ✅ Not needed. First launch signs in anonymously, so App access is "available without special access" — verified on the live deployment 2026-09-06, handoff §7 |
 
@@ -256,6 +256,28 @@ Google's limits: `versionCode` must increase with every upload, can never be reu
 below **2,100,000,000**. This is already handled — `eas.json` sets `appVersionSource: "remote"` with
 `autoIncrement: true` on the production profile, so EAS owns the counter and the repo does not.
 Nothing to do, and nothing to hand-edit.
+
+---
+
+
+### 2.3 — target API 36, and how firmly that is established
+
+Play requires new apps to target API 36 from 31 August 2026, so this had to be checked rather than
+assumed. Three things line up, none of them a guess:
+
+- Expo's own SDK 54 changelog: *"React Native for Android now targets Android 16 / API 36."*
+- `expo-modules-core/android/ExpoModulesCorePlugin.gradle` falls back to `targetSdkVersion 36`.
+- Nothing overrides it. `app.config.ts` has no `expo-build-properties` plugin — the plugin list is
+  `expo-router`, `expo-calendar`, `expo-image-picker` and nothing else.
+
+What was **not** done: reading the value out of the produced AAB. `android/` is gitignored (CNG), so
+there is no local gradle file to read, and a local `expo prebuild` turned out not to expose the
+number either — SDK 54 moved it into the `expo-root-project` Gradle plugin, which is resolved from
+Maven at build time rather than sitting in `node_modules`.
+
+That gap is acceptable because this failure is loud, not silent: if the target were below 36, Play
+rejects the bundle at upload with an explicit message naming the required level. It cannot slip
+through into a release.
 
 ---
 
