@@ -35,7 +35,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     minHeight: 50,
   },
-  text: { color: '#fff', fontWeight: '600', fontSize: 16 },
+  text: { color: '#fff', fontWeight: '600', fontSize: 16, fontFamily: 'Inter_600SemiBold' },
   pressed: { opacity: 0.9 },
   disabled: { opacity: 0.55 },
 });

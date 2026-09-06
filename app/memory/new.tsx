@@ -218,6 +218,7 @@ const styles = StyleSheet.create({
   scroll: { padding: 20, paddingBottom: 40 },
   label: {
     fontSize: 13,
+    fontFamily: 'Inter_600SemiBold',
     fontWeight: '600',
     color: Theme.textMuted,
     marginBottom: 8,
@@ -229,6 +230,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     padding: 14,
     fontSize: 16,
+    fontFamily: 'Inter_400Regular',
     color: Theme.text,
     backgroundColor: Theme.surface,
     marginBottom: 20,
@@ -240,6 +242,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
     paddingVertical: 12,
     fontSize: 16,
+    fontFamily: 'Inter_400Regular',
     color: Theme.text,
     backgroundColor: Theme.surface,
     marginBottom: 16,
@@ -264,5 +267,5 @@ const styles = StyleSheet.create({
   },
   removePhoto: { marginTop: 8 },
   removePhotoText: { color: Theme.danger, fontWeight: '600' },
-  uploadingHint: { color: Theme.textMuted, marginBottom: 10, fontSize: 13 },
+  uploadingHint: { color: Theme.textMuted, marginBottom: 10, fontSize: 13, fontFamily: 'Inter_400Regular' },
 });

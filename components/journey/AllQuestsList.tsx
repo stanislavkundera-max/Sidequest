@@ -173,9 +173,10 @@ export function AllQuestsList({ initialCategoryId, preferences, actions }: Props
 
 const styles = StyleSheet.create({
   loadingWrap: { paddingVertical: 48, alignItems: 'center', gap: 12 },
-  loadingText: { color: Theme.textMuted, fontSize: 14 },
+  loadingText: { color: Theme.textMuted, fontSize: 14, fontFamily: 'Inter_400Regular' },
   countLine: {
     fontSize: 13,
+    fontFamily: 'Inter_500Medium',
     fontWeight: '500',
     color: Theme.textMuted,
     paddingHorizontal: 16,
@@ -184,6 +185,7 @@ const styles = StyleSheet.create({
   groupList: { gap: 10, paddingHorizontal: 16 },
   emptyText: {
     fontSize: 14,
+    fontFamily: 'Inter_400Regular',
     lineHeight: 20,
     color: Theme.textMuted,
     paddingVertical: 24,
@@ -200,6 +202,7 @@ const styles = StyleSheet.create({
   lockedText: {
     flexShrink: 1,
     fontSize: 13,
+    fontFamily: 'Inter_400Regular',
     lineHeight: 18,
     color: Theme.textMuted,
   },

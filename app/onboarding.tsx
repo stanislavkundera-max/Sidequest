@@ -723,6 +723,7 @@ const styles = StyleSheet.create({
   },
   kicker: {
     fontSize: 13,
+    fontFamily: 'Inter_400Regular',
     letterSpacing: 1.2,
     textTransform: 'uppercase',
     color: Theme.textMuted,
@@ -753,6 +754,7 @@ const styles = StyleSheet.create({
   },
   headline: {
     fontSize: 26,
+    fontFamily: 'Inter_700Bold',
     lineHeight: 33,
     fontWeight: '700',
     color: Theme.text,
@@ -760,11 +762,13 @@ const styles = StyleSheet.create({
   },
   lead: {
     fontSize: 16,
+    fontFamily: 'Inter_400Regular',
     lineHeight: 24,
     color: Theme.textMuted,
   },
   subtext: {
     fontSize: 15,
+    fontFamily: 'Inter_400Regular',
     lineHeight: 22,
     color: Theme.textMuted,
     marginBottom: 18,
@@ -778,6 +782,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 10,
     fontSize: 14,
+    fontFamily: 'Inter_400Regular',
     lineHeight: 20,
   },
   featureList: { gap: 4, marginTop: 4 },
@@ -799,8 +804,8 @@ const styles = StyleSheet.create({
     backgroundColor: Theme.accentSoft,
   },
   featureText: { flex: 1, minWidth: 0 },
-  featureTitle: { fontSize: 17, fontWeight: '700', color: Theme.text, marginBottom: 4 },
-  featureBody: { fontSize: 14, lineHeight: 20, color: Theme.textMuted },
+  featureTitle: { fontSize: 17, fontFamily: 'Inter_700Bold', fontWeight: '700', color: Theme.text, marginBottom: 4 },
+  featureBody: { fontSize: 14, fontFamily: 'Inter_400Regular', lineHeight: 20, color: Theme.textMuted },
   choiceWrap: { gap: 10 },
   optionRow: {
     flexDirection: 'row',
@@ -826,8 +831,8 @@ const styles = StyleSheet.create({
   },
   optionIconSelected: { backgroundColor: Theme.accent },
   optionText: { flex: 1, minWidth: 0 },
-  optionTitle: { fontSize: 17, color: Theme.text, fontWeight: '600', marginBottom: 2 },
-  optionDescription: { fontSize: 14, color: Theme.textMuted, lineHeight: 19 },
+  optionTitle: { fontSize: 17, fontFamily: 'Inter_600SemiBold', color: Theme.text, fontWeight: '600', marginBottom: 2 },
+  optionDescription: { fontSize: 14, fontFamily: 'Inter_400Regular', color: Theme.textMuted, lineHeight: 19 },
   scaleCard: {
     borderWidth: 1,
     borderColor: Theme.border,
@@ -836,7 +841,7 @@ const styles = StyleSheet.create({
     padding: 16,
     gap: 12,
   },
-  scalePrompt: { fontSize: 16, fontWeight: '600', color: Theme.text, lineHeight: 22 },
+  scalePrompt: { fontSize: 16, fontFamily: 'Inter_600SemiBold', fontWeight: '600', color: Theme.text, lineHeight: 22 },
   scaleRow: { flexDirection: 'row', gap: 8, justifyContent: 'space-between' },
   scaleDot: {
     flex: 1,
@@ -849,10 +854,10 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   scaleDotSelected: { backgroundColor: Theme.accent, borderColor: Theme.accent },
-  scaleDotText: { fontSize: 16, fontWeight: '700', color: Theme.textMuted },
+  scaleDotText: { fontSize: 16, fontFamily: 'Inter_700Bold', fontWeight: '700', color: Theme.textMuted },
   scaleDotTextSelected: { color: '#fff' },
   scaleLabelsRow: { flexDirection: 'row', justifyContent: 'space-between' },
-  scaleEdgeLabel: { fontSize: 12, color: Theme.textMuted },
+  scaleEdgeLabel: { fontSize: 12, fontFamily: 'Inter_400Regular', color: Theme.textMuted },
   recommendCard: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -867,13 +872,14 @@ const styles = StyleSheet.create({
   recommendBody: { flex: 1, padding: 14, gap: 4, minWidth: 0 },
   recommendMeta: {
     fontSize: 11,
+    fontFamily: 'Inter_700Bold',
     fontWeight: '700',
     color: Theme.textMuted,
     textTransform: 'uppercase',
     letterSpacing: 0.6,
   },
-  recommendTitle: { fontSize: 16, fontWeight: '700', color: Theme.text, lineHeight: 20 },
-  recommendSub: { fontSize: 14, color: Theme.textMuted, lineHeight: 19 },
+  recommendTitle: { fontSize: 16, fontFamily: 'Inter_700Bold', fontWeight: '700', color: Theme.text, lineHeight: 20 },
+  recommendSub: { fontSize: 14, fontFamily: 'Inter_400Regular', color: Theme.textMuted, lineHeight: 19 },
   recommendEmpty: {
     flexDirection: 'row',
     gap: 12,
@@ -884,10 +890,11 @@ const styles = StyleSheet.create({
     backgroundColor: Theme.surface,
     padding: 16,
   },
-  recommendEmptyText: { flex: 1, fontSize: 14, lineHeight: 20, color: Theme.textMuted },
+  recommendEmptyText: { flex: 1, fontSize: 14, fontFamily: 'Inter_400Regular', lineHeight: 20, color: Theme.textMuted },
   footnote: {
     marginTop: 16,
     fontSize: 13,
+    fontFamily: 'Inter_400Regular',
     lineHeight: 19,
     color: Theme.textMuted,
   },
@@ -907,7 +914,7 @@ const styles = StyleSheet.create({
     borderRadius: 14,
     alignItems: 'center',
   },
-  ctaText: { color: '#fff', fontSize: 17, fontWeight: '700' },
+  ctaText: { color: '#fff', fontSize: 17, fontFamily: 'Inter_700Bold', fontWeight: '700' },
   ctaDisabled: { opacity: 0.5 },
   secondaryBtn: {
     paddingVertical: 16,
@@ -918,6 +925,6 @@ const styles = StyleSheet.create({
     borderColor: Theme.border,
     backgroundColor: Theme.surface,
   },
-  secondaryBtnText: { color: Theme.text, fontSize: 16, fontWeight: '600' },
+  secondaryBtnText: { color: Theme.text, fontSize: 16, fontFamily: 'Inter_600SemiBold', fontWeight: '600' },
   pressed: { opacity: 0.85 },
 });

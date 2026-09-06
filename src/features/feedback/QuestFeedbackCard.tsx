@@ -138,8 +138,8 @@ const styles = StyleSheet.create({
     backgroundColor: Theme.surface,
     gap: 8,
   },
-  title: { fontSize: 15, fontWeight: '600', color: Theme.text },
-  sub: { color: Theme.textMuted, fontSize: 13 },
+  title: { fontSize: 15, fontFamily: 'Inter_600SemiBold', fontWeight: '600', color: Theme.text },
+  sub: { color: Theme.textMuted, fontSize: 13, fontFamily: 'Inter_400Regular' },
   row: { flexDirection: 'row', gap: 10 },
   btn: {
     flex: 1,
@@ -152,7 +152,7 @@ const styles = StyleSheet.create({
   },
   btnPressed: { opacity: 0.9 },
   btnSelected: { backgroundColor: Theme.accentSoft, borderColor: Theme.accent },
-  btnText: { color: Theme.text, fontSize: 13, fontWeight: '500' },
+  btnText: { color: Theme.text, fontSize: 13, fontFamily: 'Inter_500Medium', fontWeight: '500' },
   btnTextSelected: { color: Theme.accent, fontWeight: '700' },
   input: {
     borderWidth: 1,
@@ -163,6 +163,7 @@ const styles = StyleSheet.create({
     color: Theme.text,
     backgroundColor: Theme.bg,
     fontSize: 14,
+    fontFamily: 'Inter_400Regular',
   },
   sendBtn: {
     borderRadius: 10,
@@ -171,5 +172,5 @@ const styles = StyleSheet.create({
     backgroundColor: Theme.accent,
   },
   sendBtnDisabled: { opacity: 0.6 },
-  sendBtnText: { color: '#fff', fontSize: 13, fontWeight: '600' },
+  sendBtnText: { color: '#fff', fontSize: 13, fontFamily: 'Inter_600SemiBold', fontWeight: '600' },
 });

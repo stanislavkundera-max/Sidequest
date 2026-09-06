@@ -286,7 +286,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingTop: 8,
   },
-  title: { fontSize: 28, fontWeight: '600', color: Theme.text },
+  title: { fontSize: 28, fontFamily: 'Fraunces_600SemiBold', fontWeight: '600', color: Theme.text },
   addBtn: {
     justifyContent: 'center',
     minHeight: MIN_TOUCH_TARGET,
@@ -295,13 +295,14 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     borderRadius: 10,
   },
-  addBtnText: { color: '#fff', fontWeight: '600', fontSize: 15 },
+  addBtnText: { color: '#fff', fontWeight: '600', fontSize: 15, fontFamily: 'Inter_600SemiBold' },
   sub: {
     paddingHorizontal: 20,
     marginTop: 6,
     marginBottom: 12,
     color: Theme.textMuted,
     fontSize: 15,
+    fontFamily: 'Inter_400Regular',
   },
   filterRow: {
     gap: 8,
@@ -319,7 +320,7 @@ const styles = StyleSheet.create({
     backgroundColor: Theme.surface,
   },
   chipSelected: { backgroundColor: Theme.accentSoft, borderColor: Theme.accent },
-  chipText: { fontSize: 13, fontWeight: '600', color: Theme.textMuted },
+  chipText: { fontSize: 13, fontFamily: 'Inter_600SemiBold', fontWeight: '600', color: Theme.textMuted },
   chipTextSelected: { color: Theme.accent },
   list: { paddingHorizontal: 20, paddingBottom: 32, gap: 12 },
   emptyContainer: {
@@ -336,14 +337,15 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   cardPressed: { opacity: 0.92 },
-  cardDate: { fontSize: 12, color: Theme.textMuted, marginBottom: 8 },
+  cardDate: { fontSize: 12, fontFamily: 'Inter_400Regular', color: Theme.textMuted, marginBottom: 8 },
   cardTitle: {
     fontSize: 16,
+    fontFamily: 'Fraunces_600SemiBold',
     fontWeight: '600',
     color: Theme.text,
     marginBottom: 6,
   },
-  cardMeta: { fontSize: 13, color: Theme.textMuted, marginBottom: 10 },
+  cardMeta: { fontSize: 13, fontFamily: 'Inter_400Regular', color: Theme.textMuted, marginBottom: 10 },
   cardImage: {
     width: '100%',
     aspectRatio: 4 / 3,
@@ -351,6 +353,6 @@ const styles = StyleSheet.create({
     marginBottom: 12,
     backgroundColor: Theme.border,
   },
-  noPhotoText: { color: Theme.textMuted, fontSize: 12, marginBottom: 10 },
-  cardBody: { fontSize: 16, lineHeight: 24, color: Theme.text },
+  noPhotoText: { color: Theme.textMuted, fontSize: 12, fontFamily: 'Inter_400Regular', marginBottom: 10 },
+  cardBody: { fontSize: 16, fontFamily: 'Inter_400Regular', lineHeight: 24, color: Theme.text },
 });

@@ -113,6 +113,7 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 22,
+    fontFamily: 'Fraunces_700Bold',
     fontWeight: '700',
     color: '#ffffff',
     marginBottom: 4,
@@ -122,6 +123,7 @@ const styles = StyleSheet.create({
   },
   subtitle: {
     fontSize: 14,
+    fontFamily: 'Inter_400Regular',
     lineHeight: 20,
     color: 'rgba(255, 255, 255, 0.92)',
     textShadowColor: 'rgba(0, 0, 0, 0.55)',

@@ -64,3 +64,34 @@ export const lightPalette: ThemePalette = {
 
 // A dark palette slots in here; nothing else has to change.
 export const Theme = lightPalette;
+
+/**
+ * The two brand faces, named by role rather than by family.
+ *
+ * BRANDING.md §3: Fraunces for headings — it is the reason the brand reads as
+ * grown rather than manufactured — and Inter for body, chosen for legibility at
+ * the 13–16px the app actually renders at.
+ *
+ * **Use these instead of `fontWeight`.** Android does not synthesise weight for
+ * a custom family: `fontWeight: '700'` on a font with no bold cut renders
+ * regular, silently, on exactly the devices this ships to. Each weight is a
+ * separate loaded family, so the weight has to be chosen by picking the right
+ * token here. iOS and web are more forgiving, which is what makes this the kind
+ * of bug you do not see until a tester's Pixel screenshot looks flat.
+ *
+ * Loaded in `app/_layout.tsx`. Adding a token means loading its file there too.
+ */
+export const Type = {
+  /** Page and section titles. */
+  heading: { fontFamily: 'Fraunces_700Bold' } as const,
+  /** Card titles and the lighter headings. */
+  headingSoft: { fontFamily: 'Fraunces_600SemiBold' } as const,
+  /** Default body copy. */
+  body: { fontFamily: 'Inter_400Regular' } as const,
+  /** Body copy that needs a little more presence — labels, meta lines. */
+  bodyMedium: { fontFamily: 'Inter_500Medium' } as const,
+  /** Buttons, chips, anything that reads as an action. */
+  bodySemi: { fontFamily: 'Inter_600SemiBold' } as const,
+  /** Reserved for the rare emphatic run of body text. */
+  bodyBold: { fontFamily: 'Inter_700Bold' } as const,
+};

@@ -339,8 +339,8 @@ const styles = StyleSheet.create({
     paddingVertical: 24,
     justifyContent: 'center',
   },
-  title: { fontSize: 26, fontWeight: '600', color: Theme.text, marginBottom: 8 },
-  sub: { fontSize: 16, lineHeight: 24, color: Theme.textMuted, marginBottom: 16 },
+  title: { fontSize: 26, fontFamily: 'Fraunces_600SemiBold', fontWeight: '600', color: Theme.text, marginBottom: 8 },
+  sub: { fontSize: 16, fontFamily: 'Inter_400Regular', lineHeight: 24, color: Theme.textMuted, marginBottom: 16 },
   bannerError: {
     backgroundColor: Theme.dangerSoft,
     color: Theme.danger,
@@ -348,6 +348,7 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     marginBottom: 16,
     fontSize: 14,
+    fontFamily: 'Inter_400Regular',
     lineHeight: 20,
   },
   bannerInfo: {
@@ -357,9 +358,10 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     marginBottom: 16,
     fontSize: 14,
+    fontFamily: 'Inter_400Regular',
     lineHeight: 20,
   },
-  label: { fontSize: 13, fontWeight: '600', color: Theme.textMuted, marginBottom: 6 },
+  label: { fontSize: 13, fontFamily: 'Inter_600SemiBold', fontWeight: '600', color: Theme.textMuted, marginBottom: 6 },
   input: {
     borderWidth: 1,
     borderColor: Theme.border,
@@ -367,6 +369,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
     paddingVertical: 12,
     fontSize: 16,
+    fontFamily: 'Inter_400Regular',
     color: Theme.text,
     backgroundColor: Theme.surface,
     marginBottom: 16,
@@ -378,6 +381,6 @@ const styles = StyleSheet.create({
     minHeight: MIN_TOUCH_TARGET,
     marginTop: 8,
   },
-  link: { color: Theme.accent, fontSize: 15 },
-  hint: { marginTop: 24, textAlign: 'center', color: Theme.danger, fontSize: 14 },
+  link: { color: Theme.accent, fontSize: 15, fontFamily: 'Inter_400Regular' },
+  hint: { marginTop: 24, textAlign: 'center', color: Theme.danger, fontSize: 14, fontFamily: 'Inter_400Regular' },
 });

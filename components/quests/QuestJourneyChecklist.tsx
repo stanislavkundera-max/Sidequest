@@ -86,6 +86,7 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     fontSize: 13,
+    fontFamily: 'Inter_600SemiBold',
     fontWeight: '600',
     color: Theme.textMuted,
     textTransform: 'uppercase',
@@ -94,12 +95,14 @@ const styles = StyleSheet.create({
   },
   intro: {
     fontSize: 16,
+    fontFamily: 'Inter_400Regular',
     lineHeight: 24,
     color: Theme.text,
     marginBottom: 14,
   },
   browseHint: {
     fontSize: 14,
+    fontFamily: 'Inter_400Regular',
     color: Theme.textMuted,
     marginBottom: 12,
     lineHeight: 20,
@@ -115,10 +118,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  checkMark: { color: '#fff', fontSize: 14, fontWeight: '700' },
+  checkMark: { color: '#fff', fontSize: 14, fontFamily: 'Inter_700Bold', fontWeight: '700' },
   rowBody: { flex: 1 },
   stepTitle: {
     fontSize: 16,
+    fontFamily: 'Inter_500Medium',
     lineHeight: 22,
     color: Theme.text,
     fontWeight: '500',
@@ -126,6 +130,7 @@ const styles = StyleSheet.create({
   stepDetail: {
     marginTop: 4,
     fontSize: 14,
+    fontFamily: 'Inter_400Regular',
     lineHeight: 20,
     color: Theme.textMuted,
   },

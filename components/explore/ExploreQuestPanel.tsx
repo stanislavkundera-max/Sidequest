@@ -204,6 +204,7 @@ const panelStyles = StyleSheet.create({
   list: { gap: 10, paddingHorizontal: 16, paddingBottom: 4 },
   recommendedCaption: {
     fontSize: 12,
+    fontFamily: 'Inter_400Regular',
     color: Theme.textMuted,
     paddingHorizontal: 16,
     marginTop: -6,
@@ -223,6 +224,6 @@ const panelStyles = StyleSheet.create({
     borderColor: Theme.accent,
     backgroundColor: Theme.accentSoft,
   },
-  discoverMoreText: { fontSize: 14, fontWeight: '700', color: Theme.accent },
+  discoverMoreText: { fontSize: 14, fontFamily: 'Inter_700Bold', fontWeight: '700', color: Theme.accent },
   pressed: { opacity: 0.85 },
 });

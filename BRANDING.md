@@ -319,22 +319,45 @@ above).
 **The rejected options, kept so this is not re-litigated:** Source Serif 4 + Source Sans 3 (safest,
 least distinctive) and Newsreader + Work Sans (editorial, quieter).
 
-### One sub-question still open
+### ~~One sub-question still open~~ ✅ Inter, confirmed 2026-09-06
 
 **Inter is a neo-grotesque — engineered by design, not organic.** It was chosen for legibility at
 13–16px on a phone, which is the right priority for body text, with the warmth carried by the
-headings. If the organic feel should run through the body copy too, a humanist sans is warmer:
-**Source Sans 3** or **Work Sans**. That is a one-line change and does not touch the heading
-decision.
+headings. The alternatives were **Source Sans 3** and **Work Sans**, both humanist and warmer.
 
-### Implementation, once the body face is final
+Standa's call was to keep Inter: the organic feel is Fraunces's job, and body copy at 13px should
+optimise for being read. Swapping later is still a one-line change per weight in `_layout.tsx` plus
+the token values — nothing names a family directly.
 
-Load both via `expo-font` in `app/_layout.tsx`, add `heading`/`body` roles alongside the colour
-tokens so screens stop naming families directly, and **delete `SpaceMono`** — it is an unused Expo
-template leftover that currently costs startup time for nothing.
+### ✅ Implemented 2026-09-06
 
-Fraunces is variable: worth exposing `WONK`/`SOFT` deliberately rather than shipping the default
-upright cut, since that axis is the entire reason it was chosen.
+Shipped, having been decided on 29 August and never built. Before this the app rendered entirely in
+the system font: **not one `fontFamily` existed in 230 text styles**, and the only loaded face was
+`SpaceMono` — an Expo template leftover referenced by nothing, parsed on every cold start since the
+project began. It is gone.
+
+What is now true:
+
+- Six cuts load in `app/_layout.tsx`: Fraunces 600/700, Inter 400/500/600/700. Only what is used —
+  each file delays the splash screen.
+- `Type` in `constants/Theme.ts` names them by role, so screens ask for `heading` or `bodySemi`
+  rather than a family string.
+- All 230 styles carry a family, derived from the weight each already declared.
+
+**Android does not synthesise weight for custom fonts.** `fontWeight: '700'` on a family with no
+bold cut renders regular — silently, on exactly the devices this ships to, while iOS and web look
+fine. That is why weights are separate loaded families and why `Type` exists rather than screens
+setting `fontWeight` and hoping.
+
+**Where Fraunces goes.** Page titles, the large display numerals on Progress, empty-state and modal
+headings — and **quest titles**, which is the call worth recording. A quest's name is the one line
+in the app that *is* the product; in the body face every card read like a settings row. The
+threshold is 18px elsewhere, because Fraunces below that muddies on a phone and legibility at small
+sizes is the entire reason Inter is here.
+
+Still open: Fraunces is variable, and `WONK`/`SOFT` are shipping at their default upright cut. That
+axis is the reason the face was chosen, so it is worth exposing deliberately — but it needs the
+variable font rather than the static named cuts, which is its own change.
 
 ---
 

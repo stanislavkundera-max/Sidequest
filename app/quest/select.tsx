@@ -358,10 +358,11 @@ export default function QuestSelectionScreen() {
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: Theme.bg },
   scroll: { padding: 20, paddingBottom: 36 },
-  title: { fontSize: 28, fontWeight: '600', color: Theme.text, marginBottom: 8 },
-  sub: { fontSize: 15, color: Theme.textMuted, lineHeight: 22, marginBottom: 8 },
+  title: { fontSize: 28, fontFamily: 'Fraunces_600SemiBold', fontWeight: '600', color: Theme.text, marginBottom: 8 },
+  sub: { fontSize: 15, fontFamily: 'Inter_400Regular', color: Theme.textMuted, lineHeight: 22, marginBottom: 8 },
   pathLine: {
     fontSize: 14,
+    fontFamily: 'Inter_600SemiBold',
     fontWeight: '600',
     color: Theme.text,
     marginBottom: 14,
@@ -391,6 +392,7 @@ const styles = StyleSheet.create({
   categoryChipPressed: { opacity: 0.92 },
   categoryChipLabel: {
     fontSize: 13,
+    fontFamily: 'Inter_600SemiBold',
     fontWeight: '600',
     color: Theme.textMuted,
   },
@@ -399,6 +401,7 @@ const styles = StyleSheet.create({
     marginBottom: 14,
     color: Theme.accent,
     fontSize: 14,
+    fontFamily: 'Inter_400Regular',
     backgroundColor: Theme.accentSoft,
     borderRadius: 10,
     paddingHorizontal: 12,
@@ -420,6 +423,7 @@ const styles = StyleSheet.create({
   },
   timeframeTitle: {
     fontSize: 13,
+    fontFamily: 'Inter_700Bold',
     fontWeight: '700',
     color: Theme.accent,
     textTransform: 'uppercase',
@@ -427,18 +431,20 @@ const styles = StyleSheet.create({
   },
   timeframeEmpty: {
     fontSize: 14,
+    fontFamily: 'Inter_400Regular',
     color: Theme.textMuted,
     fontStyle: 'italic',
     marginBottom: 8,
   },
   sectionTitle: {
     fontSize: 15,
+    fontFamily: 'Inter_600SemiBold',
     textTransform: 'uppercase',
     letterSpacing: 0.8,
     fontWeight: '600',
     color: Theme.textMuted,
   },
-  sectionMeta: { fontSize: 13, color: Theme.textMuted },
+  sectionMeta: { fontSize: 13, fontFamily: 'Inter_400Regular', color: Theme.textMuted },
   pendingRow: {
     marginBottom: 12,
     flexDirection: 'row',
@@ -458,8 +464,8 @@ const styles = StyleSheet.create({
   cardTapPressed: { opacity: 0.92 },
   accentBar: { width: 5 },
   cardBody: { flex: 1, padding: 12 },
-  cardTitle: { color: Theme.text, fontWeight: '600', fontSize: 16, marginBottom: 6 },
-  cardMeta: { color: Theme.textMuted, fontSize: 14, lineHeight: 20 },
+  cardTitle: { color: Theme.text, fontWeight: '600', fontSize: 16, fontFamily: 'Inter_600SemiBold', marginBottom: 6 },
+  cardMeta: { color: Theme.textMuted, fontSize: 14, fontFamily: 'Inter_400Regular', lineHeight: 20 },
   cardFooter: {
     marginTop: 10,
     flexDirection: 'row',
@@ -468,7 +474,7 @@ const styles = StyleSheet.create({
     gap: 8,
     zIndex: 1,
   },
-  cardHint: { color: Theme.textMuted, fontSize: 12 },
+  cardHint: { color: Theme.textMuted, fontSize: 12, fontFamily: 'Inter_400Regular' },
   addBtn: {
     backgroundColor: Theme.accent,
     minWidth: 88,
@@ -480,5 +486,5 @@ const styles = StyleSheet.create({
   addBtnWeb: { cursor: 'pointer', pointerEvents: 'auto' } as const,
   addBtnDisabled: { backgroundColor: Theme.border },
   addBtnPressed: { opacity: 0.9 },
-  addBtnText: { color: '#fff', fontWeight: '600', fontSize: 14 },
+  addBtnText: { color: '#fff', fontWeight: '600', fontSize: 14, fontFamily: 'Inter_600SemiBold' },
 });

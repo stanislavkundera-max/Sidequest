@@ -29,8 +29,8 @@ const styles = StyleSheet.create({
     backgroundColor: Theme.dangerSoft,
     padding: 14,
   },
-  title: { color: Theme.danger, fontWeight: '600', fontSize: 15, marginBottom: 4 },
-  message: { color: Theme.danger, fontSize: 14, lineHeight: 20 },
+  title: { color: Theme.danger, fontWeight: '600', fontSize: 15, fontFamily: 'Inter_600SemiBold', marginBottom: 4 },
+  message: { color: Theme.danger, fontSize: 14, fontFamily: 'Inter_400Regular', lineHeight: 20 },
   retry: {
     marginTop: 10,
     alignSelf: 'flex-start',
@@ -41,6 +41,6 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: Theme.dangerBorder,
   },
-  retryText: { color: Theme.danger, fontWeight: '600', fontSize: 14 },
+  retryText: { color: Theme.danger, fontWeight: '600', fontSize: 14, fontFamily: 'Inter_600SemiBold' },
   pressed: { opacity: 0.9 },
 });

@@ -51,6 +51,7 @@ const styles = StyleSheet.create({
   },
   toggleText: {
     fontSize: 12,
+    fontFamily: 'Inter_600SemiBold',
     fontWeight: '600',
     color: Theme.textMuted,
     textDecorationLine: 'underline',
@@ -58,6 +59,7 @@ const styles = StyleSheet.create({
   note: {
     marginTop: 8,
     fontSize: 12,
+    fontFamily: 'Inter_400Regular',
     lineHeight: 18,
     color: Theme.textMuted,
   },

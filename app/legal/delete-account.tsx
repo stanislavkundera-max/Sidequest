@@ -104,9 +104,9 @@ export default function DeleteAccountScreen() {
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: Theme.bg },
   scroll: { padding: 20, paddingBottom: 48, gap: 20 },
-  title: { fontSize: 26, fontWeight: '700', color: Theme.text },
-  updated: { fontSize: 13, color: Theme.textMuted, marginTop: -12 },
+  title: { fontSize: 26, fontFamily: 'Fraunces_700Bold', fontWeight: '700', color: Theme.text },
+  updated: { fontSize: 13, fontFamily: 'Inter_400Regular', color: Theme.textMuted, marginTop: -12 },
   section: { gap: 6 },
-  heading: { fontSize: 16, fontWeight: '700', color: Theme.text },
-  body: { fontSize: 14, lineHeight: 21, color: Theme.textMuted },
+  heading: { fontSize: 16, fontFamily: 'Inter_700Bold', fontWeight: '700', color: Theme.text },
+  body: { fontSize: 14, fontFamily: 'Inter_400Regular', lineHeight: 21, color: Theme.textMuted },
 });

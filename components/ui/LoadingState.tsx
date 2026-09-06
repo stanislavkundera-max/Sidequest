@@ -21,5 +21,6 @@ const styles = StyleSheet.create({
   text: {
     color: Theme.textMuted,
     fontSize: 14,
+    fontFamily: 'Inter_400Regular',
   },
 });

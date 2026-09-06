@@ -162,6 +162,7 @@ const styles = StyleSheet.create({
   labelText: {
     color: '#ffffff',
     fontSize: 12,
+    fontFamily: 'Inter_700Bold',
     fontWeight: '800',
     letterSpacing: 0.2,
   },

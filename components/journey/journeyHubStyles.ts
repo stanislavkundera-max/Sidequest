@@ -18,6 +18,7 @@ export const journeyHubStyles = StyleSheet.create({
   },
   sectionHeadText: {
     fontSize: 14,
+    fontFamily: 'Inter_600SemiBold',
     fontWeight: '600',
     letterSpacing: 0.2,
     color: Theme.textMuted,
@@ -71,7 +72,7 @@ export const journeyHubStyles = StyleSheet.create({
     paddingHorizontal: 8,
     backgroundColor: Theme.surface,
   },
-  chipText: { fontSize: 12, fontWeight: '700', color: Theme.text },
+  chipText: { fontSize: 12, fontFamily: 'Inter_700Bold', fontWeight: '700', color: Theme.text },
   discoverBlock: { width: '100%', paddingBottom: 8 },
   heroCard: {
     marginHorizontal: 16,
@@ -90,6 +91,7 @@ export const journeyHubStyles = StyleSheet.create({
   heroHeadline: {
     marginTop: 4,
     fontSize: 18,
+    fontFamily: 'Fraunces_700Bold',
     fontWeight: '700',
     color: '#fff',
     lineHeight: 22,
@@ -100,6 +102,7 @@ export const journeyHubStyles = StyleSheet.create({
   heroHint: {
     marginTop: 8,
     fontSize: 13,
+    fontFamily: 'Inter_500Medium',
     lineHeight: 18,
     fontWeight: '500',
     color: 'rgba(255,255,255,0.92)',
@@ -107,10 +110,11 @@ export const journeyHubStyles = StyleSheet.create({
     textShadowOffset: { width: 0, height: 1 },
     textShadowRadius: 4,
   },
-  heroEmptyTitle: { fontSize: 16, fontWeight: '600', color: Theme.text },
+  heroEmptyTitle: { fontSize: 16, fontFamily: 'Inter_600SemiBold', fontWeight: '600', color: Theme.text },
   heroEmptySub: {
     marginTop: 8,
     fontSize: 14,
+    fontFamily: 'Inter_400Regular',
     lineHeight: 20,
     color: Theme.textMuted,
     textAlign: 'center',
@@ -121,10 +125,11 @@ export const journeyHubStyles = StyleSheet.create({
     paddingHorizontal: 24,
     paddingVertical: 28,
   },
-  emptyTitleSolid: { fontSize: 18, fontWeight: '700', color: Theme.text, textAlign: 'center' },
+  emptyTitleSolid: { fontSize: 18, fontFamily: 'Fraunces_700Bold', fontWeight: '700', color: Theme.text, textAlign: 'center' },
   emptyBodySolid: {
     marginTop: 8,
     fontSize: 14,
+    fontFamily: 'Inter_400Regular',
     lineHeight: 20,
     color: Theme.textMuted,
     textAlign: 'center',
@@ -169,20 +174,31 @@ export const journeyHubStyles = StyleSheet.create({
   discoverQuestRowBody: { flex: 1, padding: 12, gap: 6, minWidth: 0 },
   questRowMeta: {
     fontSize: 11,
+    fontFamily: 'Inter_600SemiBold',
     fontWeight: '600',
     color: Theme.textMuted,
     textTransform: 'uppercase',
     letterSpacing: 0.6,
   },
-  questRowMetaLight: { fontSize: 12, fontWeight: '500', color: Theme.textMuted },
-  questRowTitle: { fontSize: 16, fontWeight: '600', color: Theme.text, lineHeight: 20 },
-  questRowSub: { fontSize: 14, lineHeight: 20, color: Theme.textMuted },
+  questRowMetaLight: { fontSize: 12, fontFamily: 'Inter_500Medium', fontWeight: '500', color: Theme.textMuted },
+  // Fraunces, not Inter. This is the one line in the app that is the product —
+  // a quest's name is what someone reads and decides on — and leaving it in the
+  // body face made every card look like a settings row. Line height is a point
+  // looser than the sans version needed: the serif's ascenders crowd otherwise.
+  questRowTitle: {
+    fontSize: 17,
+    fontFamily: 'Fraunces_600SemiBold',
+    color: Theme.text,
+    lineHeight: 23,
+  },
+  questRowSub: { fontSize: 14, fontFamily: 'Inter_400Regular', lineHeight: 20, color: Theme.textMuted },
   questRowActions: { flexDirection: 'row', gap: 8, flexWrap: 'wrap', marginTop: 4 },
   likedSectionLabel: {
     paddingHorizontal: 16,
     paddingTop: 10,
     paddingBottom: 4,
     fontSize: 14,
+    fontFamily: 'Inter_600SemiBold',
     fontWeight: '600',
     letterSpacing: 0.2,
     color: Theme.textMuted,
@@ -207,6 +223,7 @@ export const journeyHubStyles = StyleSheet.create({
   scrimStrong: { backgroundColor: 'rgba(44,40,37,0.52)' },
   footerMeta: {
     fontSize: 11,
+    fontFamily: 'Inter_600SemiBold',
     fontWeight: '600',
     color: 'rgba(255,255,255,0.92)',
     textTransform: 'uppercase',
@@ -222,7 +239,7 @@ export const journeyHubStyles = StyleSheet.create({
     paddingVertical: 6,
     paddingHorizontal: 14,
   },
-  btnSubtleSolidText: { color: '#fff', fontSize: 12, fontWeight: '600' },
+  btnSubtleSolidText: { color: '#fff', fontSize: 12, fontFamily: 'Inter_600SemiBold', fontWeight: '600' },
   btnSubtleLight: {
     borderRadius: 999,
     backgroundColor: Theme.surface,
@@ -236,7 +253,7 @@ export const journeyHubStyles = StyleSheet.create({
     justifyContent: 'center',
     gap: 6,
   },
-  btnSubtleLightText: { color: Theme.accent, fontWeight: '600', fontSize: 12 },
+  btnSubtleLightText: { color: Theme.accent, fontWeight: '600', fontSize: 12, fontFamily: 'Inter_600SemiBold' },
   busyRow: { alignItems: 'center', paddingVertical: 8 },
   pressed: { opacity: 0.9 },
   disabled: { opacity: 0.45 },
@@ -252,9 +269,9 @@ export const journeyHubStyles = StyleSheet.create({
     padding: 16,
     maxHeight: '80%',
   },
-  modalTitle: { fontSize: 18, fontWeight: '800', color: Theme.text, marginBottom: 8 },
-  modalBody: { fontSize: 14, lineHeight: 20, color: Theme.textMuted, marginBottom: 12 },
-  modalSub: { fontSize: 13, fontWeight: '700', color: Theme.text, marginBottom: 8 },
+  modalTitle: { fontSize: 18, fontFamily: 'Fraunces_700Bold', fontWeight: '800', color: Theme.text, marginBottom: 8 },
+  modalBody: { fontSize: 14, fontFamily: 'Inter_400Regular', lineHeight: 20, color: Theme.textMuted, marginBottom: 12 },
+  modalSub: { fontSize: 13, fontFamily: 'Inter_700Bold', fontWeight: '700', color: Theme.text, marginBottom: 8 },
   modalList: { maxHeight: 220, marginBottom: 12 },
   modalRow: {
     flexDirection: 'row',
@@ -267,10 +284,10 @@ export const journeyHubStyles = StyleSheet.create({
     borderColor: Theme.border,
     backgroundColor: Theme.bg,
   },
-  modalRowTitle: { flex: 1, fontSize: 14, fontWeight: '700', color: Theme.text, marginRight: 12 },
-  modalRowAction: { fontSize: 13, fontWeight: '800', color: Theme.accent },
+  modalRowTitle: { flex: 1, fontSize: 14, fontFamily: 'Inter_700Bold', fontWeight: '700', color: Theme.text, marginRight: 12 },
+  modalRowAction: { fontSize: 13, fontFamily: 'Inter_700Bold', fontWeight: '800', color: Theme.accent },
   modalClose: { alignSelf: 'center', paddingVertical: 10 },
-  modalCloseText: { fontSize: 15, fontWeight: '700', color: Theme.textMuted },
+  modalCloseText: { fontSize: 15, fontFamily: 'Inter_700Bold', fontWeight: '700', color: Theme.textMuted },
   likedInfoCard: {
     width: '100%',
     maxWidth: 360,
@@ -288,8 +305,8 @@ export const journeyHubStyles = StyleSheet.create({
     marginBottom: 12,
     alignSelf: 'center',
   },
-  likedInfoTitle: { fontSize: 18, fontWeight: '800', color: Theme.text, marginBottom: 8 },
-  likedInfoBody: { fontSize: 14, lineHeight: 20, color: Theme.textMuted, marginBottom: 16 },
+  likedInfoTitle: { fontSize: 18, fontFamily: 'Fraunces_700Bold', fontWeight: '800', color: Theme.text, marginBottom: 8 },
+  likedInfoBody: { fontSize: 14, fontFamily: 'Inter_400Regular', lineHeight: 20, color: Theme.textMuted, marginBottom: 16 },
   likedInfoClose: { alignSelf: 'center', paddingVertical: 10, paddingHorizontal: 16 },
-  likedInfoCloseText: { fontSize: 15, fontWeight: '700', color: Theme.accent },
+  likedInfoCloseText: { fontSize: 15, fontFamily: 'Inter_700Bold', fontWeight: '700', color: Theme.accent },
 });

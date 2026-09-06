@@ -180,6 +180,7 @@ const styles = StyleSheet.create({
   sheetHeaderText: { flex: 1, minWidth: 0 },
   sheetTitle: {
     fontSize: 20,
+    fontFamily: 'Inter_700Bold',
     fontWeight: '800',
     color: Theme.text,
     letterSpacing: 0.2,
@@ -187,6 +188,7 @@ const styles = StyleSheet.create({
   sheetSubtitle: {
     marginTop: 2,
     fontSize: 13,
+    fontFamily: 'Inter_500Medium',
     fontWeight: '500',
     color: Theme.textMuted,
   },

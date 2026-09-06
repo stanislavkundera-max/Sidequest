@@ -1,4 +1,11 @@
 import FontAwesome from '@expo/vector-icons/FontAwesome';
+import { Fraunces_600SemiBold, Fraunces_700Bold } from '@expo-google-fonts/fraunces';
+import {
+  Inter_400Regular,
+  Inter_500Medium,
+  Inter_600SemiBold,
+  Inter_700Bold,
+} from '@expo-google-fonts/inter';
 import {
   DarkTheme,
   DefaultTheme,
@@ -56,8 +63,25 @@ const NavDark = {
 };
 
 export default function RootLayout() {
+  // The brand faces from BRANDING.md §3: Fraunces for headings, Inter for body.
+  //
+  // Only the cuts actually used are loaded — each is a file the app downloads
+  // and parses before the splash screen can go away, so an unused weight is
+  // startup time spent on nothing. `SpaceMono` was exactly that: an Expo
+  // template leftover, referenced by no style in the app, loaded on every cold
+  // start since the project began. Removed 2026-09-06.
+  //
+  // Android does not synthesise weight for custom fonts — `fontWeight: '700'`
+  // on a family that has no bold cut silently renders regular. That is why the
+  // weights are separate families here and why `Type` in constants/Theme.ts
+  // names them rather than letting screens set fontWeight and hope.
   const [loaded, error] = useFonts({
-    SpaceMono: require('../assets/fonts/SpaceMono-Regular.ttf'),
+    Fraunces_600SemiBold,
+    Fraunces_700Bold,
+    Inter_400Regular,
+    Inter_500Medium,
+    Inter_600SemiBold,
+    Inter_700Bold,
     ...FontAwesome.font,
   });
 

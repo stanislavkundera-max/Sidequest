@@ -385,9 +385,9 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   row: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  email: { flex: 1, fontSize: 14, fontWeight: '600', color: Theme.text },
+  email: { flex: 1, fontSize: 14, fontFamily: 'Inter_600SemiBold', fontWeight: '600', color: Theme.text },
   notificationBlock: { gap: 8 },
-  notificationLabel: { fontSize: 13, fontWeight: '600', color: Theme.textMuted },
+  notificationLabel: { fontSize: 13, fontFamily: 'Inter_600SemiBold', fontWeight: '600', color: Theme.textMuted },
   notificationPills: { flexDirection: 'row', gap: 8 },
   notificationPill: {
     flex: 1,
@@ -405,7 +405,7 @@ const styles = StyleSheet.create({
     backgroundColor: Theme.accentSoft,
   },
   notificationPillDisabled: { opacity: 0.6 },
-  notificationPillText: { fontSize: 13, fontWeight: '700', color: Theme.textMuted },
+  notificationPillText: { fontSize: 13, fontFamily: 'Inter_700Bold', fontWeight: '700', color: Theme.textMuted },
   notificationPillTextSelected: { color: Theme.accent },
   actionsRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   busyRow: { alignItems: 'center', paddingVertical: 4 },
@@ -422,7 +422,7 @@ const styles = StyleSheet.create({
     borderColor: Theme.border,
     backgroundColor: Theme.bg,
   },
-  editBtnText: { fontSize: 13, fontWeight: '700', color: Theme.text },
+  editBtnText: { fontSize: 13, fontFamily: 'Inter_700Bold', fontWeight: '700', color: Theme.text },
   adminBtn: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -436,7 +436,7 @@ const styles = StyleSheet.create({
     borderColor: Theme.accent,
     backgroundColor: Theme.accentSoft,
   },
-  adminBtnText: { fontSize: 13, fontWeight: '700', color: Theme.accent },
+  adminBtnText: { fontSize: 13, fontFamily: 'Inter_700Bold', fontWeight: '700', color: Theme.accent },
   dangerBtn: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -450,7 +450,7 @@ const styles = StyleSheet.create({
     borderColor: Theme.danger,
     backgroundColor: Theme.dangerSoft,
   },
-  dangerBtnText: { fontSize: 13, fontWeight: '700', color: Theme.danger },
+  dangerBtnText: { fontSize: 13, fontFamily: 'Inter_700Bold', fontWeight: '700', color: Theme.danger },
   signOutBtn: {
     justifyContent: 'center',
     minHeight: MIN_TOUCH_TARGET,
@@ -461,10 +461,11 @@ const styles = StyleSheet.create({
     borderColor: Theme.border,
     backgroundColor: Theme.bg,
   },
-  signOutBtnText: { fontSize: 13, fontWeight: '700', color: Theme.textMuted },
+  signOutBtnText: { fontSize: 13, fontFamily: 'Inter_700Bold', fontWeight: '700', color: Theme.textMuted },
   exitPreviewLink: { alignSelf: 'flex-start', justifyContent: 'center', minHeight: MIN_TOUCH_TARGET },
   exitPreviewLinkText: {
     fontSize: 11,
+    fontFamily: 'Inter_600SemiBold',
     fontWeight: '600',
     color: Theme.textMuted,
     textDecorationLine: 'underline',
@@ -473,11 +474,12 @@ const styles = StyleSheet.create({
   legalLink: { justifyContent: 'center', minHeight: MIN_TOUCH_TARGET },
   legalLinkText: {
     fontSize: 12,
+    fontFamily: 'Inter_600SemiBold',
     fontWeight: '600',
     color: Theme.textMuted,
     textDecorationLine: 'underline',
   },
-  legalDivider: { fontSize: 12, color: Theme.textMuted },
+  legalDivider: { fontSize: 12, fontFamily: 'Inter_400Regular', color: Theme.textMuted },
   // Destructive and previously the hardest thing on the screen to hit (19px).
   // Kept visually quiet, but the tap area now meets the same floor as
   // everything else — a mis-tap here is worse than a mis-tap anywhere.
@@ -489,6 +491,7 @@ const styles = StyleSheet.create({
   },
   deleteAccountLinkText: {
     fontSize: 11,
+    fontFamily: 'Inter_600SemiBold',
     fontWeight: '600',
     color: Theme.danger,
     textDecorationLine: 'underline',

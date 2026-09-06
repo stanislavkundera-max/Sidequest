@@ -31,8 +31,8 @@ const styles = StyleSheet.create({
     backgroundColor: Theme.surface,
     padding: 16,
   },
-  title: { color: Theme.text, fontSize: 16, fontWeight: '600', marginBottom: 6 },
-  message: { color: Theme.textMuted, fontSize: 14, lineHeight: 21 },
+  title: { color: Theme.text, fontSize: 16, fontFamily: 'Inter_600SemiBold', fontWeight: '600', marginBottom: 6 },
+  message: { color: Theme.textMuted, fontSize: 14, fontFamily: 'Inter_400Regular', lineHeight: 21 },
   btn: {
     marginTop: 12,
     alignSelf: 'flex-start',
@@ -41,6 +41,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 9,
   },
-  btnText: { color: Theme.accent, fontWeight: '600', fontSize: 14 },
+  btnText: { color: Theme.accent, fontWeight: '600', fontSize: 14, fontFamily: 'Inter_600SemiBold' },
   pressed: { opacity: 0.9 },
 });

@@ -89,8 +89,8 @@ const styles = StyleSheet.create({
     backgroundColor: Theme.accentSoft,
   },
   body: { flex: 1, gap: 4, minWidth: 0 },
-  title: { fontSize: 14, fontWeight: '700', color: Theme.text },
-  text: { fontSize: 13, lineHeight: 18, color: Theme.textMuted },
+  title: { fontSize: 14, fontFamily: 'Inter_700Bold', fontWeight: '700', color: Theme.text },
+  text: { fontSize: 13, fontFamily: 'Inter_400Regular', lineHeight: 18, color: Theme.textMuted },
   actions: { flexDirection: 'row', gap: 8, marginTop: 8 },
   updateBtn: {
     borderRadius: 999,
@@ -98,8 +98,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
     backgroundColor: Theme.accent,
   },
-  updateBtnText: { fontSize: 13, fontWeight: '700', color: '#fff' },
+  updateBtnText: { fontSize: 13, fontFamily: 'Inter_700Bold', fontWeight: '700', color: '#fff' },
   dismissBtn: { borderRadius: 999, paddingVertical: 7, paddingHorizontal: 14 },
-  dismissBtnText: { fontSize: 13, fontWeight: '700', color: Theme.textMuted },
+  dismissBtnText: { fontSize: 13, fontFamily: 'Inter_700Bold', fontWeight: '700', color: Theme.textMuted },
   pressed: { opacity: 0.85 },
 });

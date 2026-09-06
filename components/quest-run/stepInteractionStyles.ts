@@ -7,12 +7,14 @@ export const stepInteractionStyles = StyleSheet.create({
   block: { gap: 12 },
   prompt: {
     fontSize: 15,
+    fontFamily: 'Inter_600SemiBold',
     lineHeight: 21,
     fontWeight: '600',
     color: Theme.text,
   },
   helper: {
     fontSize: 13,
+    fontFamily: 'Inter_400Regular',
     lineHeight: 18,
     color: Theme.textMuted,
   },
@@ -23,6 +25,7 @@ export const stepInteractionStyles = StyleSheet.create({
     borderRadius: 12,
     padding: 12,
     fontSize: 15,
+    fontFamily: 'Inter_400Regular',
     lineHeight: 21,
     color: Theme.text,
     backgroundColor: Theme.bg,
@@ -35,6 +38,7 @@ export const stepInteractionStyles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 10,
     fontSize: 15,
+    fontFamily: 'Inter_400Regular',
     color: Theme.text,
     backgroundColor: Theme.bg,
   },
@@ -50,6 +54,7 @@ export const stepInteractionStyles = StyleSheet.create({
   },
   clock: {
     fontSize: 44,
+    fontFamily: 'Inter_700Bold',
     fontWeight: '800',
     color: Theme.text,
     textAlign: 'center',
@@ -57,6 +62,7 @@ export const stepInteractionStyles = StyleSheet.create({
   },
   clockCaption: {
     fontSize: 13,
+    fontFamily: 'Inter_600SemiBold',
     fontWeight: '600',
     color: Theme.textMuted,
     textAlign: 'center',
@@ -74,8 +80,8 @@ export const stepInteractionStyles = StyleSheet.create({
     paddingHorizontal: 12,
     backgroundColor: Theme.bg,
   },
-  itemIndex: { fontSize: 13, fontWeight: '800', width: 20, textAlign: 'center' },
-  itemText: { flex: 1, fontSize: 15, color: Theme.text },
+  itemIndex: { fontSize: 13, fontFamily: 'Inter_700Bold', fontWeight: '800', width: 20, textAlign: 'center' },
+  itemText: { flex: 1, fontSize: 15, fontFamily: 'Inter_400Regular', color: Theme.text },
   itemRemove: { padding: 4 },
   addRow: { flexDirection: 'row', gap: 8, alignItems: 'center' },
   addBtn: {
@@ -86,7 +92,7 @@ export const stepInteractionStyles = StyleSheet.create({
     borderWidth: 1,
     borderColor: Theme.accent,
   },
-  addBtnText: { color: Theme.accent, fontWeight: '700', fontSize: 14 },
+  addBtnText: { color: Theme.accent, fontWeight: '700', fontSize: 14, fontFamily: 'Inter_700Bold' },
   photoPreview: {
     width: '100%',
     aspectRatio: 4 / 3,
@@ -102,9 +108,9 @@ export const stepInteractionStyles = StyleSheet.create({
     borderWidth: 1,
     borderColor: Theme.border,
   },
-  secondaryBtnText: { color: Theme.accent, fontWeight: '600', fontSize: 14 },
+  secondaryBtnText: { color: Theme.accent, fontWeight: '600', fontSize: 14, fontFamily: 'Inter_600SemiBold' },
   pressed: { opacity: 0.85 },
   disabled: { opacity: 0.5 },
   timerResetLink: { alignSelf: 'center', paddingVertical: 8, paddingHorizontal: 4 },
-  timerResetLinkText: { color: Theme.danger, fontWeight: '600', fontSize: 14 },
+  timerResetLinkText: { color: Theme.danger, fontWeight: '600', fontSize: 14, fontFamily: 'Inter_600SemiBold' },
 });

@@ -74,6 +74,7 @@ const styles = StyleSheet.create({
   scrollContent: { paddingTop: 8, paddingBottom: 32 },
   pageTitle: {
     fontSize: 26,
+    fontFamily: 'Fraunces_700Bold',
     fontWeight: '700',
     color: Theme.text,
     paddingHorizontal: 16,
@@ -82,6 +83,7 @@ const styles = StyleSheet.create({
   },
   pageSub: {
     fontSize: 14,
+    fontFamily: 'Inter_400Regular',
     lineHeight: 20,
     color: Theme.textMuted,
     paddingHorizontal: 16,
