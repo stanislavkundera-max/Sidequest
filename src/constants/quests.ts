@@ -41,7 +41,7 @@ const SEED_QUESTS_RAW: Array<Omit<Quest, 'journeyIntro' | 'actionSteps'>> = [
     title: 'Cook one meal from scratch',
     shortDescription: 'No kits: chop vegetables and use the stove yourself.',
     fullDescription:
-      'Make one full plate (breakfast, lunch, or dinner) using raw ingredients only—no microwave-only meals. Wash up when done.',
+      'Make one full plate (breakfast, lunch, or dinner) using raw ingredients only. Nothing that only needs a microwave. Wash up when you are done.',
     categoryId: 'cat-relax',
     timeframe: 'weekly',
     difficulty: 'medium',
@@ -67,7 +67,7 @@ const SEED_QUESTS_RAW: Array<Omit<Quest, 'journeyIntro' | 'actionSteps'>> = [
   {
     id: 'q-w-05',
     title: 'Message someone you have not texted in 30 days',
-    shortDescription: 'Send one genuine check-in—no mass forwards.',
+    shortDescription: 'One real message to one person. Not a forward.',
     fullDescription:
       'Choose one person. Write 2–4 sentences asking how they are or referencing something specific you remember about them.',
     categoryId: 'cat-social',
@@ -123,7 +123,7 @@ const SEED_QUESTS_RAW: Array<Omit<Quest, 'journeyIntro' | 'actionSteps'>> = [
   {
     id: 'q-w-09',
     title: 'Have a 15-minute voice or video call',
-    shortDescription: 'Real-time talk with one person—no voice notes.',
+    shortDescription: 'One person, live. Voice notes do not count.',
     fullDescription:
       'Schedule or place a spontaneous call. Talk about something concrete (weekend plans, a book, a walk) for at least 15 minutes.',
     categoryId: 'cat-social',
@@ -260,21 +260,21 @@ const SEED_QUESTS_RAW: Array<Omit<Quest, 'journeyIntro' | 'actionSteps'>> = [
     timeframe: 'yearly',
     difficulty: 'hard',
     estimatedDurationMinutes: 60,
-    promptForReflection: 'What felt restored—or honestly closed?',
+    promptForReflection: 'What came back, and what turned out to be finished?',
     suggestedProofType: 'none',
     suggestedGroup: 'social',
   },
   {
     id: 'q-y-04',
-    title: 'Do a full day with no work or chores',
-    shortDescription: 'One waking day: no email, errands, or house projects.',
+    title: 'Spend a whole day deciding it hour by hour',
+    shortDescription: 'One waking day, nothing booked and nothing owed.',
     fullDescription:
-      'Pick a weekend or holiday. No paid work, no cleaning marathons, no “quick” fixes. Spend the day on rest, play, or people.',
+      'Pick a weekend or a holiday and let the day decide itself as it goes — a walk because the light is good, a long lunch because you are hungry, a nap because you are tired. Work and errands wait until tomorrow.',
     categoryId: 'cat-relax',
     timeframe: 'yearly',
     difficulty: 'medium',
     estimatedDurationMinutes: 960,
-    promptForReflection: 'What did your body do when nothing was “productive”?',
+    promptForReflection: 'What did the day turn into once nothing was planned?',
     suggestedProofType: 'text',
     suggestedGroup: 'weekend',
   },

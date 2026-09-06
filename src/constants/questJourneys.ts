@@ -2,7 +2,13 @@ import type { Quest, QuestActionStep } from '@/src/types/quest';
 
 /**
  * Default journey copy + steps for each catalog quest id (used when DB has empty action_steps).
- * Keep `scripts/quest-journeys-data.cjs` in sync for `supabase/seed.sql` generation.
+ *
+ * **This file is the source.** Regenerate the SQL with
+ * `scripts/export-quests-sql.cjs` and run it — see rule 3 in
+ * `docs/quest-content-guidelines.md`. This comment used to say "keep
+ * `scripts/quest-journeys-data.cjs` in sync"; nobody did, it drifted 22 quests
+ * and every `interaction` field out of date, and it was deleted on 2026-09-06
+ * rather than resynced. If a second copy appears again, delete that one too.
  */
 export const QUEST_JOURNEY_BY_ID: Record<
   string,
@@ -15,7 +21,7 @@ export const QUEST_JOURNEY_BY_ID: Record<
         id: 's1',
         title: 'Leave podcasts and music behind',
         detail: 'Earbuds stay home or stay in your pocket for this walk.',
-        tip: 'Choose a quieter stretch or a pocket park—let wind and distant voices be your opening track.',
+        tip: 'A quieter street or a small park beats a main road. You need to be able to hear something other than traffic.',
         estimateMinutes: 1,
         interaction: { kind: 'confirm' },
       },
@@ -23,7 +29,7 @@ export const QUEST_JOURNEY_BY_ID: Record<
         id: 's2',
         title: 'Walk at least 20 minutes outside',
         detail: 'Any loop or errand route counts.',
-        tip: 'If you can, cut past a patch of green—pause once to watch birds or leaves before naming anything.',
+        tip: 'Route it past anything green if you can. Trees give you more to listen to than pavement does.',
         estimateMinutes: 20,
         interaction: {
           kind: 'timer',
@@ -35,7 +41,7 @@ export const QUEST_JOURNEY_BY_ID: Record<
         id: 's3',
         title: 'Notice three distinct sounds',
         detail: 'Before you finish, name them quietly to yourself.',
-        tip: 'When a new sound arrives, stand still one breath—notice distance and texture before you label it.',
+        tip: 'When you hear something new, stop walking for a second. Sounds are easier to place when you are still.',
         estimateMinutes: 5,
         interaction: {
           kind: 'counter',
@@ -47,12 +53,12 @@ export const QUEST_JOURNEY_BY_ID: Record<
     ],
   },
   'q-w-02': {
-    journeyIntro: 'Ten minutes of stillness in public—no feed, just the scene.',
+    journeyIntro: 'Ten minutes on a bench, watching whatever goes past.',
     actionSteps: [
       {
         id: 's1',
         title: 'Find a bench with a view',
-        tip: 'Pick a seat where sky or treeline meets buildings—soft horizons calm the eyes faster than walls.',
+        tip: 'Pick a bench with something further away to look at than the next wall. Your eyes need somewhere to go.',
         estimateMinutes: 5,
         interaction: { kind: 'confirm' },
       },
@@ -71,7 +77,7 @@ export const QUEST_JOURNEY_BY_ID: Record<
       {
         id: 's3',
         title: 'Watch light, people, and weather until the timer ends',
-        tip: 'Let your gaze drift like a slow pan—fabric moving, light on skin, clouds reshaping.',
+        tip: 'Let your eyes wander instead of scanning. Ten minutes is long enough to stop waiting for something to happen.',
         estimateMinutes: 10,
         interaction: {
           kind: 'input',
@@ -89,7 +95,7 @@ export const QUEST_JOURNEY_BY_ID: Record<
         id: 's1',
         title: 'Choose raw ingredients only',
         detail: 'Skip microwave-only shortcuts.',
-        tip: 'Walk the produce table twice—color often suggests simpler meals than the recipe rabbit hole.',
+        tip: 'Walk the vegetables twice before deciding. Picking what looks good beats picking a recipe and then hunting its ingredients.',
         estimateMinutes: 5,
         interaction: {
           kind: 'input',
@@ -101,7 +107,7 @@ export const QUEST_JOURNEY_BY_ID: Record<
       {
         id: 's2',
         title: 'Chop, heat, and plate one full meal',
-        tip: 'Chop in silence for a few minutes—sizzling oil is its own small soundtrack.',
+        tip: 'Try the first few minutes without a podcast on. Chopping is more interesting than it sounds.',
         estimateMinutes: 35,
         interaction: {
           kind: 'photo',
@@ -177,7 +183,7 @@ export const QUEST_JOURNEY_BY_ID: Record<
       {
         id: 's1',
         title: 'Pick one person',
-        tip: 'Picture their face before typing—warmth hides in specifics, not in length.',
+        tip: 'One specific memory beats three paragraphs. Name the thing you actually remembered.',
         estimateMinutes: 2,
         interaction: {
           kind: 'input',
@@ -190,7 +196,7 @@ export const QUEST_JOURNEY_BY_ID: Record<
         id: 's2',
         title: 'Write 2–4 genuine sentences',
         detail: 'No mass forwards.',
-        tip: 'Mention one ordinary shared detail—weather, food, a street—it bridges distance quietly.',
+        tip: 'Mention something ordinary you both know: a street, a bar, an old joke. It reopens the door faster than apologising for the gap.',
         estimateMinutes: 5,
         interaction: {
           kind: 'input',
@@ -214,7 +220,7 @@ export const QUEST_JOURNEY_BY_ID: Record<
       {
         id: 's1',
         title: 'Walk your block once',
-        tip: 'Walk the sunny side first—leaves are easier to meet in good light.',
+        tip: 'Take the sunny side of the street. Leaves are far easier to identify in good light.',
         estimateMinutes: 10,
         interaction: {
           kind: 'timer',
@@ -226,7 +232,7 @@ export const QUEST_JOURNEY_BY_ID: Record<
         id: 's2',
         title: 'Identify three plants',
         detail: 'Book or free ID app is fine.',
-        tip: 'Sit once on a stoop or low wall—let plants come to you instead of hunting every verge.',
+        tip: 'Sit down somewhere for a few minutes rather than hunting every verge. More turns up than you would think.',
         estimateMinutes: 20,
         interaction: {
           kind: 'counter',
@@ -238,7 +244,7 @@ export const QUEST_JOURNEY_BY_ID: Record<
       {
         id: 's3',
         title: 'Write their common names down',
-        tip: 'Read each name aloud once—your mouth remembers what the thumb forgets.',
+        tip: 'Say each name out loud once. You will remember it tomorrow; a screenshot you will not.',
         estimateMinutes: 5,
         interaction: { kind: 'confirm' },
       },
@@ -298,7 +304,7 @@ export const QUEST_JOURNEY_BY_ID: Record<
       {
         id: 's1',
         title: 'Prepare your drink as usual',
-        tip: 'Heat the mug the way you would for a guest—small rituals change taste more than beans.',
+        tip: 'Warm the mug first. Outside, it is the difference between a hot drink and a lukewarm one.',
         estimateMinutes: 3,
         interaction: { kind: 'confirm' },
       },
@@ -317,7 +323,7 @@ export const QUEST_JOURNEY_BY_ID: Record<
       {
         id: 's3',
         title: 'Skip work email until the cup is empty',
-        tip: 'Fix your eyes on one distant thing while the cup empties—depth reads as spaciousness.',
+        tip: 'Pick something far away to look at while you drink. The cup lasts longer than you expect.',
         estimateMinutes: 1,
         interaction: { kind: 'confirm' },
       },
@@ -342,7 +348,7 @@ export const QUEST_JOURNEY_BY_ID: Record<
         id: 's2',
         title: 'Talk live for at least 15 minutes',
         detail: 'Voice or video.',
-        tip: 'Ask one follow-up before sharing your update—they feel heard before advice lands.',
+        tip: 'Ask one follow-up before you talk about yourself. The second question is where the real answer lives.',
         estimateMinutes: 15,
         interaction: {
           kind: 'timer',
@@ -354,7 +360,7 @@ export const QUEST_JOURNEY_BY_ID: Record<
         id: 's3',
         title: 'Stick to something concrete',
         detail: 'Plans, a book, a walk.',
-        tip: 'Anchor the ending in something future-shaped—a small plan beats a vague goodbye.',
+        tip: 'End with an actual date if you can. "Soon" is how people lose touch in the first place.',
         estimateMinutes: 1,
         interaction: {
           kind: 'input',
@@ -371,14 +377,14 @@ export const QUEST_JOURNEY_BY_ID: Record<
       {
         id: 's1',
         title: 'Bring gloves or a bag',
-        tip: 'Tuck an extra bag inside the outer one—dry hands make kinder pickup.',
+        tip: 'Take a spare bag and something for your hands. Wet litter is why people stop after five minutes.',
         estimateMinutes: 2,
         interaction: { kind: 'confirm' },
       },
       {
         id: 's2',
         title: 'Collect five pieces of litter on one walk',
-        tip: 'Hunt one color only for a few minutes—white or silver catches plastic fastest.',
+        tip: 'Look for one colour at a time. White and silver catch the eye fastest.',
         estimateMinutes: 25,
         interaction: {
           kind: 'counter',
@@ -390,7 +396,7 @@ export const QUEST_JOURNEY_BY_ID: Record<
       {
         id: 's3',
         title: 'Dispose or recycle properly',
-        tip: 'Separate sharp from soft before the bin—future-you at the curb appreciates it.',
+        tip: 'Keep anything sharp separate as you go. Sorting it out at the bin is worse.',
         estimateMinutes: 3,
         interaction: {
           kind: 'photo',
@@ -405,7 +411,7 @@ export const QUEST_JOURNEY_BY_ID: Record<
       {
         id: 's1',
         title: 'Pick a marked trail ≥3 km or ~45 min',
-        tip: 'Skim reviews for shade and water notes—heat shows up around mile two, not at the trailhead.',
+        tip: 'Check reviews for shade and water. Heat becomes a problem an hour in, not at the car park.',
         estimateMinutes: 10,
         interaction: {
           kind: 'input',
@@ -417,7 +423,7 @@ export const QUEST_JOURNEY_BY_ID: Record<
       {
         id: 's2',
         title: 'Bring water and follow posted signs',
-        tip: 'Pause at forks even when blazes look obvious—maps read clearer standing still.',
+        tip: 'Stop at every fork, even an obvious one. Maps are much easier to read standing still.',
         estimateMinutes: 45,
         interaction: {
           kind: 'timer',
@@ -428,7 +434,7 @@ export const QUEST_JOURNEY_BY_ID: Record<
       {
         id: 's3',
         title: 'Pause once to read a map or sign aloud',
-        tip: 'Read a sign aloud once—trail grammar sticks when your mouth learns the words.',
+        tip: 'Read the first waymarker properly. Knowing what the symbols mean saves a wrong turn later.',
         estimateMinutes: 5,
         interaction: {
           kind: 'photo',
@@ -438,12 +444,12 @@ export const QUEST_JOURNEY_BY_ID: Record<
     ],
   },
   'q-m-02': {
-    journeyIntro: 'Real faces, real time—at least three people.',
+    journeyIntro: 'Three people, in the same room, for a whole evening.',
     actionSteps: [
       {
         id: 's1',
         title: 'Plan a simple in-person gathering',
-        tip: 'Choose food everyone can pick at with hands—shared bowls lower hosting pressure.',
+        tip: 'Cook something people eat with their hands. Shared bowls mean nobody is waiting to be served.',
         estimateMinutes: 30,
         interaction: {
           kind: 'input',
@@ -456,7 +462,7 @@ export const QUEST_JOURNEY_BY_ID: Record<
         id: 's2',
         title: 'Spend 60+ minutes together',
         detail: 'Phones away except photos.',
-        tip: 'Halfway, toast to nothing formal—eye contact and one sentence about the table counts.',
+        tip: 'Say something halfway through. One sentence and eye contact is enough; it does not need to be a speech.',
         estimateMinutes: 60,
         interaction: {
           kind: 'timer',
@@ -467,7 +473,7 @@ export const QUEST_JOURNEY_BY_ID: Record<
       {
         id: 's3',
         title: 'Say what you would repeat next month',
-        tip: 'Ask what felt surprisingly easy—that flags repeats without planning theater.',
+        tip: 'Ask what people would do again. It is a better question than whether they enjoyed it.',
         estimateMinutes: 5,
         interaction: {
           kind: 'input',
@@ -539,7 +545,7 @@ export const QUEST_JOURNEY_BY_ID: Record<
       {
         id: 's1',
         title: 'Book a slot with an organization',
-        tip: 'Arrive ten minutes early to read their bulletin wall—context steadies nerves.',
+        tip: 'Turn up ten minutes early and read the noticeboard. You will know what is going on before anyone asks you.',
         estimateMinutes: 30,
         interaction: {
           kind: 'input',
@@ -551,7 +557,7 @@ export const QUEST_JOURNEY_BY_ID: Record<
       {
         id: 's2',
         title: 'Arrive on time and complete the shift',
-        tip: 'Introduce yourself twice—to peers and organizers; small repeats build trust fast.',
+        tip: 'Introduce yourself to whoever is running it, not just to the person beside you. They will remember you next time.',
         estimateMinutes: 120,
         interaction: {
           kind: 'timer',
@@ -562,7 +568,7 @@ export const QUEST_JOURNEY_BY_ID: Record<
       {
         id: 's3',
         title: 'Name one task you did not expect',
-        tip: 'Note muscle tiredness, not moral score—bodies measure service more honestly than pride.',
+        tip: 'Write down what your hands actually did. The specifics are what you will want to read later.',
         estimateMinutes: 5,
         interaction: {
           kind: 'input',
@@ -680,7 +686,7 @@ export const QUEST_JOURNEY_BY_ID: Record<
       {
         id: 's1',
         title: 'Book a session with an instructor',
-        tip: 'Skim reviews for kindness toward beginners—confidence transfers from how they teach.',
+        tip: 'Read the reviews for how they treat beginners. A patient instructor matters more than a famous one.',
         estimateMinutes: 60,
         interaction: {
           kind: 'input',
@@ -692,14 +698,14 @@ export const QUEST_JOURNEY_BY_ID: Record<
       {
         id: 's2',
         title: 'Show up with their prep list',
-        tip: 'Dress slightly under your ego—layers you can add beat shivering in stiff new shells.',
+        tip: 'Borrow or rent the gear the first time. Buying it before you know you like it is how it ends up in a cupboard.',
         estimateMinutes: 30,
         interaction: { kind: 'confirm' },
       },
       {
         id: 's3',
         title: 'Finish the session and debrief yourself',
-        tip: 'Debrief aloud walking to the car—motor memory locks reflections better than couch scrolling.',
+        tip: 'Talk about it on the walk back, before you get in the car. Most of what you noticed goes within the hour.',
         estimateMinutes: 240,
         interaction: {
           kind: 'input',
@@ -716,14 +722,14 @@ export const QUEST_JOURNEY_BY_ID: Record<
       {
         id: 's1',
         title: 'Reach out and propose a real catch-up',
-        tip: 'Open with logistics first—schedule sand settles people before hearts unload.',
+        tip: 'Get the practical things out of the way first. People talk more freely once the logistics are settled.',
         estimateMinutes: 30,
         interaction: { kind: 'confirm' },
       },
       {
         id: 's2',
         title: 'Meet or video call ≥45 minutes',
-        tip: 'Silence your own story until halfway—lateness in listening reads as love.',
+        tip: 'Hold your own news until halfway. The first half is for theirs.',
         estimateMinutes: 45,
         interaction: {
           kind: 'timer',
@@ -734,7 +740,7 @@ export const QUEST_JOURNEY_BY_ID: Record<
       {
         id: 's3',
         title: 'Listen for the first half of the time',
-        tip: 'Name one thing you appreciated aloud—closure likes spoken gratitude.',
+        tip: 'Say one specific thing you were glad about before you go. Specific lands; general does not.',
         estimateMinutes: 1,
         interaction: {
           kind: 'input',
@@ -746,32 +752,40 @@ export const QUEST_JOURNEY_BY_ID: Record<
     ],
   },
   'q-y-04': {
-    journeyIntro: 'One full day without productivity theater.',
+    journeyIntro: 'A day that answers to whatever you feel like next.',
     actionSteps: [
       {
         id: 's1',
-        title: 'Pick a weekend or holiday day',
-        tip: 'Declare the day aloud to an empty room—houseplants count as witness if roommates are out.',
+        title: 'Pick a weekend or holiday day and claim it',
+        detail: 'Tell whoever shares your time that the day is spoken for.',
+        tip: 'Claiming it out loud to one person is what stops it quietly filling up again by Thursday.',
         estimateMinutes: 5,
         interaction: { kind: 'confirm' },
       },
       {
         id: 's2',
-        title: 'No paid work, errands, or chores marathons',
-        tip: 'Eat one meal very slowly—chewing pace drags time back into weekday scale.',
-        estimateMinutes: 480,
+        title: 'Do the first thing you feel like, before you check anything',
+        detail: 'However the morning starts is how the day is allowed to go.',
+        tip: 'The first hour sets it. Reaching for the phone hands the day back to everyone else.',
+        estimateMinutes: 60,
         interaction: { kind: 'confirm' },
       },
       {
         id: 's3',
-        title: 'Spend the day on rest, play, or people',
-        tip: 'A nap on the agenda counts—rest is an activity here, not stolen time.',
+        title: 'Keep deciding it an hour at a time',
+        detail: 'A walk because the light is good, a long lunch because you are hungry, a nap because you are tired.',
+        tip: 'A nap counts. Rest is one of the things you can choose here, not time stolen from the others.',
         estimateMinutes: 480,
+        interaction: { kind: 'confirm' },
+      },
+      {
+        id: 's4',
+        title: 'Say what the day turned into',
+        estimateMinutes: 10,
         interaction: {
           kind: 'input',
-          prompt: 'What did the day hold? What did your body do when nothing was productive?',
-          minChars: 30,
-          placeholder: 'Slept in, long lunch, a walk with no destination. My shoulders dropped…',
+          prompt: 'What did the day turn into once nothing was planned?',
+          placeholder: 'Slept in, long lunch, a walk with no destination. Ended up at the river…',
         },
       },
     ],
@@ -1697,14 +1711,22 @@ const CALENDAR_REMINDER_STEP: QuestActionStep = {
   id: CALENDAR_STEP_ID,
   title: 'Put it on your calendar',
   detail: 'Choose a date/time and set a reminder so it actually happens.',
-  tip: 'Pick a specific slot you will defend like a quiet coffee—vague someday rarely ships.',
+  tip: 'Pick an actual slot, not a day. "Saturday" gets rescheduled; "Saturday at nine" gets done.',
   estimateMinutes: 2,
   action: { kind: 'calendar' },
 };
 
-/** Used when a step has no catalog match (custom DB journeys). */
+/**
+ * Used when a step has no catalog match (custom DB journeys).
+ *
+ * The most-read line in the app by some distance — it lands on around seventy
+ * steps, far more than any authored tip — so it is worth it carrying the house
+ * voice rather than being filler. The previous version ("Go gently—notice one
+ * small real-world detail before you mark the step done") did not: it told
+ * people how to feel about a step it knew nothing about.
+ */
 export const DEFAULT_JOURNEY_STEP_TIP =
-  'Go gently—notice one small real-world detail before you mark the step done.';
+  'Mark this done once you have actually done it — not once you have decided to.';
 
 function mergeCatalogStepTips(quest: Quest): Quest {
   const bundle = QUEST_JOURNEY_BY_ID[quest.id];
