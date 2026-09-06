@@ -20,6 +20,12 @@ content work — and heaviest on "here's what needs deciding first."
 
 ### Current state (audited from the repo)
 
+> ⚠️ **This table is from 2026-08-29 and much of it is now wrong** — `eas init` has run, the Play
+> Console account exists, four production builds have shipped, the legal pages are deployed, and the
+> typography landed on 2026-09-06. It has been left rather than patched because
+> `docs/play-store-roadmap.md` is the live status for Pillar 1 and is kept current; two competing
+> status tables is worse than one stale one that says so. **Read the roadmap, not this.**
+
 | Item | Status |
 |---|---|
 | iOS bundle ID / Android package | ✅ Already set: `com.sidequestlife.app` (`app.config.ts`) |
@@ -293,40 +299,53 @@ decision list, not a content draft.
   means risk rather than novelty. The "More rules" stub is still there for the rest.
 - ~~A live, known violation of rule #1 is still shipping: `q-m-04`, "Digital sunset: no screens
   after 9 p.m. for three nights."~~ **Resolved 2026-08-21** — Standa's call was to delete rather
-  than reframe it. Removed from `quests.ts`, `questJourneys.ts`, `quest-journeys-data.cjs`, and
-  `seed.sql`; live Supabase row still needs the one-off deactivation query (handed to Standa
-  directly, since this repo has no DB access/migration runner set up).
-- `scripts/quest-journeys-data.cjs` (used to generate `seed.sql`'s quest rows) is a **stale mirror**
-  of the real source of truth (`src/constants/questJourneys.ts`) — missing the `interaction` field
-  for every one of the 60 existing steps. Not user-facing today (a runtime fallback compensates),
-  but whatever process ends up authoring new quests needs to update the real source
-  (`questJourneys.ts`), not just this generator script, or the two will drift further apart.
+  than reframe it. Removed from the catalogue — but the live Supabase row was **not**, and the
+  one-off deactivation query handed over that day was never run: it was still being served on
+  2026-09-06, found by counting the live table against the source. Fixed properly rather than by
+  hand — `quests_catalogue.sql` now deactivates anything whose id is not in the catalogue, so a
+  deleted quest cannot outlive its deletion again.
 - ~~`docs/value-proposition.md` and `docs/story.md` each have one Standa-owned placeholder~~ — both
   closed. The green-notes citations were researched 2026-08-21 (six checked studies, each marked
   correlational or experimental); the Morocco breaking-point scene was written up 2026-09-06 from
   Standa's own account, in three lengths so its prominence can be chosen by reading rather than in
   the abstract.
-- There's no written process for *how* a new quest actually gets authored — what fields are
-  required, how to pick an interaction type (confirm / timer / input / counter / photo), how
-  `tip` differs from `detail`, how `estimateMinutes` gets chosen. It's implicit in the TypeScript
-  shape today, which works for me reading code, but not for a plain content-writing pass.
 
 ### The decisions this pillar actually needs (this is the "what needs deciding" you asked for)
 
-1. **Volume target.** How many quests, distributed how across 4 categories × 3 timeframes? Testers
-   found 20 thin, but there's no stated target to write toward — even a rough number (50? 80? more?)
-   gives the writing work a finish line.
-2. **Authoring process.** Do you write quests directly in the existing data shape, or write them in
-   plain language (a doc, a spreadsheet) and hand them to me to convert into code? Either works —
-   worth picking one so it's not re-decided every session.
-3. **Difficulty/intensity calibration.** Quests need to map cleanly to Gentle/Balanced/Bold (built
-   this session) within each category, but there's no written rule for what makes one quest "Bold"
-   and another "Gentle" — right now it's a per-quest judgment call with no documented standard.
+1. ~~**Volume target.**~~ **Answered by measurement, 2026-09-06 — and the answer is "not yet".**
+   Simulated against the real catalogue and the real completion horizons, at one quest a week:
+
+   | Who | Runs out of new quests after |
+   |---|---|
+   | Sticks to one category | **~10 weeks** (2.3 months) |
+   | Spreads across all four | **~41 weeks** (9.5 months) |
+
+   So 41 quests is far more than a 14-day closed test needs, and the binding case is the
+   single-category user at about ten weeks. Doubling to ~26 per category would buy six months for
+   that user — a large writing job for a problem nobody has reported, on an app with no users.
+
+   **Target: ~15 per category (60 total), written after the closed test, not before.** The test will
+   say whether anyone actually sticks to one category, which is the assumption the whole number
+   rests on. Writing to a guessed finish line now is how you end up with sixty quests and no idea
+   which kind people wanted.
+2. ~~**Authoring process.**~~ **Settled by doing it, 2026-09-06.** Quests are written straight into
+   `src/constants/quests.ts` + `questJourneys.ts`, then `scripts/export-quests-sql.cjs` generates
+   the SQL and Standa runs it. Rules 2 and 3 in `docs/quest-content-guidelines.md` are the process.
+   The competing older generator was deleted rather than kept in sync — it held 19 quests and no
+   `interaction` fields, and running it would have overwritten good rows.
+3. ~~**Difficulty/intensity calibration.**~~ **Written down 2026-09-06 as rule 5** — and it was read
+   off the catalogue rather than invented, because the existing quests already agreed with each
+   other. Difficulty measures resistance, not duration: a one-hour "reconnect with someone you lost
+   touch with" is hard, a sixteen-hour "day with no work or chores" is medium. This matters beyond
+   tidiness — the onboarding intensity answer filters on `difficulty`, so a quest tagged by its
+   clock lands in front of the wrong person.
 4. ~~The `q-m-04` fix.~~ **Done 2026-08-21** — deleted rather than reframed.
-5. **A tone/voice guide.** `story.md`/`value-proposition.md` establish a real voice (warm, direct,
-   a little wry — "Order two dishes you have never tried from that tradition" is the existing house
-   style), but it's not written down as something a second writer, or future-me, could follow
-   consistently without you re-explaining it each time.
+5. ~~**A tone/voice guide.**~~ **Written 2026-09-06 as rule 6**, and derived from the catalogue
+   rather than described in adjectives, which is what makes it followable. The rule in one line:
+   *name the thing, not the feeling*. Quests say what you will be doing and never how it will make
+   you feel — "Moving water, trees around it, no car park", never "reconnect with nature and feel
+   refreshed". Promising the feeling does the experience's job for it, and is the difference
+   between this and every wellness app.
 6. **Category-balance philosophy.** Loosely tied to the still-open "merge Nature + Adventure?"
    question (parked pending real usage data, per the mentor's 2026-08-06 call) — worth deciding
    whether new-quest volume should wait on that, or proceed independently since writing more quests
