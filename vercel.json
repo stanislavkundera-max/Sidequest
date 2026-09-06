@@ -1,9 +1,13 @@
 {
+  "$schema": "https://openapi.vercel.sh/vercel.json",
   "buildCommand": "npx expo export --platform web",
   "outputDirectory": "dist",
   "installCommand": "npm install",
   "cleanUrls": true,
   "rewrites": [
-    { "source": "/(.*)", "destination": "/index.html" }
+    { "source": "/quest/run/:id", "destination": "/quest/run/[id]" },
+    { "source": "/quest/:id", "destination": "/quest/[id]" },
+    { "source": "/memory/:id", "destination": "/memory/[id]" },
+    { "source": "/profile/:timeframe", "destination": "/profile/[timeframe]" }
   ]
 }
