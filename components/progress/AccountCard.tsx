@@ -28,6 +28,25 @@ const NOTIFICATION_OPTIONS: { value: NotificationIntensity; label: string }[] = 
 ];
 
 /**
+ * "How much should the app bother you?" is hidden until it does something.
+ *
+ * The setting is real — it saves to `profiles.notification_intensity` and reads
+ * back — but nothing anywhere acts on it. The app sends no notifications at
+ * all: there is no notification library in `package.json`, no permission
+ * request, no scheduling code. So the control answers a question the app never
+ * asks, whichever way you set it.
+ *
+ * Hidden rather than deleted, ahead of the closed test, because a dead control
+ * in front of twelve testers spends their attention on "notifications don't
+ * work" — a bug report that is already known and cannot be fixed inside a
+ * 14-day window that restarts if the group thins out.
+ *
+ * Flip this to true the moment notifications are actually scheduled. The
+ * column, the repository functions and the UI below all still work.
+ */
+const NOTIFICATIONS_IMPLEMENTED = false;
+
+/**
  * Account controls.
  * - Everyone: sign out, edit onboarding preferences.
  * - Admin email only: redo onboarding, delete all progress, and a
@@ -227,7 +246,7 @@ export function AccountCard() {
         </Text>
       </View>
 
-      {notificationIntensity ? (
+      {NOTIFICATIONS_IMPLEMENTED && notificationIntensity ? (
         <View style={styles.notificationBlock}>
           <Text style={styles.notificationLabel}>How much should the app bother you?</Text>
           <View style={styles.notificationPills}>

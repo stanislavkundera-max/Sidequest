@@ -18,8 +18,18 @@
  * the store page — a bounced address is worse than no address at all. An alias
  * that forwards somewhere you read is fine; an address on an unregistered domain
  * is not.
+ *
+ * Was `privacy@sidequestlife.com` until 2026-09-06 — an address on a domain
+ * nobody had registered, printed on two published legal pages telling people to
+ * write to it. Changed to the Gmail account that already exists and is already
+ * read, which is the same address the Play Console account uses. Not the
+ * prettiest option, and the handoff recommended buying the domain instead, but
+ * a working mailbox beats a nice-looking one that bounces.
+ *
+ * If the domain is bought later, change this and redeploy — the legal pages
+ * render from this constant, so nothing else needs editing.
  */
-export const LEGAL_CONTACT_EMAIL = 'privacy@sidequestlife.com';
+export const LEGAL_CONTACT_EMAIL = 'sidequestlifeapp@gmail.com';
 
 /**
  * The data controller under GDPR: who is legally answerable for the data.

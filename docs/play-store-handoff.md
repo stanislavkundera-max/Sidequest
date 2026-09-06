@@ -24,7 +24,7 @@ Prepared 2026-09-05 so the next session is clicking, not deciding. Work top to b
 | Default language | English (United States) | Set at creation; the store copy is English |
 | App or game | **App** | Changeable later |
 | Free or paid | **Free** | ⚠️ Not changeable later. Does not block a paid tier — see roadmap |
-| Contact email | ⛔ **blocked on the domain decision** | See below |
+| Contact email | `sidequestlifeapp@gmail.com` | ✅ Settled 2026-09-06 — the account already exists and is read. Same address as `LEGAL_CONTACT_EMAIL` |
 | Declarations | Accept all three: Developer Program Policies, US export laws, **Play App Signing ToS** | The last one is what enables the AAB flow |
 
 ### Store listing — content is written
@@ -53,9 +53,10 @@ Prepared 2026-09-05 so the next session is clicking, not deciding. Work top to b
 
 Re-audited 2026-09-06 against the live deployment, the live database and EAS.
 
-1. **A contact mailbox that receives mail.** `constants/legal.ts` promises
-   `privacy@sidequestlife.com` and it does not exist, yet both published legal pages tell people to
-   write to it. This is the only item that blocks submission. See below.
+1. ~~A contact mailbox that receives mail.~~ ✅ **Settled 2026-09-06.** `LEGAL_CONTACT_EMAIL` is now
+   `sidequestlifeapp@gmail.com` — the account Standa had already created for the Play Console. This
+   document had recommended buying the domain instead; a mailbox that works beat one that looks
+   better, and the domain can still replace it later by editing that one constant and redeploying.
 2. **A fresh build.** The newest AAB is `versionCode 6` from commit `f385e30` — twenty-two commits
    behind `main`, so it contains none of the quest catalogue, none of the five-per-category rule and
    none of the deep-link fixes. Whatever goes to testers has to be rebuilt.
