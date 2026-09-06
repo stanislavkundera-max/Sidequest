@@ -361,10 +361,18 @@ export default function OnboardingScreen() {
             <ImageBackground source={MAP_BACKGROUND} style={styles.hero} imageStyle={styles.heroImage}>
               <View style={styles.heroScrim} />
             </ImageBackground>
-            <Text style={styles.headline}>Turn ordinary days into small adventures.</Text>
+            {/* The founder story, not a product line. Standa's call 2026-09-06.
+                Split across headline and lead deliberately: the headline is the
+                bit a stranger recognises about their own life, the lead carries
+                the turn — and still has to say what the app is, because a first
+                screen that only tells a story leaves someone not knowing what
+                they just opened. See docs/story.md for the three lengths. */}
+            <Text style={styles.headline}>Stuck in the same week on repeat.</Text>
             <Text style={styles.lead}>
-              Side Quest Life nudges you toward tiny real-world quests — then helps you
-              remember them. Answer a few questions and we&apos;ll shape a map that fits you.
+              Until a sunset in Morocco had me thinking about not coming home. I came
+              back and built this: small real-world quests that break the routine — and
+              help you remember the days you did something. Answer a few questions and
+              we&apos;ll shape a map that fits you.
             </Text>
           </View>
         ) : null}

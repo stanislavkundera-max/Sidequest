@@ -78,11 +78,11 @@ image is probably the whole thing:
 
 - **Landing page:** full version, or trimmed to the routine → Morocco → the app
   paragraph (drop the tram/scroll specifics if space is tight).
-- **Welcome screen (first onboarding step):** the one-line version. Note that the
-  welcome screen does not currently use the story at all — it runs "Turn ordinary
-  days into small adventures." Swapping in the personal line is a product
-  decision, not a copy edit, and worth deciding deliberately rather than by
-  default.
+- **Welcome screen (first onboarding step):** ✅ live since 2026-09-06. Split in
+  two: the headline is the recognisable half ("Stuck in the same week on
+  repeat.") and the lead carries the turn plus what the app actually is — a
+  first screen that only tells a story leaves someone not knowing what they
+  just opened.
 - **Onboarding:** the full version fits as an optional "why this app exists"
   read, not blocking — most people skim onboarding, so don't gate progress
   on reading it.

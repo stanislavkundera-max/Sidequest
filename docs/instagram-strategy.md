@@ -9,6 +9,12 @@ launch.
 
 ---
 
+> **A note on the word "pillar."** `docs/launch-plan.md` already uses **Pillar 1/2/3** for something
+> else entirely — stores, redesign, content. The three below are lettered **A/B/C** and called
+> *thirds* on purpose, so the two schemes never get confused in conversation. If someone says
+> "the third pillar" they mean the launch plan's content pillar; "the third strand" or "C" means
+> this document's.
+
 ## The three thirds, and why they are different jobs
 
 | | Third | Job | Works for someone who has never heard of the app |
@@ -46,7 +52,7 @@ Six studies is not six posts. It is closer to twenty, because each one has sever
   something *interesting* lifted mood instead. Autopilot is the problem; curiosity is not. This one
   is the whole product in a sentence.
 
-### The rule that protects this pillar
+### The rule that protects this third
 
 **Never post a claim stronger than the study.** The citation list already flags where this is a live
 risk — Twenge & Campbell, 2018 is correlational and other researchers have publicly contested the
@@ -109,7 +115,7 @@ here is your screen time" post. It performs, it is adjacent, and posting it from
 recruit exactly the wrong audience: people who want to be stopped, on a product built to start
 something. And it would be doing it *on Instagram*, which makes it hollow anyway.
 
-The honest version of that theme is pillar A's nuance: autopilot is the problem, and the answer is
+The honest version of that theme is the first third's nuance: autopilot is the problem, and the answer is
 somewhere to go, not something to block.
 
 ---
@@ -118,13 +124,13 @@ somewhere to go, not something to block.
 
 **Now, and safe from the redesign:**
 
-- The green notes. Text and facts, not screens — nothing in pillar A changes when the UI does.
+- The green notes. Text and facts, not screens — nothing in the first third changes when the UI does.
 - The written-up breaking point from `docs/story.md`.
 - Quest-as-invitation posts, if the design is typographic rather than screenshot-based.
 
 **Wait:**
 
-- Anything built on screenshots. The typography changed on 2026-09-06 and the redesign pillar is
+- Anything built on screenshots. The typography changed on 2026-09-06 and the redesign pillar (launch plan, Pillar 2) is
   still open — every screenshot taken now is a screenshot to retake.
 - Launch and download posts, obviously.
 
