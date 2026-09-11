@@ -89,3 +89,56 @@ Worth knowing before someone reports it as a bug:
   precisely so nobody spends their feedback on it.
 - **The catalogue can grow mid-test.** Quests live in Supabase, so new ones reach testers without a
   new build. Fixes to the app itself do need one.
+
+---
+
+## Three things Google's own page adds — added 2026-09-11
+
+From the official "App testing requirements for new personal developer accounts",
+read after the brief above was written. Two of these are easy to lose by simply
+not knowing about them.
+
+### 1. You have to summarise the feedback when you apply
+
+> *"You must summarize your testing feedback when applying for production
+> access."*
+
+The production application has three parts — about your closed test, about your
+app, about your production readiness — and one of them asks what testers said.
+**So the record has to be kept from day one.** Arriving at day 14 with twelve
+opted-in testers and nothing written down means either reconstructing it from
+memory or waiting longer.
+
+Keep a running note as feedback arrives: who said it, roughly when, what they
+meant, and what you did about it. This pairs with the standing habit of keeping
+raw tester notes verbatim rather than only a triaged summary — round 1 already
+proved the raw version is worth re-reading later.
+
+Google also weighs whether you *acted* on feedback, not only whether you
+collected it: fixing what testers hit "increases the likelihood of a successful
+production access application".
+
+### 2. Testers can leave private feedback inside Play
+
+Play Console → Monitor and improve → Ratings and reviews → **Testing feedback**.
+Filterable by date, version and device, and searchable. Worth checking alongside
+whatever arrives by message, because some people will use it without mentioning
+they did — and it never touches the public rating.
+
+### 3. Internal testing does not wait for app setup
+
+> *"Before completing your app setup, you can quickly distribute builds to a
+> small group of trusted testers."*
+
+This settles a question that was open in the roadmap. Internal testing works
+**before** the setup checklist is finished; closed testing does not — *"you can
+start a closed test after completing your app setup."*
+
+So the order is: put the build in front of a couple of people on the internal
+track today, finish the setup checklist, then open the closed test and start the
+fourteen days. Internal testing still counts for nothing toward the twelve — but
+it costs nothing and finds the embarrassing things first.
+
+Worth running the **pre-launch report** at the same time (Play Console installs
+the build on real devices and reports crashes and performance issues); it finds
+a different class of problem than people do.
