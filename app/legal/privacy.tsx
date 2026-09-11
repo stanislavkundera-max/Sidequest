@@ -32,23 +32,34 @@ const SECTIONS: { heading: string; body: string }[] = [
     heading: 'What we collect',
     body:
       'Account: an email address only if you choose to create an account with one — the app also ' +
-      'works with an anonymous session that has no email attached.\n\n' +
+      'works with an anonymous session that has no email attached. Either way the app creates a ' +
+      'unique account identifier (a random ID) so it can save your quests and memories and show ' +
+      'them back to you. An anonymous session has no name or email on it, but it is still an ' +
+      'identifier, so we treat it as personal data. Our hosting provider may also log technical ' +
+      'data such as IP addresses to keep the service running and secure.\n\n' +
       'Preferences: the categories, pace, and intensity you pick during onboarding, plus two ' +
       'optional baseline scale answers (how connected you feel to nature, how often you feel ' +
       'isolated) used only to personalize quest suggestions for you.\n\n' +
       'Content you create: which quests you start or finish, any notes and photos you add to a ' +
-      'memory, and free-text answers you type while completing a quest step.\n\n' +
+      'memory, and free-text answers you type while completing a quest step. Photos are stored in ' +
+      'a private bucket that only your own account can read — nobody else using the app can reach ' +
+      'them. The app only opens your camera or photo library after you grant permission, and only ' +
+      'for the photo you are adding.\n\n' +
       'Usage data: basic app-usage events (e.g. "quest started," "memory saved") tied to your ' +
       'account, used only to understand how the app is used and improve it. This is first-party ' +
       'only — we do not use any third-party analytics, advertising, or cross-app tracking SDKs, ' +
       'and nothing you do here is shared with ad networks.',
   },
   {
-    heading: 'Why we collect it',
+    heading: 'Why we collect it, and on what legal basis',
     body:
       'To run the app (save your progress, show your memories back to you), to personalize which ' +
       'quests get recommended to you, and to understand and improve how the app works. We do not ' +
-      'use your data for advertising and do not sell it to anyone.',
+      'use your data for advertising and do not sell it to anyone.\n\n' +
+      'Under GDPR: running the app and keeping your account, quests and memories is processed to ' +
+      'perform our agreement with you. Understanding how the app is used so it can be improved is ' +
+      'processed under our legitimate interest, which is why that data is first-party only and is ' +
+      'never shared with advertisers or used to track you across other apps.',
   },
   {
     heading: 'Who we share it with',
