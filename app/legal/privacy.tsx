@@ -37,9 +37,12 @@ const SECTIONS: { heading: string; body: string }[] = [
       'them back to you. An anonymous session has no name or email on it, but it is still an ' +
       'identifier, so we treat it as personal data. Our hosting provider may also log technical ' +
       'data such as IP addresses to keep the service running and secure.\n\n' +
-      'Preferences: the categories, pace, and intensity you pick during onboarding, plus two ' +
-      'optional baseline scale answers (how connected you feel to nature, how often you feel ' +
-      'isolated) used only to personalize quest suggestions for you.\n\n' +
+      'Preferences: which quest categories you are interested in — picking at least one is ' +
+      'required to finish onboarding — plus your pace, intensity, and two baseline scale answers ' +
+      '(how connected you feel to nature, how often you feel isolated). The last four start at a ' +
+      'neutral default if you skip past them without choosing, and you can change any of these ' +
+      'anytime from Progress → Edit preferences. Used only to personalize quest suggestions for ' +
+      'you.\n\n' +
       'Content you create: which quests you start or finish, any notes and photos you add to a ' +
       'memory, and free-text answers you type while completing a quest step. Photos are stored in ' +
       'a private bucket that only your own account can read — nobody else using the app can reach ' +
