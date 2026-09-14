@@ -34,7 +34,39 @@ export default function SignInScreen() {
   const [formError, setFormError] = useState<string | null>(null);
   const [formInfo, setFormInfo] = useState<string | null>(null);
 
+  const [guestLoading, setGuestLoading] = useState(false);
+
   const configured = isSupabaseConfigured();
+
+  // The app already does this automatically on a cold start at "/" — see
+  // app/index.tsx. But that only fires from that one entry point, so anyone
+  // who reaches this screen directly (signed out, a deep link, a browser
+  // refresh while on /sign-in) had no way back into an anonymous session at
+  // all. This is that same call, reachable from here too.
+  async function continueAsGuest() {
+    if (!configured) {
+      alertCompat('Configuration', SUPABASE_CONFIGURE_HELP);
+      return;
+    }
+    setFormError(null);
+    setFormInfo(null);
+    setGuestLoading(true);
+    try {
+      const { data, error } = await supabase.auth.signInAnonymously();
+      if (error) throw error;
+      if (data.session) {
+        setSession(data.session);
+      }
+      router.replace('/');
+    } catch (e: unknown) {
+      const message = formatAuthErrorForUi(e);
+      logError('auth.continueAsGuest', e);
+      setFormError(message);
+      alertCompat('Could not continue', message);
+    } finally {
+      setGuestLoading(false);
+    }
+  }
 
   async function submit() {
     setFormError(null);
@@ -182,6 +214,19 @@ export default function SignInScreen() {
             </Text>
           </Pressable>
 
+          {mode === 'signin' ? (
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel="Continue without an account"
+              onPress={continueAsGuest}
+              disabled={loading || guestLoading || !configured}
+              style={styles.guestWrap}>
+              <Text style={styles.guest}>
+                {guestLoading ? 'Starting…' : 'Continue without an account'}
+              </Text>
+            </Pressable>
+          ) : null}
+
           {!configured ? (
             <Text style={styles.hint}>
               Configure Supabase env vars to enable sign-in.
@@ -272,6 +317,13 @@ const styles = StyleSheet.create({
   forgot: { color: Theme.accent, fontSize: 14, fontFamily: 'Inter_400Regular' },
   switchWrap: { marginTop: 20, alignItems: 'center' },
   switch: { color: Theme.accent, fontSize: 15, fontFamily: 'Inter_400Regular' },
+  guestWrap: {
+    marginTop: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+    minHeight: MIN_TOUCH_TARGET,
+  },
+  guest: { color: Theme.textMuted, fontSize: 14, fontFamily: 'Inter_400Regular' },
   hint: {
     marginTop: 24,
     textAlign: 'center',
