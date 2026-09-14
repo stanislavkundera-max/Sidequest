@@ -42,10 +42,9 @@ const SECTIONS: { heading: string; body: string }[] = [
     heading: 'Delete it yourself, in the app',
     body:
       'Open the app and go to the Progress tab. In the account card at the top, choose ' +
-      '"Delete account" and confirm. This happens immediately and cannot be undone.\n\n' +
-      'Note that "Delete account" is not the same as "Delete all progress." Deleting progress ' +
-      'clears your quests and memories but keeps your account; deleting the account removes the ' +
-      'account itself as well.',
+      '"Delete account" and confirm. This happens immediately and cannot be undone, and it removes ' +
+      'your account along with all of its quests, memories and photos — there is no option to ' +
+      'delete only some of your data while keeping the account.',
   },
   {
     heading: 'Request deletion without the app',
