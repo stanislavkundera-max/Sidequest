@@ -21,7 +21,14 @@ group existed and build 9 was uploaded — see below for what is done and what i
    Play account is set to a country outside that list cannot install at all. Fix this before
    submitting; changing it later still works but means chasing down whoever got blocked.
 2. **Set the Google Group to let people join themselves.** On `groups.google.com` → the group →
-   Settings → who can join. Otherwise every tester has to be added by hand one at a time.
+   Settings → **two separate fields**, "Who can see group" and "Who can join group" — both need to
+   be "Anyone on the web", not just the join one. The share link is
+   `https://groups.google.com/g/<group-name>`.
+   **Ignore a "you don't have permission" message on that page if a "Přidat se ke skupině" / "Join
+   group" button is visible above it.** Confirmed 2026-09-14 on a real phone: that permission
+   message is about reading the group's internal discussion posts, a separate, stricter setting
+   testers never need. The join button is the only thing that has to work, and it can work while
+   that message is still showing.
 3. **Submit the release** ("Odeslat 14 změn ke kontrole"). This is Google's review of the *release*,
    not the app-content review. Checked 2026-09-14 rather than assumed: Google's own guidance is a
    few hours to 7 days, with a week suggested as a planning buffer — expect the longer end on a
