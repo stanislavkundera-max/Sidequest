@@ -12,59 +12,57 @@ group existed and build 9 was uploaded — see below for what is done and what i
 ## Standa's task list
 
 **Done:**
-- [x] Google Group created — `side-quest-life-testers@googlegroups.com`
-- [x] `versionCode 9` (commit `ba1c29e`) built and uploaded to the Closed testing draft
+- [x] Google Group created and configured correctly — `side-quest-life-testers@googlegroups.com`,
+  both "who can see" and "who can join" set to "Anyone on the web". Confirmed working end to end on
+  2026-09-14 with a real second account (join button visible and functional; ignore any "no
+  permission" text about reading posts — that's a different, unrelated setting).
+- [x] Countries widened to all 177.
+- [x] Release submitted; the release page has shown "K dispozici pro vybrané testery" with a green
+  check since 2026-09-14 20:46.
+- [x] `versionCode 9` (commit `ba1c29e`) built and uploaded to the Closed testing draft.
 
-**Left, in order:** (review cleared 2026-09-14, same evening as submission — much faster than Google's own stated range)
+**Blocked, waiting on Google — not on anything left to configure:**
 
-1. **Widen the release's countries/regions to "all"**, not the 4 currently selected — a tester whose
-   Play account is set to a country outside that list cannot install at all. Fix this before
-   submitting; changing it later still works but means chasing down whoever got blocked.
-2. **Set the Google Group to let people join themselves.** On `groups.google.com` → the group →
-   Settings → **two separate fields**, "Who can see group" and "Who can join group" — both need to
-   be "Anyone on the web", not just the join one. The share link is
-   `https://groups.google.com/g/<group-name>`.
-   **Ignore a "you don't have permission" message on that page if a "Přidat se ke skupině" / "Join
-   group" button is visible above it.** Confirmed 2026-09-14 on a real phone: that permission
-   message is about reading the group's internal discussion posts, a separate, stricter setting
-   testers never need. The join button is the only thing that has to work, and it can work while
-   that message is still showing.
-3. **Submit the release** ("Odeslat 14 změn ke kontrole"). This is Google's review of the *release*,
-   not the app-content review. Checked 2026-09-14 rather than assumed: Google's own guidance is a
-   few hours to 7 days, with a week suggested as a planning buffer — expect the longer end on a
-   brand-new account's first-ever release. The test link itself becomes live a few hours after the
-   review clears, not instantly.
-4. **Once the track is live, copy the opt-in link** from the Closed testing page ("Jak se testeři do
-   testu mohou zapojit" — the URL appears there once published). Paste it into the message below
-   before sending it.
-   **The release showing "Aktivní" is not the same as the link working yet.** Confirmed 2026-09-14,
-   against Google's own docs and matching community reports of the exact symptom (link 404s right
-   after copying): the opt-in link "can take several hours to become available" *after* the release
-   is approved — a second, separate delay. If the copied link 404s, that is expected, not a mistake
-   in copying it. Re-test the *same* link a few hours later rather than re-copying a new one.
-5. **Send the message below to everyone**, and collect who replies with their Google account email
-   if you're adding them individually rather than relying on open group join.
-6. **Check the pre-launch report once it appears** — Test and release → your release → a
+The opt-in link and the plain Play Store listing both still fail (404 / not found) for a real
+tester account, despite the release page saying available. The app-level dashboard briefly showed
+"Stav aktualizace: Probíhá kontrola" too. These two signals disagree with each other, and neither
+Standa's settings nor mine explain the gap at this point — every piece we could check (group
+visibility, group membership, countries, release status) is correctly configured. This is most
+likely still Google-side propagation: their own guidance is a few hours to 7 days for a brand-new
+account's first-ever release, and a week as the suggested planning buffer.
+
+**Next, in order:**
+
+1. **Wait — check again tomorrow rather than retesting tonight.** Nothing will work until Google's
+   side catches up, regardless of what gets clicked in the meantime.
+2. **Retest the same links** (group join, opt-in from "Zapojení na Androidu") on the same real
+   tester account (`stanislav.kundera@gmail.com`, already a group member) rather than generating new
+   ones.
+3. **If still broken after a few more days**, contact Play Console support directly rather than keep
+   troubleshooting blind — this matches other developers' reports of the same symptom
+   ("closed test opt-in link available but not working") with no clean self-service fix found.
+4. **Once it works: send the message below to everyone.**
+5. **Check the pre-launch report once it appears** — Test and release → your release → a
    "Pre-launch report" link, or a dedicated section under Quality. It runs automatically now that a
    closed-testing release is live: Google installs the AAB on a range of real Android devices and
    reports crashes, ANRs, and accessibility issues, none of which needs a single human tester. It
    can take a day or so to appear after the first release goes live — free coverage that catches a
    different class of bug than a person would.
-7. **Check daily for the first few days, then every few days**: Play Console → the closed track's
+6. **Check daily for the first few days, then every few days**: Play Console → the closed track's
    tester count, to confirm people actually *installed*, not just joined the group. Accepting the
    group invite is not opting in.
-8. **Start a running note the moment the first feedback arrives** — who said what, roughly when, what
+7. **Start a running note the moment the first feedback arrives** — who said what, roughly when, what
    you did about it. The production-access application later asks you to summarise this, and Google
    weighs whether you *acted* on it, not just collected it. Check Play Console → Monitor and improve →
    Ratings and reviews → Testing feedback too — some testers leave feedback there without telling you.
-9. **Watch the tester count, not just the calendar.** If it drops below 12 opted-in, the 14-day clock
+8. **Watch the tester count, not just the calendar.** If it drops below 12 opted-in, the 14-day clock
    restarts from zero. This is the single most expensive thing that can go wrong here.
    **A second, separate risk sits next to it**: Google's own article names "insufficient tester
    engagement" as its own reason to require more testing, independent of hitting 12/14 on paper. This
    is exactly why the message below asks people to actually finish one quest rather than just open
    the app once — a dozen people who installed it and never touched it again is a real risk, not a
    hypothetical one.
-10. **After 12+ have been opted in continuously for 14 days**: Play Console dashboard → "Apply for
+9. **After 12+ have been opted in continuously for 14 days**: Play Console dashboard → "Apply for
     production" → answer the three sections (about the test, about the app, about production
     readiness) using the running note from step 8. Google's review of *this* application is a
     separate, later step from the release review already done — its own stated turnaround is seven
@@ -94,9 +92,9 @@ and three.
 Czech, because the testers are. Adjust freely — the parts that matter are the Google account, the two
 links, and the fourteen days.
 
-**Fill in `[ODKAZ NA SKUPINU]` and `[OPT-IN ODKAZ]` before sending** — the group link only works once
-the group allows self-join (task 2 above), and the opt-in link only exists once the release is live
-(task 4 above). Don't send this until both are real.
+**Fill in `[ODKAZ NA SKUPINU]` and `[OPT-IN ODKAZ]` before sending.** The group link is confirmed
+working — see "Done" above. The opt-in link is the one still blocked; don't send this until task 2
+in "Next, in order" above passes on a retest.
 
 > Ahoj, dodělal jsem appku (Side Quest Life — dává ti malé reálné výzvy, žádnej další feed na
 > scrollování) a potřebuju ji dostat na Google Play. Google mě nepustí dál, dokud ji aspoň 12 lidí
