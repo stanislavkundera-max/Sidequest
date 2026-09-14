@@ -23,7 +23,10 @@ group existed and build 9 was uploaded — see below for what is done and what i
 2. **Set the Google Group to let people join themselves.** On `groups.google.com` → the group →
    Settings → who can join. Otherwise every tester has to be added by hand one at a time.
 3. **Submit the release** ("Odeslat 14 změn ke kontrole"). This is Google's review of the *release*,
-   not the app-content review — it is usually fast, but budget a day.
+   not the app-content review. Checked 2026-09-14 rather than assumed: Google's own guidance is a
+   few hours to 7 days, with a week suggested as a planning buffer — expect the longer end on a
+   brand-new account's first-ever release. The test link itself becomes live a few hours after the
+   review clears, not instantly.
 4. **Once the track is live, copy the opt-in link** from the Closed testing page ("Jak se testeři do
    testu mohou zapojit" — the URL appears there once published). Paste it into the message below
    before sending it.
@@ -70,22 +73,39 @@ links, and the fourteen days.
 the group allows self-join (task 2 above), and the opt-in link only exists once the release is live
 (task 4 above). Don't send this until both are real.
 
-> Ahoj, dodělal jsem appku a potřebuju ji dostat na Google Play. Google mě nepustí dál, dokud ji
-> aspoň 12 lidí nebude mít nainstalovanou 14 dní v kuse — takže od tebe potřebuju hlavně to, abys ji
-> nainstaloval a nechal si ji tam. Nic víc.
+> Ahoj, dodělal jsem appku (Side Quest Life — dává ti malé reálné výzvy, žádnej další feed na
+> scrollování) a potřebuju ji dostat na Google Play. Google mě nepustí dál, dokud ji aspoň 12 lidí
+> nebude mít nainstalovanou 14 dní v kuse — jseš jeden z lidí, o který bych stál.
 >
-> Musíš projít **dva kroky**, jinak se to Google počítat nebude:
+> **Co potřebuju:** telefon s Androidem a chvilku teď a pak občas přes ty dva týdny. Nic placenýho,
+> nic komplikovanýho.
+>
+> **Dva kroky, oba nutný, jinak se to Google počítat nebude:**
 >
 > 1. Přidej se do skupiny: [ODKAZ NA SKUPINU]
 > 2. Pak klikni na tohle a nainstaluj appku přes Play: [OPT-IN ODKAZ]
 >
-> Oboje dělej na telefonu s Androidem, přihlášený stejným Google účtem, přes který appku nainstaluješ.
+> Oboje dělej na telefonu s Androidem, přihlášený stejným Google účtem, přes který appku
+> nainstaluješ — jinak tě systém nepustí dál.
 >
-> Co s tím dělat: otevři si to párkrát za ten týden, zkus si dát nějaký quest a splnit ho. Klidně mi
-> napiš, co ti přijde blbě — čím upřímněji, tím líp. A hlavně to prosím **neodinstalovávej**, ani
-> když tě to přestane bavit. Kdyby nás kleslo pod 12, začíná těch 14 dní znova od nuly.
+> **Co pak dělat:** appka je anglicky, ale nic těžkýho tam není. Při prvním otevření se rovnou
+> sama přihlásí, nic zadávat nemusíš. Vyber si jeden quest, projeď ho krok za krokem až do konce —
+> o to hlavně jde, ne proklikat co nejvíc věcí. Klidně to pak přes ty dva týdny občas otevři znovu
+> a zkus další.
 >
-> Dík. Až to projde, dostaneš to normálně z obchodu jako každá jiná appka.
+> **Zpětná vazba:** napiš mi rovnou sem, do zprávy — cokoliv, i „tohle mi přišlo blbý" nebo „tady
+> jsem nevěděl co dál". Čím syrovější, tím líp, nic si nepřipravuj. Nemusíš čekat, až appku
+> dokončíš — klidně hned po prvním dojmu.
+>
+> **Dvě věci, ať tě nezmate:** appka ukazuje jen 5 questů na kategorii a žádný tlačítko na „ukázat
+> víc" — to je schválně, další se odemknou tím, že jeden dokončíš nebo odmítneš. A žádný notifikace
+> zatím appka neposílá, taky schválně, zatím to neřeším.
+>
+> **Jediná prosba:** appku prosím **neodinstalovávej**, ani kdyby tě to přestalo bavit po dvou
+> dnech. Kdyby nás kleslo pod 12 lidí, těch 14 dní začíná znovu od nuly a musel bych vás otravovat
+> podruhé. Stačí ji nechat v telefonu ležet.
+>
+> Dík moc. Až tohle projde, appka půjde normálně z obchodu jako každá jiná.
 
 Send it to everyone at once once both links are real — the self-join group means there is no email
 to collect first. The remaining risk is people clicking the group link and stopping there: joining
