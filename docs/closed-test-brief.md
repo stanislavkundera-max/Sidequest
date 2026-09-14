@@ -15,7 +15,7 @@ group existed and build 9 was uploaded — see below for what is done and what i
 - [x] Google Group created — `side-quest-life-testers@googlegroups.com`
 - [x] `versionCode 9` (commit `ba1c29e`) built and uploaded to the Closed testing draft
 
-**Left, in order:**
+**Left, in order:** (review cleared 2026-09-14, same evening as submission — much faster than Google's own stated range)
 
 1. **Widen the release's countries/regions to "all"**, not the 4 currently selected — a tester whose
    Play account is set to a country outside that list cannot install at all. Fix this before
@@ -32,18 +32,31 @@ group existed and build 9 was uploaded — see below for what is done and what i
    before sending it.
 5. **Send the message below to everyone**, and collect who replies with their Google account email
    if you're adding them individually rather than relying on open group join.
-6. **Check daily for the first few days, then every few days**: Play Console → the closed track's
+6. **Check the pre-launch report once it appears** — Test and release → your release → a
+   "Pre-launch report" link, or a dedicated section under Quality. It runs automatically now that a
+   closed-testing release is live: Google installs the AAB on a range of real Android devices and
+   reports crashes, ANRs, and accessibility issues, none of which needs a single human tester. It
+   can take a day or so to appear after the first release goes live — free coverage that catches a
+   different class of bug than a person would.
+7. **Check daily for the first few days, then every few days**: Play Console → the closed track's
    tester count, to confirm people actually *installed*, not just joined the group. Accepting the
    group invite is not opting in.
-7. **Start a running note the moment the first feedback arrives** — who said what, roughly when, what
+8. **Start a running note the moment the first feedback arrives** — who said what, roughly when, what
    you did about it. The production-access application later asks you to summarise this, and Google
    weighs whether you *acted* on it, not just collected it. Check Play Console → Monitor and improve →
    Ratings and reviews → Testing feedback too — some testers leave feedback there without telling you.
-8. **Watch the tester count, not just the calendar.** If it drops below 12 opted-in, the 14-day clock
+9. **Watch the tester count, not just the calendar.** If it drops below 12 opted-in, the 14-day clock
    restarts from zero. This is the single most expensive thing that can go wrong here.
-9. **After 12+ have been opted in continuously for 14 days**: Play Console dashboard → "Apply for
-   production" → answer the three sections (about the test, about the app, about production
-   readiness) using the running note from step 7.
+   **A second, separate risk sits next to it**: Google's own article names "insufficient tester
+   engagement" as its own reason to require more testing, independent of hitting 12/14 on paper. This
+   is exactly why the message below asks people to actually finish one quest rather than just open
+   the app once — a dozen people who installed it and never touched it again is a real risk, not a
+   hypothetical one.
+10. **After 12+ have been opted in continuously for 14 days**: Play Console dashboard → "Apply for
+    production" → answer the three sections (about the test, about the app, about production
+    readiness) using the running note from step 8. Google's review of *this* application is a
+    separate, later step from the release review already done — its own stated turnaround is seven
+    days or less, occasionally longer.
 
 ---
 
