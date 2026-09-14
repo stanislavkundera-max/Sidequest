@@ -86,7 +86,7 @@ const SECTIONS: { heading: string; body: string }[] = [
   },
   {
     heading: 'Children',
-    body: 'Side Quest Life is not directed at children under 16 and we do not knowingly collect data from them.',
+    body: 'Side Quest Life is intended for adults and is not directed at anyone under 18. Some quests involve activities such as bungee jumping, solo travel and sleeping outdoors that are not suitable for minors. We do not knowingly collect data from anyone under 18.',
   },
   {
     heading: 'Changes to this policy',
