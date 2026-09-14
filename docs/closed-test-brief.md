@@ -30,6 +30,11 @@ group existed and build 9 was uploaded — see below for what is done and what i
 4. **Once the track is live, copy the opt-in link** from the Closed testing page ("Jak se testeři do
    testu mohou zapojit" — the URL appears there once published). Paste it into the message below
    before sending it.
+   **The release showing "Aktivní" is not the same as the link working yet.** Confirmed 2026-09-14,
+   against Google's own docs and matching community reports of the exact symptom (link 404s right
+   after copying): the opt-in link "can take several hours to become available" *after* the release
+   is approved — a second, separate delay. If the copied link 404s, that is expected, not a mistake
+   in copying it. Re-test the *same* link a few hours later rather than re-copying a new one.
 5. **Send the message below to everyone**, and collect who replies with their Google account email
    if you're adding them individually rather than relying on open group join.
 6. **Check the pre-launch report once it appears** — Test and release → your release → a
