@@ -4,7 +4,43 @@ The Play requirement is not "twelve people tried it". It is **twelve testers opt
 for fourteen days**. Everything below exists because that sentence has three traps in it, and none of
 them are about the app.
 
-Written 2026-09-06, while Google's identity verification runs.
+Written 2026-09-06, while Google's identity verification runs. Task list added 2026-09-14 once the
+group existed and build 9 was uploaded — see below for what is done and what is left.
+
+---
+
+## Standa's task list
+
+**Done:**
+- [x] Google Group created — `side-quest-life-testers@googlegroups.com`
+- [x] `versionCode 9` (commit `ba1c29e`) built and uploaded to the Closed testing draft
+
+**Left, in order:**
+
+1. **Widen the release's countries/regions to "all"**, not the 4 currently selected — a tester whose
+   Play account is set to a country outside that list cannot install at all. Fix this before
+   submitting; changing it later still works but means chasing down whoever got blocked.
+2. **Set the Google Group to let people join themselves.** On `groups.google.com` → the group →
+   Settings → who can join. Otherwise every tester has to be added by hand one at a time.
+3. **Submit the release** ("Odeslat 14 změn ke kontrole"). This is Google's review of the *release*,
+   not the app-content review — it is usually fast, but budget a day.
+4. **Once the track is live, copy the opt-in link** from the Closed testing page ("Jak se testeři do
+   testu mohou zapojit" — the URL appears there once published). Paste it into the message below
+   before sending it.
+5. **Send the message below to everyone**, and collect who replies with their Google account email
+   if you're adding them individually rather than relying on open group join.
+6. **Check daily for the first few days, then every few days**: Play Console → the closed track's
+   tester count, to confirm people actually *installed*, not just joined the group. Accepting the
+   group invite is not opting in.
+7. **Start a running note the moment the first feedback arrives** — who said what, roughly when, what
+   you did about it. The production-access application later asks you to summarise this, and Google
+   weighs whether you *acted* on it, not just collected it. Check Play Console → Monitor and improve →
+   Ratings and reviews → Testing feedback too — some testers leave feedback there without telling you.
+8. **Watch the tester count, not just the calendar.** If it drops below 12 opted-in, the 14-day clock
+   restarts from zero. This is the single most expensive thing that can go wrong here.
+9. **After 12+ have been opted in continuously for 14 days**: Play Console dashboard → "Apply for
+   production" → answer the three sections (about the test, about the app, about production
+   readiness) using the running note from step 7.
 
 ---
 
@@ -28,15 +64,22 @@ and three.
 ## The message to send
 
 Czech, because the testers are. Adjust freely — the parts that matter are the Google account, the two
-steps, and the fourteen days.
+links, and the fourteen days.
+
+**Fill in `[ODKAZ NA SKUPINU]` and `[OPT-IN ODKAZ]` before sending** — the group link only works once
+the group allows self-join (task 2 above), and the opt-in link only exists once the release is live
+(task 4 above). Don't send this until both are real.
 
 > Ahoj, dodělal jsem appku a potřebuju ji dostat na Google Play. Google mě nepustí dál, dokud ji
 > aspoň 12 lidí nebude mít nainstalovanou 14 dní v kuse — takže od tebe potřebuju hlavně to, abys ji
 > nainstaloval a nechal si ji tam. Nic víc.
 >
-> Potřebuju vědět **e-mail, pod kterým máš přihlášený Google na Androidu** — bez toho tě systém
-> nepustí. Pak ti pošlu dva odkazy: první tě přidá do skupiny, druhý ti appku odemkne na Google Play.
-> Musíš projít oba, jinak se to nepočítá.
+> Musíš projít **dva kroky**, jinak se to Google počítat nebude:
+>
+> 1. Přidej se do skupiny: [ODKAZ NA SKUPINU]
+> 2. Pak klikni na tohle a nainstaluj appku přes Play: [OPT-IN ODKAZ]
+>
+> Oboje dělej na telefonu s Androidem, přihlášený stejným Google účtem, přes který appku nainstaluješ.
 >
 > Co s tím dělat: otevři si to párkrát za ten týden, zkus si dát nějaký quest a splnit ho. Klidně mi
 > napiš, co ti přijde blbě — čím upřímněji, tím líp. A hlavně to prosím **neodinstalovávej**, ani
@@ -44,8 +87,10 @@ steps, and the fourteen days.
 >
 > Dík. Až to projde, dostaneš to normálně z obchodu jako každá jiná appka.
 
-Send the two links separately, after they reply with the address. Sending them upfront to people who
-have not confirmed an Android Google account is how half a group ends up half-joined.
+Send it to everyone at once once both links are real — the self-join group means there is no email
+to collect first. The remaining risk is people clicking the group link and stopping there: joining
+the group is not opting in, and Play Console will list them as a tester either way, so check the
+actual install count (task 6 above), not the group's member count.
 
 ---
 
