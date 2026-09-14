@@ -279,6 +279,25 @@ All of these follow from what the app actually contains; expect a rating of **Ev
 content rating must be redone — shipping social features under a rating that says "users do not
 interact" is a policy violation, not a paperwork slip.
 
+**The form is the cheap part.** Redoing the questionnaire takes minutes and costs nothing — Play
+Console → Policy → App content → Content rating. Do it in the same release as the feature, not after.
+The Data safety form changes too, since data would then be shared with other users.
+
+**The expensive part is Google's User Generated Content policy**, which applies the moment users can
+see each other's content. Checked 2026-09-14 against Play Console Help:
+
+- terms of use that **define objectionable content**, accepted **before** anyone can post
+- an **in-app way to report** objectionable content and users
+- an **in-app way to block** users — required for anything one-to-one, like messages or tagging
+- **ongoing moderation**: actually acting on reports, not just collecting them
+
+That is product work plus a standing operational duty for as long as the feature exists — someone has
+to read the reports. Worth weighing before deciding memories should be shareable, not after. Even a
+modest "share a memory with a friend" is one-to-one interaction, so blocking comes with it.
+
+Sources: [User Generated Content](https://support.google.com/googleplay/android-developer/answer/9876937),
+[UGC moderation requirements](https://support.google.com/googleplay/android-developer/answer/12923286).
+
 ---
 
 ## 7. App access — no demo account needed
