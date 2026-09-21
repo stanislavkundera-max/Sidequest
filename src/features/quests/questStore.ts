@@ -1,6 +1,5 @@
 import { create } from 'zustand';
 
-import { QUEST_COPY } from '@/src/features/quests/questCopy';
 import {
   getActiveUserQuests as getActiveUserQuestsPure,
   getAvailableQuests as getAvailableQuestsPure,
@@ -57,6 +56,12 @@ type QuestDomainState = {
   loading: boolean;
   pending: boolean;
   error: string | null;
+  /**
+   * Drop whatever error is sitting in the store. Screens call this on mount:
+   * `error` is shared by every screen, so without it a failure from one flow
+   * is rendered as a banner on the next, unrelated one (round 2, R2-01).
+   */
+  clearError: () => void;
   bootstrap: (userId: string) => Promise<void>;
   refreshUserQuests: (userId: string) => Promise<void>;
   getAvailableQuests: () => Quest[];
@@ -115,6 +120,10 @@ export const useQuestDomainStore = create<QuestDomainState>((set, get) => ({
   loading: false,
   pending: false,
   error: null,
+
+  clearError: () => {
+    if (get().error !== null) set({ error: null });
+  },
 
   bootstrap: async (userId) => {
     if (get().initializedForUserId === userId && get().quests.length > 0) return;
@@ -274,9 +283,11 @@ export const useQuestDomainStore = create<QuestDomainState>((set, get) => ({
             : [...s.userQuests, result.userQuest],
         }));
       }
-      if (!result.ok && result.reason === 'active_path_full') {
-        set({ error: QUEST_COPY.activePathFullBody });
-      }
+      // A full path is an answer, not a failure: every caller turns it into its
+      // own modal, alert or inline text. It used to be written to the shared
+      // `error` as well, where it outlived the screen that caused it — a tester
+      // saw "You can have three quests in motion" on a quest she was already
+      // doing and concluded she was stuck (round 2, R2-01).
       return result;
     } catch (e: unknown) {
       logError('questStore.assignQuestToUser', e, { userId, questId });

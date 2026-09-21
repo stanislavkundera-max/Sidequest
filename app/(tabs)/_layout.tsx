@@ -59,7 +59,16 @@ export default function TabLayout() {
         // is not something every user can see.
         tabBarInactiveTintColor: Theme.textMuted,
         tabBarLabel: ({ focused, color, children }) => (
-          <Text style={{ fontSize: 10, fontWeight: focused ? '800' : '500', color }}>
+          // Inter like everything else — this rendered in the system font, the
+          // last text in the app outside the one family (R2-20). Weight follows
+          // the loaded cut; Android won't synthesise an 800 that doesn't exist.
+          <Text
+            style={{
+              fontSize: 10,
+              fontFamily: focused ? 'Inter_700Bold' : 'Inter_500Medium',
+              fontWeight: focused ? '700' : '500',
+              color,
+            }}>
             {children}
           </Text>
         ),

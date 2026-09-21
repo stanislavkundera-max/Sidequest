@@ -1,5 +1,4 @@
 import FontAwesome from '@expo/vector-icons/FontAwesome';
-import { Fraunces_600SemiBold, Fraunces_700Bold } from '@expo-google-fonts/fraunces';
 import {
   Inter_400Regular,
   Inter_500Medium,
@@ -65,7 +64,9 @@ const NavDark = {
 };
 
 export default function RootLayout() {
-  // The brand faces from BRANDING.md §3: Fraunces for headings, Inter for body.
+  // One family, Inter, per BRANDING.md §3 (revised 2026-09-21). Headings are
+  // Inter Bold; Fraunces was dropped because a serif heading next to sans body
+  // text read as a mistake (round 2, R2-20) — and it saves two font files.
   //
   // Only the cuts actually used are loaded — each is a file the app downloads
   // and parses before the splash screen can go away, so an unused weight is
@@ -78,8 +79,6 @@ export default function RootLayout() {
   // weights are separate families here and why `Type` in constants/Theme.ts
   // names them rather than letting screens set fontWeight and hope.
   const [loaded, error] = useFonts({
-    Fraunces_600SemiBold,
-    Fraunces_700Bold,
     Inter_400Regular,
     Inter_500Medium,
     Inter_600SemiBold,
@@ -173,7 +172,14 @@ function RootLayoutNav() {
             default one is not enough. Screens whose natural home is not the
             Journey tab override `headerLeft` with their own fallback below.
             Harmless on the groups that hide their header entirely. */}
-        <Stack screenOptions={{ headerLeft: () => <HeaderBackButton /> }}>
+        <Stack
+          screenOptions={{
+            headerLeft: () => <HeaderBackButton />,
+            // Screen titles ("New memory", a quest's name) defaulted to the
+            // system font — Roboto on Android — next to Inter everywhere else.
+            // One family throughout (R2-20).
+            headerTitleStyle: { fontFamily: 'Inter_600SemiBold', fontWeight: '600' },
+          }}>
           <Stack.Screen name="index" options={{ headerShown: false }} />
           <Stack.Screen
             name="onboarding"

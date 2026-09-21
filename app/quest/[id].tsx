@@ -15,7 +15,7 @@ import { categoryAccentForCategoryId } from '@/lib/categoryAccent';
 import { isSupabaseConfigured, SUPABASE_CONFIGURE_HELP } from '@/lib/supabase';
 import { QuestFeedbackCard } from '@/src/features/feedback/QuestFeedbackCard';
 import { useMemoryStore } from '@/src/features/memories/memoryStore';
-import { questDurationLabel, QUEST_COPY } from '@/src/features/quests/questCopy';
+import { questDurationLabel, QUEST_COPY, TIMEFRAME_LABEL } from '@/src/features/quests/questCopy';
 import {
   canUserBeginQuest,
   countCompletedJourneySteps,
@@ -23,16 +23,10 @@ import {
 } from '@/src/features/quests/questHelpers';
 import { useQuestDomainStore } from '@/src/features/quests/questStore';
 import { markQuestSeen } from '@/src/features/quests/seenQuests';
+import { currentlyDismissedQuestIds } from '@/src/features/quests/suggestedQuests';
 import { trackEvent } from '@/src/lib/analytics';
 import { logError } from '@/src/lib/monitoring/errorLogger';
-import type { QuestTimeframe } from '@/src/types/quest';
 import { useSessionStore } from '@/stores/session';
-
-const TF_LABEL: Record<QuestTimeframe, string> = {
-  weekly: 'Weekly',
-  monthly: 'Monthly',
-  yearly: 'Yearly',
-};
 
 function categoryName(categoryId: string): string {
   return (
@@ -52,11 +46,17 @@ export default function QuestDetailScreen() {
   const loading = useQuestDomainStore((s) => s.loading);
   const pending = useQuestDomainStore((s) => s.pending);
   const error = useQuestDomainStore((s) => s.error);
+  const clearQuestError = useQuestDomainStore((s) => s.clearError);
+  // See R2-01: a stale error from another screen must not greet you here.
+  useEffect(() => {
+    clearQuestError();
+  }, [clearQuestError]);
   const userQuests = useQuestDomainStore((s) => s.userQuests);
   const getQuestById = useQuestDomainStore((s) => s.getQuestById);
   const refreshUserQuests = useQuestDomainStore((s) => s.refreshUserQuests);
   const assignQuestToUser = useQuestDomainStore((s) => s.assignQuestToUser);
   const deactivateQuest = useQuestDomainStore((s) => s.deactivateQuest);
+  const dismissSuggestedQuest = useQuestDomainStore((s) => s.dismissSuggestedQuest);
   const bootstrap = useQuestDomainStore((s) => s.bootstrap);
   const memories = useMemoryStore((s) => s.memories);
 
@@ -111,6 +111,17 @@ export default function QuestDetailScreen() {
     if (activeUq) return false;
     return canUserBeginQuest(userQuests, quests, quest.id);
   }, [quest, userQuests, quests, activeUq]);
+
+  // "Not for me" only makes sense on a plain offer — not on something you are
+  // doing, have liked, have done, or already turned down (R2-24).
+  const canTurnDown = useMemo(() => {
+    if (!quest || activeUq || completedUq) return false;
+    const engaged = userQuests.some(
+      (uq) =>
+        uq.questId === quest.id && (uq.status === 'saved_for_later' || uq.status === 'chosen')
+    );
+    return !engaged && !currentlyDismissedQuestIds(userQuests).has(quest.id);
+  }, [quest, activeUq, completedUq, userQuests]);
 
   const [acting, setActing] = useState(false);
   const [assignFeedback, setAssignFeedback] = useState<string | null>(null);
@@ -277,6 +288,47 @@ export default function QuestDetailScreen() {
     router.push(`/quest/run/${quest.id}`);
   }
 
+  // Standa's rule: a turned-down quest comes back once you have done everything
+  // else in that category. The dialog says so — "not for me" should never read
+  // as "gone forever", because it isn't.
+  function requestTurnDown() {
+    if (!quest || !user) return;
+    const category = categoryName(quest.categoryId);
+    alertTwoChoice(
+      'Not for you?',
+      `We'll stop offering it and open the next one. It comes back only once you've done everything else in ${category}.`,
+      {
+        cancel: { text: 'Keep it' },
+        confirm: {
+          text: 'Not for me',
+          onPress: () => {
+            void (async () => {
+              setActing(true);
+              try {
+                const r = await dismissSuggestedQuest(user.id, quest.id);
+                if (!r.ok) {
+                  alertCompat('Could not update', 'Try again in a moment.');
+                  return;
+                }
+                trackEvent('quest_dismissed', {
+                  sourceScreen: 'quest_detail',
+                  questId: quest.id,
+                  category: quest.categoryId,
+                }).catch(() => undefined);
+                if (router.canGoBack()) router.back();
+                else router.replace('/(tabs)/journey');
+              } catch {
+                // The store's ErrorState shows what went wrong.
+              } finally {
+                setActing(false);
+              }
+            })();
+          },
+        },
+      }
+    );
+  }
+
   if (!id) {
     return (
       <SafeAreaView style={styles.safe} edges={['bottom']}>
@@ -341,7 +393,7 @@ export default function QuestDetailScreen() {
       <ScrollView contentContainerStyle={styles.scroll}>
         <View style={[styles.badge, { backgroundColor: Theme.accentSoft }]}>
           <Text style={[styles.badgeText, { color: accent }]}>
-            {TF_LABEL[quest.timeframe]}
+            {TIMEFRAME_LABEL[quest.timeframe]}
           </Text>
         </View>
         <Text style={styles.category}>{categoryName(quest.categoryId)}</Text>
@@ -352,7 +404,7 @@ export default function QuestDetailScreen() {
         <View style={styles.metaRow}>
           <Text style={styles.meta}>
             {[
-              TF_LABEL[quest.timeframe],
+              // The level is already the badge above; saying it twice was noise.
               quest.difficulty,
               questDurationLabel(quest.estimatedDurationMinutes),
             ]
@@ -458,11 +510,26 @@ export default function QuestDetailScreen() {
         ) : (
           <View style={styles.doneBanner}>
             <Text style={styles.doneText}>
-              At your limit for {TF_LABEL[quest.timeframe].toLowerCase()} quests,
-              or this quest is not available to add right now.
+              {/* Per-level limits were retired (see questHelpers.ts); the real reasons are these two. */}
+              Not open to you right now — either three quests are already in motion, or this one is
+              still waiting behind others in {categoryName(quest.categoryId)}.
             </Text>
           </View>
         )}
+        {canTurnDown ? (
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Not for me — stop offering this quest for now"
+            onPress={requestTurnDown}
+            disabled={acting || pending}
+            style={({ pressed }) => [
+              styles.turnDownBtn,
+              (acting || pending) && styles.deactivateBtnDisabled,
+              pressed && !(acting || pending) && styles.deactivateBtnPressed,
+            ]}>
+            <Text style={styles.turnDownBtnText}>Not for me</Text>
+          </Pressable>
+        ) : null}
         {completedUq ? (
           <QuestFeedbackCard
             userId={user.id}
@@ -507,8 +574,8 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 24,
-    fontFamily: 'Fraunces_600SemiBold',
-    fontWeight: '600',
+    fontFamily: 'Inter_700Bold',
+    fontWeight: '700',
     color: Theme.text,
     marginBottom: 12,
     lineHeight: 32,
@@ -593,6 +660,20 @@ const styles = StyleSheet.create({
     borderColor: Theme.border,
     backgroundColor: Theme.surface,
     alignItems: 'center',
+  },
+  // Quieter than "let it wait": no border, just text, so it doesn't compete with Begin.
+  turnDownBtn: {
+    marginTop: 8,
+    minHeight: 44,
+    alignSelf: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 16,
+  },
+  turnDownBtnText: {
+    fontSize: 15,
+    fontFamily: 'Inter_600SemiBold',
+    fontWeight: '600',
+    color: Theme.textMuted,
   },
   deactivateBtnPressed: { opacity: 0.88 },
   deactivateBtnDisabled: { opacity: 0.55 },

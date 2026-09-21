@@ -82,7 +82,7 @@ const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: Theme.bg },
   scroll: { paddingBottom: 40 },
   paddedBlock: { paddingHorizontal: 20 },
-  title: { fontSize: 28, fontFamily: 'Fraunces_700Bold', fontWeight: '700', color: Theme.text, marginBottom: 2, paddingTop: 8 },
+  title: { fontSize: 28, fontFamily: 'Inter_700Bold', fontWeight: '700', color: Theme.text, marginBottom: 2, paddingTop: 8 },
   kicker: {
     fontSize: 13,
     fontFamily: 'Inter_600SemiBold',

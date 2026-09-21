@@ -1,4 +1,27 @@
+import type { QuestTimeframe } from '@/src/types/quest';
+
 /** Calm quest path copy — avoid productivity / failure framing (see product spec). */
+
+/**
+ * What a quest's `timeframe` is called on screen — the one place it is named.
+ *
+ * It used to read Weekly / Monthly / Yearly. The mentor found that unintuitive
+ * twice (rounds 1 and 2). Decided 2026-09-21 (R2-23): the level means **how
+ * much planning a quest takes**, because that is what the catalogue already
+ * encodes. Its outliers only make sense that way — a one-hour *yearly*
+ * "reconnect with someone you lost touch with", a five-hour *weekly* "take the
+ * next train out". Duration is shown separately on every card ("~5 h"), so
+ * naming the level by duration would say the same thing twice.
+ *
+ * The stored values stay weekly / monthly / yearly — only the words change.
+ * Onboarding's pace question still describes these in minutes and now
+ * disagrees; that is logged in docs/feedback/round-2-tasklist.md, not fixed here.
+ */
+export const TIMEFRAME_LABEL: Record<QuestTimeframe, string> = {
+  weekly: 'Anytime',
+  monthly: 'Plan ahead',
+  yearly: 'Big occasion',
+};
 
 export const QUEST_COPY = {
   activePathFullTitle: 'Your path is full',
@@ -22,13 +45,6 @@ export const QUEST_COPY = {
   chooseCategoryTitle: 'Choose a category',
   /** Journey hub — line under category name on hero. */
   categoryQuestCounts: (n: number) => (n === 1 ? '1 quest in this category' : `${n} quests in this category`),
-  /** Journey hub — under category title when picks are grouped by cadence. */
-  categoryHeroHint: 'Grouped by weekly, monthly, and yearly rhythm.',
-  discoverTimeframeWeekly: 'Weekly',
-  discoverTimeframeMonthly: 'Monthly',
-  discoverTimeframeYearly: 'Yearly',
-  discoverTimeframeQuestCounts: (n: number) =>
-    n === 1 ? '1 quest in this rhythm' : `${n} quests in this rhythm`,
   newForYouTitle: 'New for you',
   likedTabLabel: 'Liked',
   discoverTabLabel: 'Discover',

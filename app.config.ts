@@ -27,10 +27,11 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   splash: {
     image: './assets/images/splash-icon.png',
     resizeMode: 'contain',
-    // The brand beige from BRANDING.md §2. Was #f4f1ec — a near-miss that
-    // predated the palette being decided. The splash mark is drawn in forest
-    // green so it reads at 9.08 against this.
-    backgroundColor: '#f3f2ec',
+    // The brand green, with the all-amber cairn on it — the same mark as the
+    // app icon. It was beige with a green-stoned cairn, the logo from before
+    // 2026-09-05 (round 2, R2-07). app/index.tsx's loading gate matches this so
+    // the hand-off from native splash to JS doesn't flash.
+    backgroundColor: '#33471f',
   },
   ios: {
     supportsTablet: true,

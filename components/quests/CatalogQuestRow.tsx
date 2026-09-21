@@ -4,17 +4,11 @@ import { Pressable, Text, View } from 'react-native';
 import { journeyHubStyles as styles } from '@/components/journey/journeyHubStyles';
 import { Theme } from '@/constants/Theme';
 import { categoryAccentForCategoryId } from '@/lib/categoryAccent';
-import { questDurationLabel, QUEST_COPY } from '@/src/features/quests/questCopy';
+import { questDurationLabel, QUEST_COPY, TIMEFRAME_LABEL } from '@/src/features/quests/questCopy';
 import type { Quest } from '@/src/types/quest';
 
-const TF_META: Record<Quest['timeframe'], string> = {
-  weekly: 'Weekly',
-  monthly: 'Monthly',
-  yearly: 'Yearly',
-};
-
 function questMetaLine(q: Quest): string {
-  return [TF_META[q.timeframe], questDurationLabel(q.estimatedDurationMinutes)]
+  return [TIMEFRAME_LABEL[q.timeframe], questDurationLabel(q.estimatedDurationMinutes)]
     .filter(Boolean)
     .join(' · ');
 }
@@ -23,11 +17,21 @@ type Props = {
   quest: Quest;
   categoryLabel: string;
   busy?: boolean;
-  /** Show the NEW badge. Recently added *and* not yet opened — parent's call. */
+  /**
+   * Show the NEW badge — new in the catalogue or newly opened to *you*, and not
+   * yet opened either way. Parent's call.
+   */
   isNew?: boolean;
+  /**
+   * Already hearted. The card stays where it is, pinned at the top of its
+   * category, and the heart becomes the way to take the like back (R2-05).
+   */
+  liked?: boolean;
   onOpen: (questId: string) => void;
   onStart: (questId: string) => void;
   onLike?: (questId: string) => void;
+  /** Required for the heart to do anything on a liked card. */
+  onUnlike?: () => void;
 };
 
 /** Shared catalog-quest row (Explore recommendations + Journey full list). */
@@ -36,9 +40,11 @@ export function CatalogQuestRow({
   categoryLabel,
   busy = false,
   isNew = false,
+  liked = false,
   onOpen,
   onStart,
   onLike,
+  onUnlike,
 }: Props) {
   const accent = categoryAccentForCategoryId(quest.categoryId);
   return (
@@ -87,7 +93,23 @@ export function CatalogQuestRow({
             ]}>
             <Text style={styles.btnSubtleSolidText}>{QUEST_COPY.startNow}</Text>
           </Pressable>
-          {onLike ? (
+          {liked && onUnlike ? (
+            <Pressable
+              disabled={busy}
+              onPress={onUnlike}
+              accessibilityRole="button"
+              accessibilityLabel={`Liked — tap to unlike: ${quest.title}`}
+              accessibilityState={{ disabled: busy, selected: true }}
+              style={({ pressed }) => [
+                styles.btnSubtleLight,
+                { backgroundColor: Theme.accentSoft, borderColor: Theme.accent },
+                pressed && !busy && styles.pressed,
+                busy && styles.disabled,
+              ]}>
+              <Ionicons name="heart" size={13} color={Theme.accent} />
+              <Text style={styles.btnSubtleLightText}>Liked</Text>
+            </Pressable>
+          ) : !liked && onLike ? (
             <Pressable
               disabled={busy}
               onPress={() => onLike(quest.id)}
@@ -99,7 +121,8 @@ export function CatalogQuestRow({
                 pressed && !busy && styles.pressed,
                 busy && styles.disabled,
               ]}>
-              <Ionicons name="heart" size={13} color={Theme.accent} />
+              {/* Outline until liked, so the filled heart on a liked card reads as a state. */}
+              <Ionicons name="heart-outline" size={13} color={Theme.accent} />
               <Text style={styles.btnSubtleLightText}>{QUEST_COPY.likeQuest}</Text>
             </Pressable>
           ) : null}

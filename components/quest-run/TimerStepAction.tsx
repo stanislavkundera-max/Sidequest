@@ -24,9 +24,14 @@ type Props = {
 };
 
 /**
- * Hard-gated step timer: the step unlocks only after `minSeconds` of real
- * wall-clock time. `startedAt` persists, so locking the phone or leaving the
- * app does not pause it.
+ * Step timer: "Finish this step" unlocks after `minSeconds` of real wall-clock
+ * time. `startedAt` persists, so locking the phone or leaving the app does not
+ * pause it.
+ *
+ * It can always be skipped. It was a hard gate, which made no sense on steps
+ * that follow a "put it in your calendar" step — you plan a trip for next
+ * month and are immediately asked to start a 45-minute timer (round 2, R2-06).
+ * Skipping records the step on your word, like any confirm step.
  */
 export function TimerStepAction({
   userQuestId,
@@ -75,6 +80,26 @@ export function TimerStepAction({
     void clearStepTimer(userQuestId, stepId);
   }
 
+  function skip() {
+    onComplete({ kind: 'self_attest' });
+    void clearStepTimer(userQuestId, stepId);
+  }
+
+  const skipLink = (
+    <Pressable
+      accessibilityRole="button"
+      accessibilityLabel="Skip the timer and finish this step"
+      disabled={busy}
+      onPress={skip}
+      style={({ pressed }) => [
+        styles.quietLink,
+        busy && styles.disabled,
+        pressed && !busy && styles.pressed,
+      ]}>
+      <Text style={styles.quietLinkText}>Skip the timer</Text>
+    </Pressable>
+  );
+
   function requestReset() {
     alertTwoChoice(
       'Reset this timer?',
@@ -99,10 +124,11 @@ export function TimerStepAction({
     return (
       <View style={styles.block}>
         <Text style={styles.helper}>
-          This step takes at least {formatTimerClock(minSeconds)}. Start the timer when you begin
+          This step takes about {formatTimerClock(minSeconds)}. Start the timer when you begin
           for real — it keeps running even if you lock your phone.
         </Text>
         <PrimaryButton label="Start the timer" loading={busy} onPress={() => void begin()} />
+        {skipLink}
       </View>
     );
   }
@@ -127,6 +153,7 @@ export function TimerStepAction({
         loading={busy}
         onPress={finish}
       />
+      {!reached ? skipLink : null}
       <Pressable
         accessibilityRole="button"
         accessibilityLabel="Reset this timer"

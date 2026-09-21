@@ -153,7 +153,7 @@ const styles = StyleSheet.create({
   btnPressed: { opacity: 0.9 },
   btnSelected: { backgroundColor: Theme.accentSoft, borderColor: Theme.accent },
   btnText: { color: Theme.text, fontSize: 13, fontFamily: 'Inter_500Medium', fontWeight: '500' },
-  btnTextSelected: { color: Theme.accent, fontWeight: '700' },
+  btnTextSelected: { color: Theme.accent, fontFamily: 'Inter_700Bold', fontWeight: '700' },
   input: {
     borderWidth: 1,
     borderColor: Theme.border,

@@ -27,7 +27,7 @@ import {
 } from '@/src/features/quests';
 import { useQuestDomainStore } from '@/src/features/quests';
 import { openQuestsInCategory } from '@/src/features/quests/suggestedQuests';
-import { questDurationLabel } from '@/src/features/quests/questCopy';
+import { questDurationLabel, TIMEFRAME_LABEL } from '@/src/features/quests/questCopy';
 import {
   CATEGORY_TAB_ICON,
   CATEGORY_TAB_IDS,
@@ -40,12 +40,6 @@ import type { Quest, QuestTimeframe } from '@/src/types/quest';
 import { useSessionStore } from '@/stores/session';
 
 const TIMEFRAME_ORDER: QuestTimeframe[] = ['weekly', 'monthly', 'yearly'];
-
-const TIMEFRAME_LABEL: Record<QuestTimeframe, string> = {
-  weekly: 'Weekly',
-  monthly: 'Monthly',
-  yearly: 'Yearly',
-};
 
 function categoryName(categoryId: string): string {
   return (
@@ -66,6 +60,11 @@ export default function QuestSelectionScreen() {
   const loading = useQuestDomainStore((s) => s.loading);
   const pending = useQuestDomainStore((s) => s.pending);
   const error = useQuestDomainStore((s) => s.error);
+  const clearQuestError = useQuestDomainStore((s) => s.clearError);
+  // See R2-01: a stale error from another screen must not greet you here.
+  useEffect(() => {
+    clearQuestError();
+  }, [clearQuestError]);
   const userQuests = useQuestDomainStore((s) => s.userQuests);
   const getQuestById = useQuestDomainStore((s) => s.getQuestById);
   const refreshUserQuests = useQuestDomainStore((s) => s.refreshUserQuests);
@@ -358,7 +357,7 @@ export default function QuestSelectionScreen() {
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: Theme.bg },
   scroll: { padding: 20, paddingBottom: 36 },
-  title: { fontSize: 28, fontFamily: 'Fraunces_600SemiBold', fontWeight: '600', color: Theme.text, marginBottom: 8 },
+  title: { fontSize: 28, fontFamily: 'Inter_700Bold', fontWeight: '700', color: Theme.text, marginBottom: 8 },
   sub: { fontSize: 15, fontFamily: 'Inter_400Regular', color: Theme.textMuted, lineHeight: 22, marginBottom: 8 },
   pathLine: {
     fontSize: 14,

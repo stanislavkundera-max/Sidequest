@@ -12,6 +12,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { MemoryCategoryPicker } from '@/components/memory/MemoryCategoryPicker';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { ErrorState } from '@/components/ui/ErrorState';
 import { PrimaryButton } from '@/components/ui/PrimaryButton';
@@ -32,6 +33,13 @@ export default function NewMemoryScreen() {
   const quests = useQuestDomainStore((s) => s.quests);
   const bootstrap = useQuestDomainStore((s) => s.bootstrap);
   const memoryError = useMemoryStore((s) => s.error);
+  const clearMemoryError = useMemoryStore((s) => s.clearError);
+  // A failed auto-save at quest completion sends you here via "Add a memory" —
+  // and its error used to be waiting, above a form you had not submitted yet
+  // (R2-04). This screen shows only errors from its own save.
+  useEffect(() => {
+    clearMemoryError();
+  }, [clearMemoryError]);
   const memorySaving = useMemoryStore((s) => s.saving);
   const createMemoryForQuest = useMemoryStore((s) => s.createMemoryForQuest);
 
@@ -62,6 +70,7 @@ export default function NewMemoryScreen() {
     setTitle((current) => (current ? current : quest.title));
   }, [quest]);
   const [body, setBody] = useState('');
+  const [categoryId, setCategoryId] = useState<string | null>(null);
   const [localUri, setLocalUri] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const startedTracked = useRef(false);
@@ -121,6 +130,7 @@ export default function NewMemoryScreen() {
         title: resolvedTitle,
         body: text,
         photoUri: localUri,
+        categoryId: qid ? null : categoryId,
       });
       trackEvent('memory_created', {
         sourceScreen: 'memory_new',
@@ -133,6 +143,13 @@ export default function NewMemoryScreen() {
       // re-enabled with no visible feedback and testers tapped Save repeatedly,
       // creating duplicate entries. The screen change is the confirmation.
       router.replace({ pathname: '/memory/[id]', params: { id: entry.id, justSaved: '1' } });
+      if (entry.photoFailed) {
+        // Single-button, so it renders on web too (see the note above).
+        alertCompat(
+          'Saved without the photo',
+          "Your memory is saved, but the photo didn't upload. You can add it again from the memory."
+        );
+      }
     } catch (e: unknown) {
       trackEvent('memory_creation_failed', {
         sourceScreen: 'memory_new',
@@ -182,6 +199,14 @@ export default function NewMemoryScreen() {
           value={body}
           onChangeText={setBody}
         />
+
+        {/* A quest's memory takes the quest's category; only a free-standing one gets to choose. */}
+        {!quest ? (
+          <>
+            <Text style={styles.label}>Category (optional)</Text>
+            <MemoryCategoryPicker value={categoryId} onChange={setCategoryId} />
+          </>
+        ) : null}
 
         <Text style={styles.label}>Photo (optional)</Text>
         {localUri ? (
@@ -257,7 +282,7 @@ const styles = StyleSheet.create({
     borderColor: Theme.border,
     marginBottom: 28,
   },
-  pickBtnText: { color: Theme.accent, fontWeight: '600' },
+  pickBtnText: { color: Theme.accent, fontFamily: 'Inter_600SemiBold', fontWeight: '600' },
   previewWrap: { marginBottom: 24 },
   preview: {
     width: '100%',
@@ -266,6 +291,6 @@ const styles = StyleSheet.create({
     backgroundColor: Theme.border,
   },
   removePhoto: { marginTop: 8 },
-  removePhotoText: { color: Theme.danger, fontWeight: '600' },
+  removePhotoText: { color: Theme.danger, fontFamily: 'Inter_600SemiBold', fontWeight: '600' },
   uploadingHint: { color: Theme.textMuted, marginBottom: 10, fontSize: 13, fontFamily: 'Inter_400Regular' },
 });

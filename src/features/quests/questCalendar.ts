@@ -1,6 +1,8 @@
 import * as Calendar from 'expo-calendar';
 import { Platform } from 'react-native';
 
+import type { QuestTimeframe } from '@/src/types/quest';
+
 /**
  * Calendar event creation exists on native only. Web/static export treats this as unavailable.
  */
@@ -19,52 +21,61 @@ export async function ensureCalendarWritePermission(): Promise<boolean> {
   return requested.status === 'granted';
 }
 
-async function getWritableEventCalendarIdAsync(): Promise<string> {
-  if (Platform.OS === 'ios') {
-    const cal = await Calendar.getDefaultCalendarAsync();
-    if (!cal?.id) throw new Error('No default calendar.');
-    return cal.id;
-  }
-  const calendars = await Calendar.getCalendarsAsync(Calendar.EntityTypes.EVENT);
-  const primaryWritable = calendars.find((c) => c.isPrimary && c.allowsModifications);
-  const writable =
-    primaryWritable ??
-    calendars.find((c) => c.allowsModifications) ??
-    calendars[0];
-  if (!writable?.id) throw new Error('No calendar available.');
-  return writable.id;
+/**
+ * A starting suggestion for when to do the quest — the person changes it in
+ * their calendar anyway. Follows what the level means (R2-23: how much planning
+ * it takes): an "Anytime" quest tomorrow, "Plan ahead" in a week, a "Big
+ * occasion" in a month. Always 10:00 local, a time nobody has to fix at night.
+ */
+export function suggestedQuestStart(timeframe: QuestTimeframe, now: Date = new Date()): Date {
+  const daysAhead = timeframe === 'weekly' ? 1 : timeframe === 'monthly' ? 7 : 30;
+  const start = new Date(now);
+  start.setDate(start.getDate() + daysAhead);
+  start.setHours(10, 0, 0, 0);
+  return start;
 }
 
-export type CreateQuestCalendarEventParams = {
+export type QuestCalendarEditorResult =
+  /** iOS reports the save and the event id. */
+  | { outcome: 'saved'; eventId: string }
+  | { outcome: 'canceled' }
+  /** Android never says whether the person saved — only that the editor closed. */
+  | { outcome: 'unknown' };
+
+/**
+ * Opens the phone's own "new event" editor, prefilled, so the person picks the
+ * day and time themselves — and gets their usual calendar reminder with it.
+ *
+ * This replaced silently creating an event 15 minutes from now, which left no
+ * way to choose a day: plan a trip for next month and it landed in a quarter of
+ * an hour (round 2, R2-02: "Rovnou to uloží aktivitu na tu dobu, člověk si
+ * nemůže vybrat den"). On Android it is a plain intent into the calendar app, so
+ * it needs no calendar permission at all.
+ */
+export async function openQuestCalendarEditor(params: {
   title: string;
   notes?: string;
   durationMinutes: number;
-  /** Minutes from now until the suggested start time (rounded). Default 15. */
-  startOffsetMinutes?: number;
-};
-
-/** Creates an event on a writable calendar. Returns stable event ID for verification. */
-export async function createQuestCalendarEvent(params: CreateQuestCalendarEventParams): Promise<string> {
-  const ok = await ensureCalendarWritePermission();
-  if (!ok) throw new Error('Calendar permission denied.');
-
-  const calendarId = await getWritableEventCalendarIdAsync();
-
-  const startOffset = Math.max(1, Math.floor(params.startOffsetMinutes ?? 15));
-  const startDate = new Date(Date.now() + startOffset * 60_000);
-  startDate.setSeconds(0, 0);
-
+  suggestedStart: Date;
+}): Promise<QuestCalendarEditorResult> {
+  if (Platform.OS === 'ios') {
+    const ok = await ensureCalendarWritePermission();
+    if (!ok) throw new Error('Calendar permission denied.');
+  }
   const duration = Math.max(5, Math.floor(params.durationMinutes));
+  const startDate = params.suggestedStart;
   const endDate = new Date(startDate.getTime() + duration * 60_000);
 
-  const eventId = await Calendar.createEventAsync(calendarId, {
+  const result = await Calendar.createEventInCalendarAsync({
     title: params.title.trim(),
     notes: params.notes?.trim(),
     startDate,
     endDate,
     allDay: false,
   });
-  return eventId;
+  if (result.action === 'saved' && result.id) return { outcome: 'saved', eventId: result.id };
+  if (result.action === 'canceled' || result.action === 'deleted') return { outcome: 'canceled' };
+  return { outcome: 'unknown' };
 }
 
 export async function calendarEventStillExists(eventId: string): Promise<boolean> {

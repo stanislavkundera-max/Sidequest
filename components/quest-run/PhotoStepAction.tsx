@@ -13,7 +13,15 @@ type Props = {
   onComplete: (evidence: UserQuestStepEvidence) => void;
 };
 
-/** Photo-proof step: capture (or pick) an image before the step can finish. */
+/**
+ * Photo step: the photo is the promoted path, never a gate.
+ *
+ * It used to be required — "Finish this step" stayed disabled until a photo
+ * existed, which stranded anyone without a camera moment mid-quest. The app
+ * pushes people to do things; it doesn't block them (round 2, R2-03). The
+ * reason to take one lives in the button itself rather than in a paragraph
+ * under it, as Standa asked: "hint ideálně v CTA".
+ */
 export function PhotoStepAction({ prompt, busy, onComplete }: Props) {
   const [photoUri, setPhotoUri] = useState<string | null>(null);
   const cameraAvailable = Platform.OS !== 'web';
@@ -51,50 +59,59 @@ export function PhotoStepAction({ prompt, busy, onComplete }: Props) {
     }
   }
 
+  if (photoUri) {
+    return (
+      <View style={styles.block}>
+        {prompt ? <Text style={styles.prompt}>{prompt}</Text> : null}
+        <Image source={{ uri: photoUri }} style={styles.photoPreview} resizeMode="cover" />
+        <View style={styles.photoActionsRow}>
+          <Pressable
+            accessibilityRole="button"
+            onPress={() => setPhotoUri(null)}
+            style={({ pressed }) => [styles.secondaryBtn, pressed && styles.pressed]}>
+            <Text style={styles.secondaryBtnText}>Retake</Text>
+          </Pressable>
+        </View>
+        <Text style={styles.helper}>This photo goes into your memory of the quest.</Text>
+        <PrimaryButton
+          label="Finish this step"
+          loading={busy}
+          onPress={() => onComplete({ kind: 'photo', photoUri })}
+        />
+      </View>
+    );
+  }
+
   return (
     <View style={styles.block}>
       {prompt ? <Text style={styles.prompt}>{prompt}</Text> : null}
-      {photoUri ? (
-        <>
-          <Image source={{ uri: photoUri }} style={styles.photoPreview} resizeMode="cover" />
-          <View style={styles.photoActionsRow}>
-            <Pressable
-              accessibilityRole="button"
-              onPress={() => setPhotoUri(null)}
-              style={({ pressed }) => [styles.secondaryBtn, pressed && styles.pressed]}>
-              <Text style={styles.secondaryBtnText}>Retake</Text>
-            </Pressable>
-          </View>
-        </>
-      ) : (
+      <PrimaryButton
+        label={cameraAvailable ? 'Take a photo for the memory' : 'Add a photo for the memory'}
+        loading={busy}
+        onPress={() => void (cameraAvailable ? takePhoto() : pickPhoto())}
+      />
+      {cameraAvailable ? (
         <View style={styles.photoActionsRow}>
-          {cameraAvailable ? (
-            <Pressable
-              accessibilityRole="button"
-              onPress={() => void takePhoto()}
-              style={({ pressed }) => [styles.secondaryBtn, pressed && styles.pressed]}>
-              <Text style={styles.secondaryBtnText}>Take photo</Text>
-            </Pressable>
-          ) : null}
           <Pressable
             accessibilityRole="button"
             onPress={() => void pickPhoto()}
             style={({ pressed }) => [styles.secondaryBtn, pressed && styles.pressed]}>
-            <Text style={styles.secondaryBtnText}>Choose photo</Text>
+            <Text style={styles.secondaryBtnText}>Choose from gallery</Text>
           </Pressable>
         </View>
-      )}
-      <Text style={styles.helper}>
-        {photoUri
-          ? 'This photo will also seed your memory of the quest.'
-          : 'Snap what you made, found, or saw — it becomes part of the memory.'}
-      </Text>
-      <PrimaryButton
-        label="Finish this step"
-        disabled={!photoUri}
-        loading={busy}
-        onPress={() => photoUri && onComplete({ kind: 'photo', photoUri })}
-      />
+      ) : null}
+      <Pressable
+        accessibilityRole="button"
+        accessibilityLabel="Finish this step without a photo"
+        disabled={busy}
+        onPress={() => onComplete({ kind: 'self_attest' })}
+        style={({ pressed }) => [
+          styles.quietLink,
+          busy && styles.disabled,
+          pressed && !busy && styles.pressed,
+        ]}>
+        <Text style={styles.quietLinkText}>Finish without a photo</Text>
+      </Pressable>
     </View>
   );
 }

@@ -1,9 +1,7 @@
 import { Redirect } from 'expo-router';
 import { useEffect, useRef, useState } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { ActivityIndicator, Image, StyleSheet, Text, View } from 'react-native';
 
-import { LoadingState } from '@/components/ui/LoadingState';
-import { Theme } from '@/constants/Theme';
 import { getDevAutoLoginCredentials } from '@/lib/devAuth';
 import { getOnboardingComplete } from '@/lib/onboarding';
 import { isSupabaseConfigured, supabase } from '@/lib/supabase';
@@ -84,8 +82,19 @@ export default function Index() {
 
   if (!initialized || !authChecked || (user && onboardingDone === null)) {
     return (
+      // Same ground and same mark as the native splash (app.config.ts), so the
+      // hand-off doesn't flash from green to beige. It used to be a beige screen
+      // with a spinner, over which the old green-stoned splash faded out — the
+      // "outdated logo" a tester reported (round 2, R2-07).
       <View style={styles.center}>
-        <LoadingState label="Preparing your space..." />
+        <Image
+          source={require('@/assets/images/splash-icon.png')}
+          style={styles.mark}
+          resizeMode="contain"
+          accessibilityIgnoresInvertColors
+        />
+        <ActivityIndicator color={BRAND_BEIGE} />
+        <Text style={styles.label}>Preparing your space…</Text>
       </View>
     );
   }
@@ -101,11 +110,23 @@ export default function Index() {
   return <Redirect href="/(tabs)/explore" />;
 }
 
+/** Brand colours, not the UI palette — BRANDING.md §2 reserves these for the mark. */
+const BRAND_GREEN = '#33471f';
+const BRAND_BEIGE = '#f3f2ec';
+
 const styles = StyleSheet.create({
   center: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: Theme.bg,
+    gap: 12,
+    backgroundColor: BRAND_GREEN,
+  },
+  mark: { width: 220, height: 220 },
+  label: {
+    color: BRAND_BEIGE,
+    fontSize: 14,
+    fontFamily: 'Inter_400Regular',
+    opacity: 0.85,
   },
 });

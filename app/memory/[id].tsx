@@ -13,11 +13,13 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { MemoryCategoryPicker } from '@/components/memory/MemoryCategoryPicker';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { LoadingState } from '@/components/ui/LoadingState';
 import { PrimaryButton } from '@/components/ui/PrimaryButton';
 import { Theme } from '@/constants/Theme';
 import { alertCompat, alertTwoChoice } from '@/lib/alertCompat';
+import { categoryAccentForCategoryId } from '@/lib/categoryAccent';
 import { NO_EVIDENCE_NOTE } from '@/src/features/memories/memoryDraft';
 import { memoryTitleFromBody } from '@/src/features/memories/memoryTitle';
 import { useMemoryStore } from '@/src/features/memories/memoryStore';
@@ -41,6 +43,18 @@ export default function MemoryDetailScreen() {
   const saving = useMemoryStore((s) => s.saving);
   const updateMemory = useMemoryStore((s) => s.updateMemory);
   const deleteMemory = useMemoryStore((s) => s.deleteMemory);
+  const bootstrapMemories = useMemoryStore((s) => s.bootstrap);
+  const bootstrapQuests = useQuestDomainStore((s) => s.bootstrap);
+
+  // Deep links / web reloads land here before the tabs layout ever mounts, and
+  // memories only load there — so opening a memory directly said "Memory not
+  // found" for one that exists. Same fix quest/[id] and the runner carry.
+  // Both bootstraps return early once loaded.
+  useEffect(() => {
+    if (!user) return;
+    void bootstrapMemories(user.id);
+    void bootstrapQuests(user.id);
+  }, [user, bootstrapMemories, bootstrapQuests]);
   const memory = useMemoryStore((s) =>
     id ? s.memories.find((m) => m.id === id) : undefined
   );
@@ -52,10 +66,17 @@ export default function MemoryDetailScreen() {
     () => (memory?.questId ? getQuestById(memory.questId) : undefined),
     [memory?.questId, quests]
   );
+  const getCategoryById = useQuestDomainStore((s) => s.getCategoryById);
+  // Shown in place of the quest line for a hand-written memory (R2-11).
+  const ownCategory =
+    memory && !memory.questId && memory.categoryId
+      ? getCategoryById(memory.categoryId)
+      : undefined;
 
   const [editing, setEditing] = useState(false);
   const [title, setTitle] = useState('');
   const [body, setBody] = useState('');
+  const [categoryId, setCategoryId] = useState<string | null>(null);
   const [localUri, setLocalUri] = useState<string | null>(null);
   const [deleting, setDeleting] = useState(false);
   const isJustSaved = justSaved === '1';
@@ -70,6 +91,7 @@ export default function MemoryDetailScreen() {
     setTitle(memory.title);
     setBody(memory.body === NO_EVIDENCE_NOTE ? '' : memory.body);
     setLocalUri(memory.photoUri);
+    setCategoryId(memory.categoryId);
     setEditing(true);
   }, [autoEdit, memory]);
 
@@ -94,6 +116,7 @@ export default function MemoryDetailScreen() {
     setTitle(memory.title);
     setBody(memory.body);
     setLocalUri(memory.photoUri);
+    setCategoryId(memory.categoryId);
     setEditing(true);
   }
 
@@ -133,6 +156,8 @@ export default function MemoryDetailScreen() {
         title: title.trim() || memoryTitleFromBody(text),
         body: text,
         photoUri: localUri,
+        // Quest memories take their quest's category; only a free-standing one stores its own.
+        categoryId: memory.questId ? undefined : categoryId,
       });
       setEditing(false);
     } catch (e: unknown) {
@@ -213,6 +238,13 @@ export default function MemoryDetailScreen() {
             onChangeText={setBody}
           />
 
+          {!memory.questId ? (
+            <>
+              <Text style={styles.label}>Category (optional)</Text>
+              <MemoryCategoryPicker value={categoryId} onChange={setCategoryId} />
+            </>
+          ) : null}
+
           <Text style={styles.label}>Photo (optional)</Text>
           {localUri ? (
             <View style={styles.previewWrap}>
@@ -259,6 +291,11 @@ export default function MemoryDetailScreen() {
         {memory.title ? <Text style={styles.title}>{memory.title}</Text> : null}
         {quest ? (
           <Text style={styles.questContext}>From quest: {quest.title}</Text>
+        ) : ownCategory ? (
+          <Text
+            style={[styles.questContext, { color: categoryAccentForCategoryId(ownCategory.id) }]}>
+            {ownCategory.name}
+          </Text>
         ) : null}
         {memory.photoUri ? (
           <Image source={{ uri: memory.photoUri }} style={styles.image} resizeMode="contain" />
@@ -312,8 +349,8 @@ const styles = StyleSheet.create({
   date: { fontSize: 13, fontFamily: 'Inter_400Regular', color: Theme.textMuted, marginBottom: 16 },
   title: {
     fontSize: 20,
-    fontFamily: 'Fraunces_600SemiBold',
-    fontWeight: '600',
+    fontFamily: 'Inter_700Bold',
+    fontWeight: '700',
     color: Theme.text,
     marginBottom: 16,
   },
@@ -399,10 +436,10 @@ const styles = StyleSheet.create({
     borderColor: Theme.border,
     marginBottom: 28,
   },
-  pickBtnText: { color: Theme.accent, fontWeight: '600' },
+  pickBtnText: { color: Theme.accent, fontFamily: 'Inter_600SemiBold', fontWeight: '600' },
   previewWrap: { marginBottom: 24 },
   removePhoto: { marginTop: 8 },
-  removePhotoText: { color: Theme.danger, fontWeight: '600' },
+  removePhotoText: { color: Theme.danger, fontFamily: 'Inter_600SemiBold', fontWeight: '600' },
   cancelLink: { alignSelf: 'center', paddingVertical: 14 },
   cancelLinkText: { fontSize: 15, fontFamily: 'Inter_600SemiBold', fontWeight: '600', color: Theme.textMuted },
 });

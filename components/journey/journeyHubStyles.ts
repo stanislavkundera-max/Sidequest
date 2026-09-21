@@ -91,7 +91,7 @@ export const journeyHubStyles = StyleSheet.create({
   heroHeadline: {
     marginTop: 4,
     fontSize: 18,
-    fontFamily: 'Fraunces_700Bold',
+    fontFamily: 'Inter_700Bold',
     fontWeight: '700',
     color: '#fff',
     lineHeight: 22,
@@ -125,7 +125,7 @@ export const journeyHubStyles = StyleSheet.create({
     paddingHorizontal: 24,
     paddingVertical: 28,
   },
-  emptyTitleSolid: { fontSize: 18, fontFamily: 'Fraunces_700Bold', fontWeight: '700', color: Theme.text, textAlign: 'center' },
+  emptyTitleSolid: { fontSize: 18, fontFamily: 'Inter_700Bold', fontWeight: '700', color: Theme.text, textAlign: 'center' },
   emptyBodySolid: {
     marginTop: 8,
     fontSize: 14,
@@ -181,15 +181,16 @@ export const journeyHubStyles = StyleSheet.create({
     letterSpacing: 0.6,
   },
   questRowMetaLight: { fontSize: 12, fontFamily: 'Inter_500Medium', fontWeight: '500', color: Theme.textMuted },
-  // Fraunces, not Inter. This is the one line in the app that is the product —
-  // a quest's name is what someone reads and decides on — and leaving it in the
-  // body face made every card look like a settings row. Line height is a point
-  // looser than the sans version needed: the serif's ascenders crowd otherwise.
+  // A quest's name is what someone reads and decides on, so it is the heaviest
+  // line on the card. It was set in Fraunces until 2026-09-21; mixing a serif
+  // with the Inter everywhere else was the mentor's "patkové a bezpatkové písmo
+  // - chyba!" (round 2, R2-20). Weight and size now carry the hierarchy.
   questRowTitle: {
     fontSize: 17,
-    fontFamily: 'Fraunces_600SemiBold',
+    fontFamily: 'Inter_700Bold',
+    fontWeight: '700',
     color: Theme.text,
-    lineHeight: 23,
+    lineHeight: 22,
   },
   questRowSub: { fontSize: 14, fontFamily: 'Inter_400Regular', lineHeight: 20, color: Theme.textMuted },
   metaRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
@@ -284,7 +285,7 @@ export const journeyHubStyles = StyleSheet.create({
     padding: 16,
     maxHeight: '80%',
   },
-  modalTitle: { fontSize: 18, fontFamily: 'Fraunces_700Bold', fontWeight: '700', color: Theme.text, marginBottom: 8 },
+  modalTitle: { fontSize: 18, fontFamily: 'Inter_700Bold', fontWeight: '700', color: Theme.text, marginBottom: 8 },
   modalBody: { fontSize: 14, fontFamily: 'Inter_400Regular', lineHeight: 20, color: Theme.textMuted, marginBottom: 12 },
   modalSub: { fontSize: 13, fontFamily: 'Inter_700Bold', fontWeight: '700', color: Theme.text, marginBottom: 8 },
   modalList: { maxHeight: 220, marginBottom: 12 },
@@ -320,7 +321,7 @@ export const journeyHubStyles = StyleSheet.create({
     marginBottom: 12,
     alignSelf: 'center',
   },
-  likedInfoTitle: { fontSize: 18, fontFamily: 'Fraunces_700Bold', fontWeight: '700', color: Theme.text, marginBottom: 8 },
+  likedInfoTitle: { fontSize: 18, fontFamily: 'Inter_700Bold', fontWeight: '700', color: Theme.text, marginBottom: 8 },
   likedInfoBody: { fontSize: 14, fontFamily: 'Inter_400Regular', lineHeight: 20, color: Theme.textMuted, marginBottom: 16 },
   likedInfoClose: { alignSelf: 'center', paddingVertical: 10, paddingHorizontal: 16 },
   likedInfoCloseText: { fontSize: 15, fontFamily: 'Inter_700Bold', fontWeight: '700', color: Theme.accent },

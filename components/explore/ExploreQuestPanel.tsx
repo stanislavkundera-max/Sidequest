@@ -22,6 +22,8 @@ import { useQuestDomainStore } from '@/src/features/quests/questStore';
 import { loadSeenQuestIds } from '@/src/features/quests/seenQuests';
 import {
   isRecentlyAdded,
+  likedQuestsInCategory,
+  newlyOpenedQuestIds,
   openQuestsInCategory,
 } from '@/src/features/quests/suggestedQuests';
 import type { Quest, UserQuest } from '@/src/types/quest';
@@ -76,6 +78,27 @@ export function ExploreQuestPanel({ userId, categoryId, preferences }: Props) {
     });
   }, [categoryId, quests, userQuests, preferences]);
 
+  // Liking a pick keeps it here, pinned above the recommendations (R2-05) —
+  // it used to vanish from the map panel and reappear only on Progress.
+  const likedHere = useMemo(() => {
+    if (!categoryId) return [];
+    return likedQuestsInCategory({
+      catalog: quests,
+      userQuests,
+      categoryId,
+      hasProgress: (uq) => {
+        const q = getQuestById(uq.questId);
+        return Boolean(q && countCompletedJourneySteps(uq, q) > 0);
+      },
+    });
+  }, [categoryId, quests, userQuests, getQuestById]);
+
+  // Same "new to you" rule as the Journey tab (R2-08).
+  const newlyOpened = useMemo(() => {
+    if (!categoryId) return new Set<string>();
+    return newlyOpenedQuestIds({ catalog: quests, userQuests, categoryId, preferences });
+  }, [categoryId, quests, userQuests, preferences]);
+
   const [seenQuestIds, setSeenQuestIds] = useState<Set<string>>(new Set());
   useFocusEffect(
     useCallback(() => {
@@ -86,7 +109,10 @@ export function ExploreQuestPanel({ userId, categoryId, preferences }: Props) {
   );
 
   const nothingToShow =
-    categoryId != null && inProgress.length === 0 && recommended.length === 0;
+    categoryId != null &&
+    inProgress.length === 0 &&
+    likedHere.length === 0 &&
+    recommended.length === 0;
 
   return (
     <View style={panelStyles.root}>
@@ -154,26 +180,39 @@ export function ExploreQuestPanel({ userId, categoryId, preferences }: Props) {
                 <Text style={styles.emptyTitleSolid}>{EXPLORE_COPY.panelEmptyTitle}</Text>
                 <Text style={styles.emptyBodySolid}>{EXPLORE_COPY.panelEmptyBody}</Text>
               </View>
-            ) : recommended.length === 0 ? (
-              <View style={[styles.heroCard, styles.heroEmptyPadded, panelStyles.emptyCard]}>
-                <Text style={styles.emptyBodySolid}>
-                  You have picked up everything here. Nice pace — check the Journey tab for more.
-                </Text>
-              </View>
             ) : (
               <View style={panelStyles.list}>
+                {likedHere.map(({ quest: q, userQuest }) => (
+                  <CatalogQuestRow
+                    key={`liked-${userQuest.id}`}
+                    quest={q}
+                    categoryLabel={categoryLabel(q.categoryId)}
+                    liked
+                    busy={actions.primaryBusy}
+                    onOpen={actions.openQuest}
+                    onStart={(id) => void actions.onStartNow(id)}
+                    onUnlike={() => void actions.onUnlike(userQuest.id)}
+                  />
+                ))}
                 {recommended.map((q) => (
                   <CatalogQuestRow
                     key={q.id}
                     quest={q}
                     categoryLabel={categoryLabel(q.categoryId)}
-                    isNew={isRecentlyAdded(q) && !seenQuestIds.has(q.id)}
+                    isNew={(isRecentlyAdded(q) || newlyOpened.has(q.id)) && !seenQuestIds.has(q.id)}
                     busy={actions.primaryBusy}
                     onOpen={actions.openQuest}
                     onStart={(id) => void actions.onStartNow(id)}
                     onLike={(id) => void actions.onLike(id)}
                   />
                 ))}
+                {recommended.length === 0 ? (
+                  <View style={[styles.heroCard, styles.heroEmptyPadded, panelStyles.emptyCard]}>
+                    <Text style={styles.emptyBodySolid}>
+                      You have picked up everything here. Nice pace — check the Journey tab for more.
+                    </Text>
+                  </View>
+                ) : null}
               </View>
             )}
 

@@ -244,8 +244,8 @@ const styles = StyleSheet.create({
   inner: { flex: 1, paddingHorizontal: 24, paddingTop: 24, justifyContent: 'center' },
   title: {
     fontSize: 26,
-    fontFamily: 'Fraunces_600SemiBold',
-    fontWeight: '600',
+    fontFamily: 'Inter_700Bold',
+    fontWeight: '700',
     color: Theme.text,
     marginBottom: 8,
   },

@@ -132,7 +132,8 @@ const FEATURE_ROWS: FeatureRow[] = [
   {
     icon: 'layers-outline',
     title: 'Go at your own pace',
-    body: 'Up to 3 quests active at once — weekly, monthly, or yearly, whichever fits.',
+    // Names the levels the way the cards now do (R2-23): by how much planning they take.
+    body: 'Up to 3 quests active at once — some you can do anytime, some worth planning ahead.',
   },
 ];
 

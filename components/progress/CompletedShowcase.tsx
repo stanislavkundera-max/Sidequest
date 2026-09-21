@@ -182,7 +182,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     marginBottom: 10,
   },
-  heroCount: { fontSize: 48, fontFamily: 'Fraunces_700Bold', fontWeight: '700', color: '#fff', lineHeight: 52 },
+  heroCount: { fontSize: 48, fontFamily: 'Inter_700Bold', fontWeight: '700', color: '#fff', lineHeight: 52 },
   heroLabel: {
     fontSize: 14,
     fontFamily: 'Inter_600SemiBold',
@@ -215,7 +215,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
     alignItems: 'center',
   },
-  statNum: { fontSize: 26, fontFamily: 'Fraunces_700Bold', fontWeight: '700', color: Theme.text },
+  statNum: { fontSize: 26, fontFamily: 'Inter_700Bold', fontWeight: '700', color: Theme.text },
   statLabel: {
     marginTop: 2,
     fontSize: 12,
@@ -295,7 +295,7 @@ const styles = StyleSheet.create({
     padding: 24,
     alignItems: 'center',
   },
-  emptyTitle: { fontSize: 18, fontFamily: 'Fraunces_700Bold', fontWeight: '700', color: Theme.text, marginTop: 12 },
+  emptyTitle: { fontSize: 18, fontFamily: 'Inter_700Bold', fontWeight: '700', color: Theme.text, marginTop: 12 },
   emptyBody: {
     fontSize: 14,
     fontFamily: 'Inter_400Regular',

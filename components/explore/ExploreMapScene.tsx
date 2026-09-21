@@ -113,7 +113,7 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 22,
-    fontFamily: 'Fraunces_700Bold',
+    fontFamily: 'Inter_700Bold',
     fontWeight: '700',
     color: '#ffffff',
     marginBottom: 4,

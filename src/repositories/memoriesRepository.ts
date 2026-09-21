@@ -8,6 +8,7 @@ type MemoryRowWithJoin = {
   body: string;
   photo_url: string | null;
   created_at: string;
+  category_id?: string | null;
   user_quests?: { quest_id: string | null }[] | { quest_id: string | null } | null;
 };
 
@@ -22,18 +23,75 @@ function mapMemoryRow(row: MemoryRowWithJoin): MemoryEntry {
     title: row.title,
     body: row.body,
     photoUri: row.photo_url,
+    categoryId: row.category_id ?? null,
     createdAt: row.created_at,
   };
 }
 
+/**
+ * `memory_entries.category_id` arrived with round 2 (R2-11) and needs
+ * `supabase/memory_category.sql` run against the project. Until it has been,
+ * any query naming the column fails — which would take the whole Memories tab
+ * down with it. So every query here retries without the column on that
+ * specific error, and remembers the answer for the rest of the session so a
+ * missing column costs one failed request, not one per call.
+ */
+let categoryColumnMissing = false;
+
+function isMissingCategoryColumn(error: unknown): boolean {
+  const message = (
+    error && typeof error === 'object' && 'message' in error
+      ? String((error as { message: unknown }).message)
+      : String(error ?? '')
+  ).toLowerCase();
+  return (
+    message.includes('category_id') &&
+    (message.includes('does not exist') || message.includes('schema cache'))
+  );
+}
+
+const BASE_COLUMNS = 'id,user_quest_id,title,body,photo_url,created_at';
+const JOIN = 'user_quests(quest_id)';
+
+function columns(withJoin: boolean): string {
+  const base = categoryColumnMissing ? BASE_COLUMNS : `${BASE_COLUMNS},category_id`;
+  return withJoin ? `${base},${JOIN}` : base;
+}
+
+/**
+ * Runs `query`; if it failed only because `category_id` is missing, marks it
+ * and runs it again without the column.
+ *
+ * Whether to retry depends on whether *this* attempt named the column — not on
+ * the shared flag. The Memories tab loads twice at start-up, concurrently; both
+ * requests go out with the column, the first to fail sets the flag, and the
+ * second used to see the flag already set, skip its retry and surface "Failed
+ * to load memories" (caught verifying R2-11 in the browser, 2026-09-21).
+ */
+async function withCategoryFallback<T>(
+  query: () => PromiseLike<{ data: T; error: unknown }>
+): Promise<T> {
+  const namedColumn = !categoryColumnMissing;
+  const first = await query();
+  if (!first.error) return first.data;
+  if (namedColumn && isMissingCategoryColumn(first.error)) {
+    categoryColumnMissing = true;
+    const second = await query();
+    if (!second.error) return second.data;
+    throw second.error;
+  }
+  throw first.error;
+}
+
 export async function fetchMemoryTimeline(userId: string): Promise<MemoryEntry[]> {
-  const { data, error } = await supabase
-    .from('memory_entries')
-    .select('id,user_quest_id,title,body,photo_url,created_at,user_quests(quest_id)')
-    .eq('user_id', userId)
-    .order('created_at', { ascending: false });
-  if (error) throw error;
-  return ((data ?? []) as MemoryRowWithJoin[]).map(mapMemoryRow);
+  const data = await withCategoryFallback(() =>
+    supabase
+      .from('memory_entries')
+      .select(columns(true))
+      .eq('user_id', userId)
+      .order('created_at', { ascending: false })
+  );
+  return ((data ?? []) as unknown as MemoryRowWithJoin[]).map(mapMemoryRow);
 }
 
 export async function createMemoryEntry(params: {
@@ -43,28 +101,34 @@ export async function createMemoryEntry(params: {
   title: string;
   body: string;
   photoUrl: string | null;
+  /** Only meaningful for a memory with no quest — a quest's memory takes the quest's category. */
+  categoryId?: string | null;
 }): Promise<MemoryEntry> {
-  const { data, error } = await supabase
-    .from('memory_entries')
-    .insert({
-      user_id: params.userId,
-      user_quest_id: params.userQuestId,
-      title: params.title,
-      body: params.body,
-      photo_url: params.photoUrl,
-    })
-    .select('id,user_quest_id,title,body,photo_url,created_at')
-    .single();
-  if (error) throw error;
+  const data = await withCategoryFallback(() =>
+    supabase
+      .from('memory_entries')
+      .insert({
+        user_id: params.userId,
+        user_quest_id: params.userQuestId,
+        title: params.title,
+        body: params.body,
+        photo_url: params.photoUrl,
+        ...(categoryColumnMissing ? {} : { category_id: params.categoryId ?? null }),
+      })
+      .select(columns(false))
+      .single()
+  );
+  const row = data as unknown as MemoryRowWithJoin;
 
   return {
-    id: data.id as string,
-    userQuestId: (data.user_quest_id as string | null) ?? null,
+    id: row.id,
+    userQuestId: row.user_quest_id ?? null,
     questId: params.questId,
-    title: data.title as string,
-    body: data.body as string,
-    photoUri: (data.photo_url as string | null) ?? null,
-    createdAt: data.created_at as string,
+    title: row.title,
+    body: row.body,
+    photoUri: row.photo_url ?? null,
+    categoryId: row.category_id ?? null,
+    createdAt: row.created_at,
   };
 }
 
@@ -80,20 +144,26 @@ export async function updateMemoryEntry(params: {
   title: string;
   body: string;
   photoUrl: string | null;
+  /** `undefined` leaves the stored category alone. */
+  categoryId?: string | null;
 }): Promise<MemoryEntry> {
-  const { data, error } = await supabase
-    .from('memory_entries')
-    .update({
-      title: params.title,
-      body: params.body,
-      photo_url: params.photoUrl,
-    })
-    .eq('id', params.id)
-    .eq('user_id', params.userId)
-    .select('id,user_quest_id,title,body,photo_url,created_at,user_quests(quest_id)')
-    .single();
-  if (error) throw error;
-  return mapMemoryRow(data as MemoryRowWithJoin);
+  const data = await withCategoryFallback(() =>
+    supabase
+      .from('memory_entries')
+      .update({
+        title: params.title,
+        body: params.body,
+        photo_url: params.photoUrl,
+        ...(categoryColumnMissing || params.categoryId === undefined
+          ? {}
+          : { category_id: params.categoryId }),
+      })
+      .eq('id', params.id)
+      .eq('user_id', params.userId)
+      .select(columns(true))
+      .single()
+  );
+  return mapMemoryRow(data as unknown as MemoryRowWithJoin);
 }
 
 /** Row data only — the photo in storage (if any) is left orphaned, same as bulk delete. */

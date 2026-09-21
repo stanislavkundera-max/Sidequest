@@ -112,5 +112,23 @@ export const stepInteractionStyles = StyleSheet.create({
   pressed: { opacity: 0.85 },
   disabled: { opacity: 0.5 },
   timerResetLink: { alignSelf: 'center', paddingVertical: 8, paddingHorizontal: 4 },
+  /**
+   * A way past a step that is not the step's main action — "Finish without a
+   * photo", "Skip the timer". Muted rather than red: it's a legitimate choice,
+   * not a destructive one. The app nudges, it doesn't gate (round 2, R2-03/R2-06).
+   */
+  quietLink: {
+    alignSelf: 'center',
+    minHeight: 44,
+    justifyContent: 'center',
+    paddingHorizontal: 8,
+  },
+  quietLinkText: {
+    color: Theme.textMuted,
+    fontWeight: '600',
+    fontSize: 14,
+    fontFamily: 'Inter_600SemiBold',
+    textDecorationLine: 'underline',
+  },
   timerResetLinkText: { color: Theme.danger, fontWeight: '600', fontSize: 14, fontFamily: 'Inter_600SemiBold' },
 });

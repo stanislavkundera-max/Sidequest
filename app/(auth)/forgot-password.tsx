@@ -339,7 +339,7 @@ const styles = StyleSheet.create({
     paddingVertical: 24,
     justifyContent: 'center',
   },
-  title: { fontSize: 26, fontFamily: 'Fraunces_600SemiBold', fontWeight: '600', color: Theme.text, marginBottom: 8 },
+  title: { fontSize: 26, fontFamily: 'Inter_700Bold', fontWeight: '700', color: Theme.text, marginBottom: 8 },
   sub: { fontSize: 16, fontFamily: 'Inter_400Regular', lineHeight: 24, color: Theme.textMuted, marginBottom: 16 },
   bannerError: {
     backgroundColor: Theme.dangerSoft,

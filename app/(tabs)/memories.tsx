@@ -12,12 +12,16 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { Chip } from '@/components/ui/Chip';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { ErrorState } from '@/components/ui/ErrorState';
 import { LoadingState } from '@/components/ui/LoadingState';
+import { OptionSheet } from '@/components/ui/OptionSheet';
 import { MIN_TOUCH_TARGET } from '@/constants/touchTargets';
 import { Theme } from '@/constants/Theme';
 import { categoryAccentForCategoryId } from '@/lib/categoryAccent';
+import { categoryIoniconNameForCategoryId } from '@/lib/categoryIcons';
+import { memoryCategoryId } from '@/src/features/memories/memoryCategory';
 import { useMemoryStore } from '@/src/features/memories/memoryStore';
 import { useQuestDomainStore } from '@/src/features/quests/questStore';
 import { trackEvent } from '@/src/lib/analytics';
@@ -43,6 +47,8 @@ export default function MemoriesScreen() {
 
   const [categoryFilter, setCategoryFilter] = useState<string | null>(null);
   const [dateFilter, setDateFilter] = useState<DateRange>('all');
+  const [dateSheetOpen, setDateSheetOpen] = useState(false);
+  const dateLabel = DATE_RANGE_OPTIONS.find((o) => o.value === dateFilter)?.label ?? 'All time';
 
   useFocusEffect(
     useCallback(() => {
@@ -63,7 +69,7 @@ export default function MemoriesScreen() {
   const usedCategoryIds = useMemo(() => {
     const ids = new Set<string>();
     for (const m of ordered) {
-      const cid = m.questId ? getQuestById(m.questId)?.categoryId : undefined;
+      const cid = memoryCategoryId(m, getQuestById);
       if (cid) ids.add(cid);
     }
     return ids;
@@ -77,10 +83,7 @@ export default function MemoriesScreen() {
     const days = DATE_RANGE_DAYS[dateFilter];
     const cutoff = days != null ? Date.now() - days * 24 * 60 * 60 * 1000 : null;
     return ordered.filter((m) => {
-      if (categoryFilter) {
-        const cid = m.questId ? getQuestById(m.questId)?.categoryId : undefined;
-        if (cid !== categoryFilter) return false;
-      }
+      if (categoryFilter && memoryCategoryId(m, getQuestById) !== categoryFilter) return false;
       if (cutoff != null && new Date(m.createdAt).getTime() < cutoff) return false;
       return true;
     });
@@ -131,60 +134,54 @@ export default function MemoriesScreen() {
       </Text>
 
       {ordered.length > 0 ? (
-        <>
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={styles.filterRow}>
-            <Pressable
-              onPress={() => setCategoryFilter(null)}
-              accessibilityRole="button"
-              accessibilityState={{ selected: !categoryFilter }}
-              style={[styles.chip, !categoryFilter && styles.chipSelected]}>
-              <Text style={[styles.chipText, !categoryFilter && styles.chipTextSelected]}>
-                All categories
-              </Text>
-            </Pressable>
-            {filterableCategories.map((c) => {
-              const selected = categoryFilter === c.id;
-              const accent = categoryAccentForCategoryId(c.id);
-              return (
-                <Pressable
-                  key={c.id}
-                  onPress={() => setCategoryFilter(selected ? null : c.id)}
-                  accessibilityRole="button"
-                  accessibilityState={{ selected }}
-                  style={[
-                    styles.chip,
-                    selected && { backgroundColor: `${accent}22`, borderColor: accent },
-                  ]}>
-                  <Text style={[styles.chipText, selected && { color: accent }]}>{c.name}</Text>
-                </Pressable>
-              );
-            })}
-          </ScrollView>
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={styles.filterRow}>
-            {DATE_RANGE_OPTIONS.map((opt) => {
-              const selected = dateFilter === opt.value;
-              return (
-                <Pressable
-                  key={opt.value}
-                  onPress={() => setDateFilter(opt.value)}
-                  accessibilityRole="button"
-                  accessibilityState={{ selected }}
-                  style={[styles.chip, selected && styles.chipSelected]}>
-                  <Text style={[styles.chipText, selected && styles.chipTextSelected]}>
-                    {opt.label}
-                  </Text>
-                </Pressable>
-              );
-            })}
-          </ScrollView>
-        </>
+        // One row: category is the filter people reach for, so it gets the
+        // chips; the date range is secondary and sits behind a single chip.
+        //
+        // `flexGrow: 0` is the actual fix for the "huge buttons" (R2-09): a
+        // horizontal ScrollView defaults to flexGrow 1, so the two rows that
+        // were here shared the screen's height with the list and stretched
+        // their chips into tall ovals.
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          style={styles.filterScroll}
+          contentContainerStyle={styles.filterRow}>
+          <Chip
+            label="All"
+            accessibilityLabel="All categories"
+            selected={!categoryFilter}
+            onPress={() => setCategoryFilter(null)}
+          />
+          {filterableCategories.map((c) => {
+            const selected = categoryFilter === c.id;
+            return (
+              <Chip
+                key={c.id}
+                label={c.name}
+                icon={categoryIoniconNameForCategoryId(c.id)}
+                accent={categoryAccentForCategoryId(c.id)}
+                selected={selected}
+                onPress={() => setCategoryFilter(selected ? null : c.id)}
+              />
+            );
+          })}
+          <Chip
+            label={dateLabel}
+            accessibilityLabel={`Time range: ${dateLabel}. Change`}
+            trailingIcon="chevron-down"
+            selected={dateFilter !== 'all'}
+            onPress={() => setDateSheetOpen(true)}
+          />
+        </ScrollView>
       ) : null}
+      <OptionSheet
+        visible={dateSheetOpen}
+        title="Show memories from"
+        options={DATE_RANGE_OPTIONS}
+        selected={dateFilter}
+        onSelect={setDateFilter}
+        onClose={() => setDateSheetOpen(false)}
+      />
 
       {error ? (
         <View style={{ paddingHorizontal: 20, marginBottom: 12 }}>
@@ -244,8 +241,13 @@ function MemoryRow({
 }) {
   const entry = useMemoryStore((s) => s.memories.find((m) => m.id === id));
   const getQuestById = useQuestDomainStore((s) => s.getQuestById);
+  const getCategoryById = useQuestDomainStore((s) => s.getCategoryById);
   if (!entry) return null;
   const quest = entry.questId ? getQuestById(entry.questId) : undefined;
+  // A hand-written memory has no quest title to show — its own category, if it
+  // has one, fills that line instead (R2-11).
+  const ownCategory =
+    !quest && entry.categoryId ? getCategoryById(entry.categoryId) : undefined;
 
   return (
     <Pressable
@@ -265,6 +267,11 @@ function MemoryRow({
         </Text>
       ) : null}
       {quest ? <Text style={styles.cardMeta}>{quest.title}</Text> : null}
+      {ownCategory ? (
+        <Text style={[styles.cardMeta, { color: categoryAccentForCategoryId(ownCategory.id) }]}>
+          {ownCategory.name}
+        </Text>
+      ) : null}
       {entry.photoUri ? (
         <Image source={{ uri: entry.photoUri }} style={styles.cardImage} />
       ) : (
@@ -286,7 +293,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingTop: 8,
   },
-  title: { fontSize: 28, fontFamily: 'Fraunces_600SemiBold', fontWeight: '600', color: Theme.text },
+  title: { fontSize: 28, fontFamily: 'Inter_700Bold', fontWeight: '700', color: Theme.text },
   addBtn: {
     justifyContent: 'center',
     minHeight: MIN_TOUCH_TARGET,
@@ -304,24 +311,15 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontFamily: 'Inter_400Regular',
   },
+  filterScroll: { flexGrow: 0 },
   filterRow: {
     gap: 8,
+    alignItems: 'center',
     paddingHorizontal: 20,
-    paddingBottom: 10,
+    // Room for the chips' enlarged hit area so it isn't clipped by the scroll view.
+    paddingVertical: 5,
+    marginBottom: 6,
   },
-  chip: {
-    justifyContent: 'center',
-    minHeight: MIN_TOUCH_TARGET,
-    borderWidth: 1,
-    borderColor: Theme.border,
-    borderRadius: 999,
-    paddingVertical: 7,
-    paddingHorizontal: 13,
-    backgroundColor: Theme.surface,
-  },
-  chipSelected: { backgroundColor: Theme.accentSoft, borderColor: Theme.accent },
-  chipText: { fontSize: 13, fontFamily: 'Inter_600SemiBold', fontWeight: '600', color: Theme.textMuted },
-  chipTextSelected: { color: Theme.accent },
   list: { paddingHorizontal: 20, paddingBottom: 32, gap: 12 },
   emptyContainer: {
     flexGrow: 1,
@@ -340,8 +338,8 @@ const styles = StyleSheet.create({
   cardDate: { fontSize: 12, fontFamily: 'Inter_400Regular', color: Theme.textMuted, marginBottom: 8 },
   cardTitle: {
     fontSize: 16,
-    fontFamily: 'Fraunces_600SemiBold',
-    fontWeight: '600',
+    fontFamily: 'Inter_700Bold',
+    fontWeight: '700',
     color: Theme.text,
     marginBottom: 6,
   },

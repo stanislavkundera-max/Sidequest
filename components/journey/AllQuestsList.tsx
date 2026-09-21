@@ -10,10 +10,13 @@ import { Theme } from '@/constants/Theme';
 import { categoryAccentForCategoryId } from '@/lib/categoryAccent';
 import { categoryIoniconNameForCategoryId } from '@/lib/categoryIcons';
 import type { OnboardingPreferences } from '@/src/features/onboarding/types';
+import { countCompletedJourneySteps } from '@/src/features/quests/questHelpers';
 import { useQuestDomainStore } from '@/src/features/quests/questStore';
 import { loadSeenQuestIds } from '@/src/features/quests/seenQuests';
 import {
   isRecentlyAdded,
+  likedQuestsInCategory,
+  newlyOpenedQuestIds,
   orderCategoryQuests,
   QUESTS_OPEN_PER_CATEGORY,
 } from '@/src/features/quests/suggestedQuests';
@@ -24,7 +27,10 @@ type Props = {
   initialCategoryId?: string | null;
   /** Ranks the visible few by onboarding fit. Null = fall back to gentlest-first. */
   preferences?: OnboardingPreferences | null;
-  actions: Pick<ReturnType<typeof useQuestActions>, 'primaryBusy' | 'onStartNow' | 'onLike' | 'openQuest'>;
+  actions: Pick<
+    ReturnType<typeof useQuestActions>,
+    'primaryBusy' | 'onStartNow' | 'onLike' | 'onUnlike' | 'openQuest'
+  >;
 };
 
 /** Full catalog with category chip switching — one category shown at a time. */
@@ -76,6 +82,32 @@ export function AllQuestsList({ initialCategoryId, preferences, actions }: Props
   // earned by finishing something, so there is deliberately no way to reach it.
   const visibleQuests = categoryQuests.slice(0, QUESTS_OPEN_PER_CATEGORY);
   const lockedCount = Math.max(0, categoryQuests.length - visibleQuests.length);
+
+  // Liked quests stay in their category, above the open five (R2-05).
+  const getQuestById = useQuestDomainStore((s) => s.getQuestById);
+  const likedHere = useMemo(() => {
+    if (!activeCategoryId) return [];
+    return likedQuestsInCategory({
+      catalog: quests,
+      userQuests,
+      categoryId: activeCategoryId,
+      hasProgress: (uq) => {
+        const q = getQuestById(uq.questId);
+        return Boolean(q && countCompletedJourneySteps(uq, q) > 0);
+      },
+    });
+  }, [quests, userQuests, activeCategoryId, getQuestById]);
+
+  // Quests that reached the five because of something you did (R2-08).
+  const newlyOpened = useMemo(() => {
+    if (!activeCategoryId) return new Set<string>();
+    return newlyOpenedQuestIds({
+      catalog: quests,
+      userQuests,
+      categoryId: activeCategoryId,
+      preferences,
+    });
+  }, [quests, userQuests, activeCategoryId, preferences]);
 
   // Re-read on focus, not just on mount: the badge has to be gone when you come
   // back from the quest you just opened, and this screen stays mounted while
@@ -147,12 +179,24 @@ export function AllQuestsList({ initialCategoryId, preferences, actions }: Props
       ) : null}
 
       <View style={styles.groupList}>
+        {likedHere.map(({ quest: q, userQuest }) => (
+          <CatalogQuestRow
+            key={`liked-${userQuest.id}`}
+            quest={q}
+            categoryLabel={activeCategoryId ? categoryLabel(activeCategoryId) : ''}
+            liked
+            busy={actions.primaryBusy}
+            onOpen={actions.openQuest}
+            onStart={(id) => void actions.onStartNow(id)}
+            onUnlike={() => void actions.onUnlike(userQuest.id)}
+          />
+        ))}
         {visibleQuests.map((q) => (
           <CatalogQuestRow
             key={q.id}
             quest={q}
             categoryLabel={activeCategoryId ? categoryLabel(activeCategoryId) : ''}
-            isNew={isRecentlyAdded(q) && !seenQuestIds.has(q.id)}
+            isNew={(isRecentlyAdded(q) || newlyOpened.has(q.id)) && !seenQuestIds.has(q.id)}
             busy={actions.primaryBusy}
             onOpen={actions.openQuest}
             onStart={(id) => void actions.onStartNow(id)}

@@ -102,6 +102,8 @@ create table if not exists public.memory_entries (
   title text not null,
   body text not null,
   photo_url text,
+  -- Only for memories with no quest; a quest's memory takes the quest's category.
+  category_id text references public.categories (id) on delete set null,
   created_at timestamptz not null default now()
 );
 

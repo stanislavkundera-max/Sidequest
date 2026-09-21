@@ -275,6 +275,13 @@ $$;
 revoke all on function public.delete_own_account() from public;
 grant execute on function public.delete_own_account() to authenticated;
 
+-- 12) Optional category on free-standing memories (round-2 feedback, R2-11).
+-- A quest's memory takes the quest's category; this is only written when there
+-- is no quest. See memory_category.sql for the reasoning.
+alter table if exists public.memory_entries
+  add column if not exists category_id text
+    references public.categories (id) on delete set null;
+
 -- 4) Sanity check output.
 select
   exists (

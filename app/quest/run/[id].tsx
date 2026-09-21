@@ -34,13 +34,15 @@ import { composeMemoryDraftFromRun, NO_EVIDENCE_NOTE } from '@/src/features/memo
 import { useMemoryStore } from '@/src/features/memories/memoryStore';
 import {
   calendarEventStillExists,
-  createQuestCalendarEvent,
   isDeviceCalendarCreationAvailable,
+  openQuestCalendarEditor,
+  suggestedQuestStart,
 } from '@/src/features/quests/questCalendar';
+// Pending verification is how the pre-R2-02 build confirmed a silently created
+// event. Kept for testers who update mid-step with one still pending.
 import {
   clearPendingCalendarVerification,
   readPendingCalendarVerification,
-  writePendingCalendarVerification,
 } from '@/src/features/quests/questRunnerPending';
 import { formatQuestDuration, QUEST_COPY } from '@/src/features/quests/questCopy';
 import {
@@ -120,6 +122,12 @@ export default function QuestRunScreen() {
   const loading = useQuestDomainStore((s) => s.loading);
   const pendingStore = useQuestDomainStore((s) => s.pending);
   const error = useQuestDomainStore((s) => s.error);
+  const clearQuestError = useQuestDomainStore((s) => s.clearError);
+  // The store's error belongs to whichever screen raised it. Arriving here
+  // fresh must not inherit one — see R2-01 in docs/feedback/round-2-tasklist.md.
+  useEffect(() => {
+    clearQuestError();
+  }, [clearQuestError]);
   const userQuests = useQuestDomainStore((s) => s.userQuests);
   const getQuestById = useQuestDomainStore((s) => s.getQuestById);
   const assignQuestToUser = useQuestDomainStore((s) => s.assignQuestToUser);
@@ -421,6 +429,7 @@ export default function QuestRunScreen() {
       // The quest is complete either way — a memory-save hiccup shouldn't
       // read as a failed completion, so it gets its own try/catch.
       let memoryId: string | null = null;
+      let memoryPhotoFailed = false;
       try {
         const memory = await createMemoryForQuest(user.id, {
           questId: quest.id,
@@ -429,6 +438,7 @@ export default function QuestRunScreen() {
           photoUri: draft.photoUri,
         });
         memoryId = memory.id;
+        memoryPhotoFailed = Boolean(memory.photoFailed);
         trackEvent('memory_created', {
           sourceScreen: 'quest_runner_auto',
           memoryId: memory.id,
@@ -443,24 +453,30 @@ export default function QuestRunScreen() {
       // not the plain Journey catalog — land where the result is visible.
       router.replace('/(tabs)/profile');
       if (memoryId) {
-        alertTwoChoice('Nice work — quest complete', 'Saved to your memories.', {
-          cancel: { text: 'OK' },
-          confirm: {
-            text: 'View memory',
-            onPress: () =>
-              router.push({
-                pathname: '/memory/[id]',
-                params: {
-                  id: memoryId as string,
-                  justSaved: '1',
-                  // No real evidence was captured during the run — open
-                  // straight into editing instead of a view-only screen with
-                  // nothing personal in it, so adding a note takes no extra tap.
-                  ...(memoryBody === NO_EVIDENCE_NOTE ? { autoEdit: '1' } : {}),
-                },
-              }),
-          },
-        });
+        alertTwoChoice(
+          'Nice work — quest complete',
+          memoryPhotoFailed
+            ? "Saved to your memories — but the photo didn't upload. You can add it again from the memory."
+            : 'Saved to your memories.',
+          {
+            cancel: { text: 'OK' },
+            confirm: {
+              text: 'View memory',
+              onPress: () =>
+                router.push({
+                  pathname: '/memory/[id]',
+                  params: {
+                    id: memoryId as string,
+                    justSaved: '1',
+                    // No real evidence was captured during the run — open
+                    // straight into editing instead of a view-only screen with
+                    // nothing personal in it, so adding a note takes no extra tap.
+                    ...(memoryBody === NO_EVIDENCE_NOTE ? { autoEdit: '1' } : {}),
+                  },
+                }),
+            },
+          }
+        );
       } else {
         // Completion always succeeds even if the auto-memory save failed —
         // but that failure must stay visible, or it looks like memories
@@ -496,27 +512,45 @@ export default function QuestRunScreen() {
 
     setActing(true);
     try {
-      const eventId = await createQuestCalendarEvent({
+      const result = await openQuestCalendarEditor({
         title,
         notes,
         durationMinutes: duration,
-        startOffsetMinutes: 15,
+        suggestedStart: suggestedQuestStart(quest.timeframe),
       });
-      await writePendingCalendarVerification({
-        userQuestId: activeUq.id,
-        stepId: step.id,
-        eventId,
-      });
-      setCalendarHint(
-        'Added to your calendar. This step finishes on its own once the event is saved.'
-      );
-      await tryVerifyCalendarPending();
+      if (result.outcome === 'saved') {
+        // iOS tells us it was saved and gives the id — no need to ask.
+        await finishStep(step.id, { kind: 'calendar', eventId: result.eventId });
+      } else if (result.outcome === 'unknown') {
+        // Android closes the editor without saying whether you saved — so ask,
+        // rather than guess either way.
+        askIfScheduled(step);
+      }
+      // 'canceled': they backed out; leave the step as it was.
     } catch (e: unknown) {
-      const msg = e instanceof Error ? e.message : 'Could not create the calendar entry.';
-      alertCompat('Calendar', msg);
+      logError('quest.runner.calendarEditor', e, { questId: quest.id, stepId: step.id });
+      // No calendar app, or permission refused on iOS: the step still has to
+      // be passable, so fall back to adding it by hand.
+      askIfScheduled(step, "We couldn't open your calendar. Add it yourself, then confirm here.");
     } finally {
       setActing(false);
     }
+  }
+
+  function askIfScheduled(step: QuestActionStep, message?: string) {
+    alertTwoChoice(
+      'Is it in your calendar?',
+      message ?? 'Once it has a day, this step is done.',
+      {
+        cancel: { text: 'Not yet' },
+        confirm: {
+          text: "Yes, it's in",
+          onPress: () => {
+            void finishStep(step.id, { kind: 'self_attest' });
+          },
+        },
+      }
+    );
   }
 
   function handleCalendarStep(step: QuestActionStep) {
@@ -932,7 +966,7 @@ const styles = StyleSheet.create({
     letterSpacing: 0.8,
     marginBottom: 6,
   },
-  title: { fontSize: 20, fontFamily: 'Fraunces_700Bold', fontWeight: '700', color: Theme.text, marginBottom: 8 },
+  title: { fontSize: 20, fontFamily: 'Inter_700Bold', fontWeight: '700', color: Theme.text, marginBottom: 8 },
   sub: { fontSize: 14, fontFamily: 'Inter_400Regular', lineHeight: 20, color: Theme.textMuted },
   stepsOverview: {
     backgroundColor: Theme.surface,
@@ -1007,7 +1041,7 @@ const styles = StyleSheet.create({
     textTransform: 'uppercase',
     letterSpacing: 0.8,
   },
-  stepTitle: { fontSize: 19, fontFamily: 'Fraunces_700Bold', fontWeight: '700', color: Theme.text, marginBottom: 6 },
+  stepTitle: { fontSize: 19, fontFamily: 'Inter_700Bold', fontWeight: '700', color: Theme.text, marginBottom: 6 },
   stepDetail: { fontSize: 14, fontFamily: 'Inter_400Regular', lineHeight: 20, color: Theme.textMuted, marginBottom: 10 },
   stepTipBlock: {
     marginBottom: 16,
@@ -1052,7 +1086,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignSelf: 'center',
   },
-  doneTitle: { fontSize: 19, fontFamily: 'Fraunces_700Bold', fontWeight: '700', color: Theme.text, textAlign: 'center' },
+  doneTitle: { fontSize: 19, fontFamily: 'Inter_700Bold', fontWeight: '700', color: Theme.text, textAlign: 'center' },
   doneBody: { fontSize: 14, fontFamily: 'Inter_400Regular', lineHeight: 20, color: Theme.textMuted, textAlign: 'center' },
   evidenceList: { gap: 10, marginVertical: 4 },
   evidenceRow: {

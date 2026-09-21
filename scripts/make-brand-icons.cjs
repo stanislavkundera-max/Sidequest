@@ -114,8 +114,13 @@ async function render(page, markup, size, file, transparent) {
   await render(page, svg({ size: 1024, background: null, scale: SAFE_SCALE, stone: AMBER }), 1024,
     path.join(OUT_APP, 'adaptive-icon.png'), true);
 
-  // Splash — transparent, sits on the splash backgroundColor.
-  await render(page, svg({ size: 1024, background: null, scale: 0.7, stone: GREEN, top: AMBER }), 1024,
+  // Splash — transparent, sits on the splash backgroundColor, which is now the
+  // brand green (app.config.ts). It used to be green stones with an amber top on
+  // beige: the mark from before the all-amber decision, left behind when the
+  // icon moved on — a tester spotted it as "neaktuální logo" (round 2, R2-07).
+  // Amber on beige has no contrast, so the ground flips instead: the splash is
+  // now the icon, full size.
+  await render(page, svg({ size: 1024, background: null, scale: 0.7, stone: AMBER, top: AMBER }), 1024,
     path.join(OUT_APP, 'splash-icon.png'), true);
 
   // Browser tab. Rendered a little larger than the app icon: a favicon is seen

@@ -27,7 +27,7 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 20,
-    fontFamily: 'Fraunces_700Bold',
+    fontFamily: 'Inter_700Bold',
     fontWeight: 'bold',
   },
   link: {

@@ -18,6 +18,8 @@ type MemoryDomainState = {
   loading: boolean;
   saving: boolean;
   error: string | null;
+  /** Same reason as the quest store's `clearError` — see round 2, R2-04. */
+  clearError: () => void;
   bootstrap: (userId: string) => Promise<void>;
   refresh: (userId: string) => Promise<void>;
   createMemoryForQuest: (
@@ -27,14 +29,22 @@ type MemoryDomainState = {
       title: string;
       body: string;
       photoUri: string | null;
+      /** Hand-picked category for a memory with no quest (R2-11). Ignored when `questId` is set. */
+      categoryId?: string | null;
     }
-  ) => Promise<MemoryEntry>;
+  ) => Promise<MemoryEntry & { photoFailed?: boolean }>;
   removeMemory: (id: string) => void;
   /** `photoUri: null` removes the photo; unchanged from the entry's current value keeps it as-is. */
   updateMemory: (
     userId: string,
     id: string,
-    input: { title: string; body: string; photoUri: string | null }
+    input: {
+      title: string;
+      body: string;
+      photoUri: string | null;
+      /** `undefined` leaves it as-is. Only used for memories with no quest. */
+      categoryId?: string | null;
+    }
   ) => Promise<MemoryEntry>;
   deleteMemory: (userId: string, id: string) => Promise<void>;
   /** Admin tool: wipes every memory row for this user, locally and remotely. */
@@ -48,6 +58,10 @@ export const useMemoryStore = create<MemoryDomainState>((set, get) => ({
   loading: false,
   saving: false,
   error: null,
+
+  clearError: () => {
+    if (get().error !== null) set({ error: null });
+  },
 
   bootstrap: async (userId) => {
     if (userId === (get().initializedForUserId ?? null)) {
@@ -89,9 +103,24 @@ export const useMemoryStore = create<MemoryDomainState>((set, get) => ({
       if (input.questId && !completedUserQuest) {
         throw new Error('Complete the quest first or create a standalone memory.');
       }
-      const photoUrl = input.photoUri
-        ? await uploadPhotoForUser({ userId, localUri: input.photoUri })
-        : null;
+      // The words are the memory; the photo is an extra. A failed upload used to
+      // throw here and take the whole memory with it — at the end of a quest,
+      // often out of signal, which is exactly when it was worth writing down
+      // (round 2, R2-04). Now the memory is saved without the photo and the
+      // caller is told, so it can say so.
+      let photoUrl: string | null = null;
+      let photoFailed = false;
+      if (input.photoUri) {
+        try {
+          photoUrl = await uploadPhotoForUser({ userId, localUri: input.photoUri });
+        } catch (uploadError: unknown) {
+          logError('memoryStore.createMemoryForQuest.photoUpload', uploadError, {
+            userId,
+            questId: input.questId,
+          });
+          photoFailed = true;
+        }
+      }
 
       const entry = await createMemoryEntry({
         userId,
@@ -100,11 +129,12 @@ export const useMemoryStore = create<MemoryDomainState>((set, get) => ({
         title: input.title,
         body: input.body,
         photoUrl,
+        categoryId: input.questId ? null : (input.categoryId ?? null),
       });
       set((s) => ({
         memories: [entry, ...s.memories.filter((m) => m.id !== entry.id)],
       }));
-      return entry;
+      return photoFailed ? { ...entry, photoFailed } : entry;
     } catch (e: unknown) {
       logError('memoryStore.createMemoryForQuest', e, {
         userId,
@@ -140,6 +170,7 @@ export const useMemoryStore = create<MemoryDomainState>((set, get) => ({
         title: input.title,
         body: input.body,
         photoUrl,
+        categoryId: input.categoryId,
       });
       set((s) => ({
         memories: s.memories.map((m) => (m.id === id ? entry : m)),
