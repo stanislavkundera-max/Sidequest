@@ -21,7 +21,7 @@ positioning has been reinforced more than once and is not up for casual revision
 |---|---|---|
 | 1 | Brand name | 🟢 **Confirmed `Side Quest Life`** 2026-09-05 — package `com.sidequestlife.app` is now locked in by choice |
 | 2 | Colours | 🟢 **Decided** — beige `#f3f2ec`, forest green `#33471f`, amber `#d9a441`, brand-only. Violet retired 2026-09-05 |
-| 3 | Typography | 🟢 **Decided** — Fraunces + Inter. Body face has one open sub-question; not yet implemented |
+| 3 | Typography | 🟢 **Revised 2026-09-21 — Inter only.** Fraunces dropped after the closed-test mentor flagged serif + sans mixing (§3) |
 | 4 | Logo | 🟢 **Done 2026-09-05: a cairn** — green ground, all stones amber. Icons and feature graphic generated |
 
 ---
@@ -286,9 +286,30 @@ move, and the cheapest thing to move is `social` — not `danger`, whose meaning
 
 ## 3. Typography
 
-**Current state: there is none.** Everything renders in the system font. The one custom font loaded,
-`SpaceMono` (`app/_layout.tsx:60`), is an unused Expo template leftover and should be deleted as
-part of whatever lands here — it currently costs startup time for nothing.
+### ✅ Revised 2026-09-21 — Inter only. Fraunces is dropped.
+
+**Standa's call, after the mentor flagged it in the closed test:** *"kombinuje se tam patkové a
+bezpatkové písmo - chyba!"* (round 2, R2-20, `docs/feedback/round-2-tasklist.md`).
+
+What made it a real problem rather than taste, measured before deciding: of 237 text styles, **212
+were Inter and 25 Fraunces** — and the 25 were not even consistently "the headings". Onboarding's
+headlines were Inter Bold while tab titles, quest cards and runner steps were Fraunces, so the same
+role switched face depending on the screen. That reads as accidental, which is what the mentor saw.
+
+- **All headings are now Inter Bold (`Inter_700Bold`, weight 700)**, the style onboarding already
+  used. Hierarchy comes from size and weight.
+- Fraunces is removed from the app: not loaded in `app/_layout.tsx`, package uninstalled — two fewer
+  font files before the splash can go.
+- **Not yet changed:** the Play feature graphic (`scripts/make-feature-graphic.cjs`) still sets the
+  wordmark in Fraunces. It is a published store asset, so regenerating it is left as Standa's call.
+- The 2026-08-29 decision below is kept as history, not deleted, so the reasoning for trying
+  Fraunces — and for leaving it — both stay findable.
+
+*The section below describes the state before 2026-09-06 and the 2026-08-29 choice; it is
+superseded by the note above.*
+
+**State before fonts landed: there was none.** Everything rendered in the system font. The one custom
+font loaded, `SpaceMono`, was an unused Expo template leftover (removed 2026-09-06).
 
 ### Constraints
 
@@ -303,7 +324,7 @@ part of whatever lands here — it currently costs startup time for nothing.
   fonts, but a genuine trap if a boutique or display face gets chosen later for the wordmark — those
   routinely ship without ů and ř, and it will not be noticed until Czech marketing copy is set.
 
-### ✅ Decided 2026-08-29 — Fraunces for headings, Inter for body
+### ~~Decided 2026-08-29 — Fraunces for headings, Inter for body~~ — superseded 2026-09-21 (see top of §3)
 
 Standa's call, after seeing the three pairings set in real copy.
 

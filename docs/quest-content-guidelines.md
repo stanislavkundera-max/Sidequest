@@ -166,6 +166,12 @@ never explain why it is good for you.
 | `shortDescription` | The scene, or the constraint — never the benefit | "A sleeping bag, a mat, and the sky. No tent." |
 | `fullDescription` | What to actually do, plus what would ruin it | "Check what is allowed where you are…" |
 
+> ⚠️ **The example quest above is due a rewrite.** It still demonstrates house voice correctly, but
+> [rule 9](#9-anything-legality-dependent-is-worded-conditionally--in-the-title-not-just-the-small-print)
+> (added 2026-09-21) now requires the legality condition to reach the *title*, and this title asserts
+> the no-tent version flatly. Swap in a different worked example, or update this one, whenever that
+> rewrite happens — do not leave the two rules disagreeing.
+
 **Not the house voice:**
 
 | Instead of | Write |
@@ -184,6 +190,126 @@ and the second person beats the abstract ("you are not ready for" beats "beyond 
 ability"). No exclamation marks. Dry understatement is welcome; jokes are not.
 
 *Origin: derived from the existing catalogue, 2026-09-06.*
+
+---
+
+## 7. Open the goal, specific in the steps
+
+**The title says what to do, not exactly what to make.** The specifics do not disappear — they move
+into the journey, offered as examples rather than requirements.
+
+| Instead of | Write | And in the steps |
+|---|---|---|
+| "Bake an apple pie for a friend" | "Bake something for someone close to you" | "Apple pie, banana bread, whatever you can actually make" |
+
+**Why:** a fixed target fails on details that have nothing to do with the point of the quest — no
+apples in the shop, no bungee within 200 km, no friend who likes pie. The person reads it, decides
+it is not for them, and moves on. An open goal cannot be blocked that way, and the thing they
+actually did still counts.
+
+**This does not licence vague writing, and the difference matters.** §6 is about *language* —
+concrete nouns, constraints, no feelings. This rule is about the *target*. "Bake something for
+someone close to you" is open in target and still concrete in language. "Do something nice for
+someone" is neither, and is not what this rule asks for.
+
+**The catalogue already does this in places:** "Jump off something with a rope on your legs" is an
+open title; "Bungee. Book it, turn up, and step off the edge." is the specific underneath it. That
+is the shape to copy.
+
+*Origin: Standa, 2026-09-21. Open titles complete more often than specific ones.*
+
+---
+
+## 8. If the quest depends on where you are, carry an alternative
+
+Anything that assumes a landscape, a facility, or a city needs a second way in for people who do not
+have one. Mountains, sea, forest, a climbing wall, a lake you can walk to — none of these are
+universal, and a quest that needs one is dead content for everyone else.
+
+| Instead of | Write |
+|---|---|
+| "Walk to the top of a mountain and eat there" | "Get to the highest point you can reach on foot — a hill, a tower, the top floor — and eat there" |
+
+**Why:** the five-at-a-time gating means a quest nobody near you can do is not just skipped, it is
+occupying one of the five slots that were supposed to tempt you.
+
+*Origin: Standa, 2026-09-21.*
+
+---
+
+## 9. Anything legality-dependent is worded conditionally — in the title, not just the small print
+
+Wild camping, swimming somewhere unofficial, being naked outdoors, fires, drones: legal in one
+country, fined in the next. Write these so the quest is asking you to do the *allowed* version,
+and put the condition where it is actually read.
+
+| Instead of | Write |
+|---|---|
+| "Sleep outside with nothing over your face" | A title that carries the "where you're allowed to" inside it |
+
+**Why:** a flat imperative is the app telling someone to break a law it knows nothing about. It is
+also a Play Store risk — content that reads as encouraging illegal activity is a policy problem, not
+just an editorial one.
+
+**How much of the catalogue this actually touches — measured, not guessed (2026-09-21, 41 quests):**
+
+- **One clear case.** "Sleep outside with nothing over your face"
+  ([`src/constants/quests.ts:211`](../src/constants/quests.ts#L211)) already does the right thing in
+  `fullDescription` — *"Check what is allowed where you are: many national parks forbid it, and a
+  friend with land solves that in one message"* — but the title and shortDescription ("No tent.")
+  still assert it flatly. **§6 uses this quest as its worked example of house voice, so fixing one
+  means revisiting the other.**
+- **One borderline.** "Swim in a river you had to walk to reach"
+  ([`:406`](../src/constants/quests.ts#L406)) carries safety advice but no legality note. Wild
+  swimming is broadly fine in CZ and restricted in protected areas and drinking-water reservoirs —
+  worth a condition, not a rewrite.
+- **One that already solves it, and is the model to copy.** "Spend a night somewhere with no street
+  lights" ([`:348`](../src/constants/quests.ts#L348)) never asks for wild camping at all: it names
+  the legal ways in — *"a cabin, a campsite, a friend's place in the middle of nowhere"* — and keeps
+  the whole experience intact. **Naming legal venues beats adding a disclaimer**; the quest loses
+  nothing and needs no warning.
+
+So this is a two-quest job, not a catalogue sweep.
+
+*Origin: Standa, 2026-09-21 — "nothing that sounds illegal … based on the country", with the fix
+being conditional wording ("if possible…") rather than dropping the subject.*
+
+---
+
+## 10. The words have to match what actually happens
+
+The line describes the real experience at its real intensity. No overselling.
+
+| Instead of | Why it fails |
+|---|---|
+| "Drive something too fast for the road" (for go-karting) | A kart is *slower* than road traffic. The line promises something the afternoon cannot deliver. |
+
+**Why:** §6 ends on "naming the thing is a promise the quest can keep" — this is the other half of
+it. Overselling does not just disappoint; it is discovered *during* the experience, which is the one
+moment the app was supposed to have got right. Underselling is safe. Overselling is not.
+
+*Origin: Standa, 2026-09-21.*
+
+---
+
+## 11. Not everything can cost money — and price is display logic, not a question
+
+The catalogue must hold enough free quests that someone who never pays for anything still has a real
+path. This is a composition rule about the catalogue as a whole, not about any single quest.
+
+**The mechanism is adaptive display, deliberately *not* an onboarding question** — Standa's own
+correction while writing the note. The app watches what you actually complete rather than asking you
+how much money you have, which is both a nicer question to not be asked and a more reliable signal.
+
+**Deferred: Standa's note says this one is last** ("tohle budu dělat nakonec"). Recorded now so the
+reasoning is not lost.
+
+⚠️ **One detail is unconfirmed:** the note reads *"If they complete free quest new quest will be the
+same category"* — read here as "the same **price band**" (finish a free quest → the next suggestion
+is also free). Confirm before building; "category" in this codebase already means Nature/Adventure/
+Social/Relax.
+
+*Origin: Standa, 2026-09-21.*
 
 ---
 ## More rules

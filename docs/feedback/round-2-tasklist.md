@@ -1,0 +1,554 @@
+# Round 2 — Closed Test Feedback: Tasklist & Roadmap
+
+Triage of the Google Play **closed test** feedback collected up to 2026-09-21.
+Verbatim source: [`round-2-raw-notes.md`](round-2-raw-notes.md) — never edited, always the way back
+to what was actually said.
+
+**Goal of this round:** pick the subset that ships in an updated test build now. Everything else is
+recorded here so nothing is lost — parked or rejected, but written down either way.
+
+**Status legend:** `NOW` = in this build · `LATER` = backlog, not this build · `DECIDE` = blocked on
+a call from Standa · `REJECT?` = proposed rejection with reasoning, Standa decides.
+
+**Effort** is a t-shirt size based on the files actually involved (named per item), not a clock
+estimate.
+
+---
+
+## Proposed selection for this build
+
+| ID | Item | Type | Effort | Status |
+|----|------|------|--------|--------|
+| R2-01 | Stale error banner follows you between screens | bug | S | **NOW** |
+| R2-02 | Calendar step can't pick a day — always "now + 15 min" | bug | M | **NOW** |
+| R2-03 | Photo step is mandatory, blocks finishing | bug / philosophy | S | **NOW** |
+| R2-04 | "Network request failed" when saving a memory | bug | ? — diagnose first | **NOW** |
+| R2-05 | Liked quest vanishes instead of moving up | bug | S–M | **NOW** (repro first) |
+| R2-06 | Timer can't be skipped | UX | S | **NOW** |
+| R2-07 | Loading screen uses the old logo | asset | XS | **NOW** |
+| R2-08 | Newly unlocked quest gets no NEW badge | UX | S | **NOW** |
+| R2-09 | Memories filter chips are oversized | UI | S | **NOW** |
+| R2-11 | A self-made memory can't be given a category | UX | M | **NOW** |
+| R2-10 | Quest steps carry too much text — cut one layer | copy / UI | M + live SQL | **NOW** |
+| R2-22 | Prep the Play closed-test feedback forms | process | M | **NOW** (parallel) |
+
+**✅ Scope approved 2026-09-21: the bugs and small UX/UI** — R2-01…R2-09, R2-11, R2-23, R2-24.
+R2-10 (text trim) and R2-22 (Play forms) are not in this pass.
+
+### Implementation plan (agreed 2026-09-21)
+
+Diagnosis went deeper than the triage above; where it changed the picture, it's noted.
+
+| ID | What was actually wrong | Fix | Decided by |
+|---|---|---|---|
+| R2-01 | `assignQuestToUser` writes "path full" into **global** store state although all 5 callers already handle it locally (modal / alert / inline text). Tester's path: 4th quest in Explore → modal → picked an in-progress one → stale banner on it. | Stop writing that outcome to global state; clear store errors on screen mount. | obvious |
+| R2-04 | **Same bug class as R2-01**, in the memory store. Timeline 08:11→08:12: quest completion auto-saves a memory, photo upload fails, "Add a memory" opens with the stale banner (body was empty — nothing had been sent from that screen). Upload uses `fetch(uri).blob()` + Blob upload, known-unreliable on React Native. | Clear stale error; upload via ArrayBuffer; if the photo fails, save the memory **without** it and say so. Upload cause is a strong hypothesis until seen on an Android device. | obvious |
+| R2-03 | `disabled={!photoUri}`. | CTA carries the why: "Take a photo for the memory" + quiet "Finish without a photo". | obvious (Standa's direction) |
+| R2-06 | Timer is gated both before start *and* while running. | "Skip the timer" in both states → `self_attest`, no schema change. | obvious |
+| R2-07 | Icon moved to all-amber on 2026-09-05; the splash kept the older green-stones variant. | Splash = current mark (green ground, amber cairn); the JS loading gate matches it so the handoff doesn't flash. Native — visible only in a new build. | obvious |
+| R2-08 | Badge = "new in catalogue". | Also badge quests newly *offered to you* (device-local, first run seeds silently). Returning rejected quests never badge. | obvious |
+| R2-11 | `memory_entries` has no category. | Optional category picker for standalone memories (create + edit). **Needs one SQL migration Standa runs.** | obvious |
+| R2-24 | **Backend already exists** — `dismissSuggestedQuest`, status `dismissed` — never called; returns after a flat 30 days. | Wire it; return rule per category: rejected quests come back when nothing else in the category is left to offer. "Not for me" lives on the quest detail screen only (cards stay two-button). | obvious; placement vetoable |
+| R2-05 | Liked quest leaves the list, a different quest takes its slot, and it lands on **another tab** (Progress) with no message. | ✅ **Stays in its category, pinned to the top with a filled heart**; does not take one of the five slots. Progress keeps the cross-category Liked overview. | Standa |
+| R2-09 | **The "huge chips" are a layout bug**: horizontal `ScrollView` defaults to `flexGrow: 1`, so both chip rows share screen height with the list and stretch into tall ovals. The mentor reacted to the bug. | Fix the stretch; ✅ **one row of category chips + a single "All time ▾" chip for the date range.** | Standa |
+| R2-02 | Always "now + 15 min". | ✅ **Open the phone's own calendar editor**, prefilled; user picks day and time there and gets their usual reminder. Android can't report whether it was saved → on return, "Saved it?" confirms the step. | Standa |
+| R2-23 | `timeframe` does three jobs (duration in onboarding copy, planning horizon in the anchor text and calendar-step rule, repeat interval in the completion horizon). **The catalogue's outliers only make sense as "how much planning it takes"** — a 1-hour *yearly* reconnect, a 5-hour *weekly* spontaneous train ride. | ✅ **Meaning = how much planning it takes.** Labels **Anytime · Plan ahead · Big occasion**, centralised in one place. Onboarding's pace question describes it in minutes and now disagrees — logged, not fixed in this pass. | Standa |
+
+---
+
+### Implementation status (2026-09-21)
+
+All twelve are implemented, not yet committed. Typecheck clean. The offer logic (R2-05/08/24) has
+14 scenario tests, all passing (`node --test`, kept outside the repo — the project has no unit
+runner). Verified in the web build with a throwaway anonymous account:
+
+| ID | Verified how | Result |
+|---|---|---|
+| R2-01 | 3 quests active → 4th → "path full" modal → opened an active quest | ✅ no banner (Progress, which renders the same store error, clean too) |
+| R2-03 | "Leave the ground" step 5, the tester's exact screen | ✅ "Add a photo for the memory" + "Finish without a photo" advances |
+| R2-05 | Like on Journey, then unlike | ✅ stays pinned with **Liked**; five still open; unlike returns it |
+| R2-06 | "Eat one meal outside" step 4, skipped *while running* | ✅ advances; copy now says "about", not "at least" |
+| R2-09 | Memories tab | ✅ one row of small chips + "All time ▾" sheet works |
+| R2-11 | New free-standing memory with Nature, **before** the migration | ✅ saves (column-missing fallback); category stored once SQL is run |
+| R2-23 | Journey cards, quest detail, onboarding | ✅ Anytime / Plan ahead / Big occasion; duplicate label on detail removed |
+| R2-24 | "Not for me" on the kart quest | ✅ dialog names the category; quest gone, next one opened |
+| R2-08 | Unit tests only | ⚠️ the live catalogue's 5 Sept quests are all still "new in catalogue", so on screen every card is badged anyway |
+| R2-02, R2-04, R2-07 | — | ⚠️ **native-only**: calendar editor, photo upload, splash. Need the Android build |
+
+**Caught during verification and fixed:** the category-column fallback had a race — the Memories
+tab loads twice at start-up, and the second request skipped its retry and showed "Failed to load
+memories". Fixed in `memoriesRepository.ts`, re-verified three reloads in a row.
+
+**After Standa ran the SQL (2026-09-21), re-verified live:** category saves on edit (`cat-nature` in
+the DB, shown on the memory); account deletion succeeds and lands on sign-in. **One more bug found
+and fixed in that pass:** opening a memory directly (link or web reload) said "Memory not found" —
+the detail screen never loaded memories itself. Now bootstraps like quest detail and the runner do.
+*Note:* an app session that was open before the migration keeps dropping the category until restarted
+(the "column missing" answer is cached per session by design).
+
+**SQL Standa has to run** (both idempotent) — ✅ done 2026-09-21:
+1. `supabase/fix_account_deletion.sql` — **urgent**, see R2-29.
+2. `supabase/memory_category.sql` — R2-11. The app works without it; the category just isn't saved.
+
+### R2-29 · Account deletion is broken for every user — found during verification
+**Not tester feedback — found 2026-09-21 trying to delete the throwaway test account.**
+`delete_own_account()` did `delete from storage.objects`, which Supabase now rejects for the whole
+statement: *"Direct deletion from storage tables is not allowed. Use the Storage API instead."*
+(42501) — even for an account with no photos. Every deletion in production fails with "Could not
+delete your account". Google Play requires working in-app deletion, and the public page
+`app/legal/delete-account.tsx` promises it.
+
+Fixed: the app removes the user's photos via the Storage API first
+(`src/repositories/accountRepository.ts`, using the existing `quest_memory_photos_delete_own`
+policy), and the function no longer touches `storage.objects`. **Also found:**
+`production_prep.sql` §11 had drifted from `schema.sql` and lacked the analytics anonymization from
+`90aee6a` — re-running it would have silently undone that. Both copies now match, and
+`fix_account_deletion.sql` carries the complete function so it is correct whichever version is
+live. **The new build must not reach testers before this SQL has run.**
+
+Leftover from verification: throwaway account `a3747ca8-de80-46a1-9f83-6ace71464087` (anonymous, no
+email) could not be deleted because of this very bug. Its analytics events are still linked to it —
+remove them *before* deleting the account, while they can still be told apart:
+`delete from public.analytics_events where user_id = 'a3747ca8-de80-46a1-9f83-6ace71464087';`
+
+---
+
+## NOW — confirmed in code
+
+### R2-01 · A stale error banner follows you onto unrelated screens
+**Source:** numbered 8) "divnej error" + 17) *"Myslela jsem, že když je to in progress, tak se tomu
+mohu věnovat a vlastně jsem v tom teď zamotaná"* (unattributed, a female tester) · evidence
+screenshots 7 + 8.
+**Type:** bug — and the highest-value finding of the round, because **one root cause explains both
+reports**.
+
+**Diagnosis (verified, not guessed).** `assignQuestToUser` writes the "path is full" message into a
+**global** store field — [`src/features/quests/questStore.ts:278`](../../src/features/quests/questStore.ts#L278)
+sets `error: QUEST_COPY.activePathFullBody`. Nothing clears that field on navigation or screen
+mount; it is only reset when the *next* store action starts. Meanwhile every screen renders it
+unconditionally at the top — e.g.
+[`app/quest/run/[id].tsx:712`](../../app/quest/run/%5Bid%5D.tsx#L712).
+
+So: the tester hit the 3-quest cap somewhere, then opened an **already-active** quest, and the old
+message was still sitting in the store — rendered above a quest that was working fine. Screenshot 8
+confirms the quest itself was healthy (0/4 steps, `Continue` offered). The runner even guards
+correctly against re-assigning (`if (activeUq) return;`, line 347) — the quest was never actually
+blocked. **She was told she was stuck when she was not.**
+
+**Fix shape:** clear `error` when the runner mounts / the route changes, and stop rendering a
+path-full message on a screen where it can't apply. Bigger question worth deciding once: a
+"cannot start a *new* quest" message probably shouldn't live in global state at all — it belongs to
+the action that triggered it.
+
+**Note the philosophy angle:** the app is supposed to never restrict. A phantom blocker is the worst
+possible version of that. Worth fixing on principle, not just severity.
+
+---
+
+### R2-02 · The calendar step cannot pick a day
+**Source:** numbered 13) *"Google kalendář nefunguje properly / Rovnou to uloží aktivitu na tu dobu
+z člověk si nemůže vybrat den"*.
+**Type:** bug.
+
+**Diagnosis (verified).**
+[`src/features/quests/questCalendar.ts:53-58`](../../src/features/quests/questCalendar.ts#L53) —
+`createQuestCalendarEvent` computes `startDate = now + startOffsetMinutes (default 15)`. There is no
+date/time picker anywhere in the flow. The event is always ~15 minutes from the tap.
+
+This is exactly the complaint, and it compounds R2-06/R2-13: a monthly quest planned "for next
+month" gets an event 15 minutes from now, and then immediately asks you to start a 45-minute timer.
+
+**Fix shape:** a native date/time picker before `createEventAsync`, defaulting to something sensible
+per timeframe (weekly → a few days out, monthly → next week, etc.). `@react-native-community/
+datetimepicker` or Expo's equivalent; check what's already in `package.json` before adding a dep.
+
+---
+
+### R2-03 · The photo step is mandatory and blocks the quest
+**Source:** numbered 9) *"dát fotku by měl být nejspíš dobrovolný krok jen s lehkým hintem proč je
+lepší tam tu fotku dát ideálně v CTA"* · evidence screenshot 3.
+**Type:** bug **and** a direct philosophy violation.
+
+**Diagnosis (verified).**
+[`components/quest-run/PhotoStepAction.tsx:94`](../../components/quest-run/PhotoStepAction.tsx#L94)
+— `disabled={!photoUri}`. The "Finish this step" button is hard-gated on a photo. Screenshot 3 shows
+it greyed out.
+
+The app's own rule is that the mentor pushes you to *do*, never restricts. A step that refuses to
+complete because you didn't photograph something is a restriction, and it can strand someone
+mid-quest with no way forward (no phone storage, bad light, just didn't want to).
+
+**Fix shape:** enable completion without a photo; keep the photo as the promoted path. The
+suggestion is right that the *why* belongs in the CTA — "it becomes part of the memory" is already
+written there as body text, so it mostly needs to move into the button's own framing rather than be
+newly invented.
+
+---
+
+### R2-04 · "Network request failed" when saving a memory
+**Source:** evidence screenshot 2 (New memory, title "Leave the ground", red banner).
+**Type:** bug — **not yet diagnosed.** Flagging honestly: I have not reproduced this and I am not
+going to claim a cause from a screenshot.
+
+**What to check first:** whether this is plain connectivity (the tester was out on a quest — which
+is precisely the offline argument in R2-18), a Supabase session that expired mid-session, or a
+photo-upload timeout. Note the form kept its content and `Save memory` stayed enabled, so the
+immediate user harm is limited — but a memory lost at the moment it was worth writing down is the
+worst thing this app can do to someone.
+
+**Minimum for this build even if the root cause is boring:** retry that doesn't lose the text.
+
+---
+
+### R2-05 · A liked quest disappears instead of moving up
+**Source:** numbered 15) *"Likenutej příspěvek nejde nahoru ale zmizí"*.
+**Type:** bug — **repro needed before fixing.**
+
+**What I know:** liking writes `saved_for_later`
+([`components/quests/useQuestActions.ts`](../../components/quests/useQuestActions.ts)), and the
+Journey tab renders those in
+[`components/journey/PausedAndLikedSections.tsx`](../../components/journey/PausedAndLikedSections.tsx)
+— a *different section from where you liked it*. So "it vanished" is very likely literal and
+correct behaviour that reads as data loss: it left the list you were looking at and reappeared
+somewhere you weren't.
+
+Round 1 already hit a neighbouring version of this (bugs #14/#15 in that round, per the file's own
+comment). Worth checking whether the fix then was incomplete or whether this is the Explore/Journey
+seam specifically.
+
+---
+
+### R2-06 · The timer cannot be skipped
+**Source:** numbered 3), last sentence — *"Timer by se měl dát jít spíš i přeskočit."*
+**Type:** UX. **Scoped deliberately narrow** — see R2-13 for the rest of item 3).
+
+[`components/quest-run/TimerStepAction.tsx:105`](../../components/quest-run/TimerStepAction.tsx#L105)
+offers only `Start the timer`. Add a way past it. Cheap, and it removes a dead end today without
+waiting for the notification rework.
+
+---
+
+### R2-07 · Loading screen shows the old logo
+**Source:** numbered 11) · evidence screenshot 5 ("Preparing your space...", stacked stones).
+**Type:** asset swap. Trivial — [`app/index.tsx:88`](../../app/index.tsx#L88) /
+`components/ui/LoadingState.tsx`, plus whichever asset in `assets/images/` is current.
+**Needs from Standa:** which logo is the current one.
+
+---
+
+### R2-08 · A newly unlocked quest gets no NEW badge
+**Source:** numbered 2) *"splnil jsem quest takže se nový quest přidal ale není u něj tag new"*.
+**Type:** UX — a semantics mismatch, not a broken badge.
+
+**Diagnosis (verified).** The badge means **"new in the catalogue"**:
+[`src/features/quests/suggestedQuests.ts:261`](../../src/features/quests/suggestedQuests.ts#L261)
+`isRecentlyAdded` = `createdAt` within 30 days, combined with "not yet opened"
+([`seenQuests.ts`](../../src/features/quests/seenQuests.ts), your 2026-09-06 call).
+
+A quest that surfaced because finishing one freed a slot is old catalogue content, so it correctly
+gets no badge — but to the person it is unmistakably *new to them*. That's the gap: the badge tracks
+the catalogue, the user tracks their own screen.
+
+**Fix shape:** badge "newly opened to you" as well as "newly added". Cheap, and it makes the
+five-at-a-time gating legible — right now a quest appears silently and the reward for finishing one
+is invisible.
+
+---
+
+### R2-09 · Memories filter chips are oversized
+**Source:** numbered 7) *"tlačítka jako all time all categories atd jsou hrozně velké špatný
+design"* · Eva's screenshot shows the same row.
+**Type:** UI. Straightforward restyle.
+
+The second half of 7) — *"možná lepší rozdělit dle kategorií"* — overlaps R2-11 and is better
+decided together with it.
+
+---
+
+### R2-11 · A self-made memory can't be given a category
+**Source:** **Eva Burdová** — *"Tak když vytvořím vlastní vzpomínku, tak to nejde dát do žádné
+kategorie, tak by to možná bylo taky fajn ne? 😊 / Mít jen tu možnost"*.
+**Type:** UX gap. **The strongest-reasoned request of the round** — she worked out the model herself
+first (*"ty kategorie jsou na základě toho z jaké sféry ten úkol je"*), then noticed the hole in it.
+
+Quest-born memories inherit the quest's category; a memory you write yourself has nowhere to put
+one, so it can't be found by the category filter that the Memories tab is built around. Note her
+framing: **"just to have the option"** — an optional field, not a required one. That matches the
+philosophy; do not make it mandatory.
+
+---
+
+### R2-22 · Prepare the Play closed-test feedback forms
+**Source:** P.S. — *"po closed testu budeme muset pečlivě vyplnit feedback a formuláře pro google
+store atd. takže reviduj si vše potřebné"*.
+**Type:** process, runs in parallel with the code work.
+
+Google asks how testing was conducted and what changed as a result. The material for that is
+literally this file plus [`round-2-raw-notes.md`](round-2-raw-notes.md), so the useful move is to
+keep the "what we changed because of feedback" column honest as we go, rather than reconstructing it
+later. Cross-check against [`../closed-test-brief.md`](../closed-test-brief.md) and
+[`../play-store-handoff.md`](../play-store-handoff.md), which already hold the requirement details.
+
+---
+
+## LATER — real, but not this build
+
+### R2-13 · Step pacing: push notifications + calendar-driven resume
+**Source:** numbered 3) (core) + 10) *"asi taky spíš komunikovat nějakou push notifikací ale nebráním
+se jakýmkoliv návrhům"*.
+**Type:** architecture. **Standa's own note already calls it:** *"tohle je velká úprava a bude si
+žádat velkou změnu"*.
+
+The real problem: quest steps assume one continuous sitting, but a monthly quest has a **genuine
+gap** between "put it in the calendar" and "do the thing". Today the app asks you to start a
+45-minute timer immediately after scheduling a trip for next month.
+
+Fixing it properly means the quest can *sleep* and be woken by a notification or the calendar event
+— which is notification infrastructure the app does not have. Round 1 recorded the same boundary:
+`notification_intensity` exists as a stored preference with **no sending infrastructure behind it**.
+So this is "build the notification system", not "tweak the runner".
+
+**Do R2-06 now; do this deliberately, as its own piece of work.**
+
+### R2-21 · Don't disturb while the timer runs
+**Source:** **david b.** — *"Tohle bych zmáčknul v moment, kdy začnu vycházet na track alá zapnutí
+Garmin hodinek a po danou dobu nechci bejt rušenej a chci vychutnávat přírodu"*.
+
+Worth reading carefully, because it is **not a complaint** — his mental model (a Garmin start
+button) is exactly what the timer is for. The design intent landed. What he adds is a constraint for
+R2-13: whatever notification system gets built must **go quiet while a timer is running**. Notifying
+someone mid-quest would break the very thing the quest was for.
+
+File it against R2-13 so it isn't discovered the hard way after the notifications ship.
+
+### R2-15 · Draggable map bubbles + zoom
+**Source:** **Don Marian** — *"Pro moje špatně soustředicí já / Když by se ty bublinky na mapě daly
+posouvat / A hrát si s nimi / Me by to bavilo mnohem víc 🤣 / Nebo zoomovat mapu"* · numbered 14)
+*"viz screen posouvání bublinek atd"*.
+**Type:** interaction design. Two testers' worth of signal (Marian, plus whoever wrote 14).
+
+Note *why* he wants it — fidget-friendliness, holding the attention of someone who doesn't
+concentrate easily. That's a real audience argument, not decoration.
+
+### R2-16 · Real city map background, places tied to the activity
+**Source:** **Don Marian** — *"Kdyby na tom pozadí byla mapa města kde si / Nebo jakyho si zvolíš /
+A třeba místa spojený s tou aktivitou"*. He hedges it himself: *"To už možná přeháním ale"*.
+**Type:** big feature. Map tile licensing, location permission, and a privacy-policy change (the
+current policy's data table would need revisiting). Park it, but it is the most ambitious idea in
+the round and worth keeping visible.
+
+### R2-17 · Category scenes: relax in a cabin, social around a fire, nature at a big tree
+**Source:** numbered 12).1.
+**Type:** art direction. **Already on the backlog** — this is `tasks.md` #8 ("Adjust Explore map art
+to match quest vibe"), now with concrete imagery attached. Fold the specifics into that entry rather
+than tracking it twice.
+
+### R2-18 · Offline mode / local storage
+**Source:** numbered 12).2 — *"když člověk je třeba někde v lese ... aby si zaznamenal co chce"*.
+**Type:** architecture, big.
+
+Strong rationale: the app deliberately sends people **outdoors**, which is where signal fails. It
+may also be the real cause of R2-04. Everything currently reads and writes through Supabase, so this
+is an offline-first data layer, not a setting — but note that the *argument* for it is better than
+usual, because the product's whole premise puts users out of coverage.
+
+---
+
+## DECIDE — I need a call from you
+
+### R2-20 · "Serif + sans mixed — chyba!"
+**Source:** numbered 6).
+
+> ✅ **Resolved 2026-09-21 — Standa: the mixing is the problem, fix it this run. Inter only.**
+> Measured first: 212 text styles in Inter, 25 in Fraunces — and not consistently the headings
+> (onboarding headlines were already Inter Bold, tab and card titles Fraunces). All 25 now
+> `Inter_700Bold`; Fraunces unloaded and uninstalled. The sweep found **more than the mentor saw**:
+> the bottom tab labels and every screen header title rendered in the *system* font (Roboto on
+> Android), and five button labels had no family at all — all now Inter. Verified at runtime on eight
+> screens: no text outside Inter (icon fonts aside). Decision recorded in `BRANDING.md` §3.
+> **Still Fraunces:** the Play feature graphic (`scripts/make-feature-graphic.cjs`) — a published
+> store asset, left for Standa to decide.
+>
+> *The analysis below is kept as it was written before the decision.*
+**Status:** **REJECT? — this contradicts a decision you already made and documented.**
+
+[`BRANDING.md` §3](../../BRANDING.md) records **Fraunces (headings) + Inter (body)**, your call on
+2026-08-29 after seeing three pairings set in real copy, with the rejected alternatives kept
+explicitly *"so this is not re-litigated"*. A serif/sans pairing is the normal, intentional pattern —
+not an error.
+
+**But** there's a plausible reading that isn't wrong: the mentor may be reacting to *inconsistent
+application* — serif turning up where body text should be, or the pairing looking accidental because
+it's applied unevenly.
+
+> ⚠️ **Correction, 2026-09-21.** An earlier version of this entry said the fonts "were not actually
+> wired up", quoting `BRANDING.md` §3 ("not one `fontFamily` existed in 230 text styles"). **That is
+> wrong** — the code uses `Fraunces_600SemiBold` and `Inter_*` throughout (e.g.
+> `app/(tabs)/memories.tsx`). That line in `BRANDING.md` describes the state *before* the fonts
+> landed and is itself stale. So the mentor saw the pairing as actually shipped, which makes the
+> "ask what specifically looked wrong" step more important, not less.
+
+**What I'd do:** ask what specifically looked wrong before changing anything. If it's the pairing,
+defend the decision. If it's the application, that's a real (and different) task.
+→ See [`feedback-mentor-ambiguity-handling`] — this is exactly the ambiguous-mentor-call pattern.
+
+### R2-12 · Onboarding wording in "A couple of honest ones"
+**Source:** numbered 16) — *"špatný wording při onboardingu v sekci a couple of honest ones-"*. The
+sentence ends mid-thought; **the specifics never arrived.**
+
+The current copy is already the *post-round-1* version: both questions were reworded after Mára and
+Martin flagged them ("recently felt lonely or isolated", "How much time have you spent in nature
+lately?"). So round 2 is objecting to wording that round 1 feedback produced — which makes guessing
+actively risky.
+
+**Ask for the specific phrase** before touching it.
+
+### R2-19 · Social layer — see friends' milestones
+**Source:** numbered 12).3 — *"něco jak máš v appkách na běhání"*.
+**Status:** **DECIDE — philosophy question, and a cost question.**
+
+Two things to weigh against it:
+1. **You decided against gamification** — decided, not shelved. Friends' milestone feeds are the
+   comparison mechanic from running apps; that's close to the line, arguably over it.
+2. **You already priced this.** Commit `1c4415f` "Record what adding sharing would actually cost"
+   exists — read that before re-opening the question.
+
+Not automatically a no: "get inspired by what a friend did" is a *doing* prompt, which fits the
+philosophy, unlike a leaderboard. But it's a product-direction call, not a backlog item.
+
+### R2-14 · "The design looks vibecoded"
+**Source:** numbered 4) — *"deisgn vypadá jak z claude code a na vibecodenej ... aby nešlo poznat ze
+je to vibecoded😃"*, with the suggestion to copy successful apps' design systems via a "claude
+design" tool.
+**Type:** the biggest item in the round, and the vaguest.
+**✅ Decided 2026-09-21 (Standa):** treat 4) as a **direction, not a task** — satisfy it through the
+specific items in this round (R2-09, R2-05, R2-10). No full redesign during the test round. If the
+full pass happens, it runs as its own project after the round closes, with reference apps named so
+it's a brief rather than a vibe.
+
+**Why I'm not putting this in this build:** it is not a task, it's a verdict. A full redesign now
+would (a) invalidate every other fix in flight, (b) burn the 12/14 testing clock, and (c) risk
+undoing decisions that were made deliberately and documented (the palette derived from the map art
+with measured contrast/ΔE; the typography pairing).
+
+**What's actionable inside it, though, is real** — R2-09 (oversized chips) and R2-05 are exactly the
+kind of small tells that add up to "vibecoded". My suggestion: treat 4) as a **direction**, satisfy
+it through the specific items this round, and if you want the full pass, run it as its own project
+after the test round closes — with reference apps named, so it's a brief and not a vibe.
+
+**Related and cheap:** R2-10.
+
+### R2-10 · Quest structure has too much text
+**Source:** numbered 5).
+**✅ Decided 2026-09-21 (Standa): cut one layer consistently, in this build.** Pick a single layer
+and remove it everywhere — not quest-by-quest editing. **This moves R2-10 to `NOW`**, and it means
+running the generated SQL against the live Supabase project mid-test-round (see catch 1 below), so
+it wants care rather than speed.
+
+Mechanically it's copy trimming, which is cheap per screen. Two catches:
+
+1. **The quest catalogue lives in two places.** Editing the TypeScript source changes nothing for
+   testers — the app serves Supabase. Any text trim needs the generated SQL run against the live
+   project before it's visible. That's the difference between a 1-hour job and a 1-hour job plus a
+   migration you have to not get wrong mid-test-round.
+2. Screenshot 3 and 4 show the pattern: title + GUIDE + body + hint + button label, four layers of
+   prose per step. Trimming that is design work, not just deletion.
+
+**My read:** worth doing, high visible payoff against 4), but pick *one* layer to cut consistently
+rather than editing quests one by one.
+
+---
+
+## From Standa's own quest-quality notes (2026-09-21)
+
+The content rules from that note live in
+[`../quest-content-guidelines.md`](../quest-content-guidelines.md) §7–§11, where the catalogue rules
+belong. The three "Tips" are product changes, not content rules, so they are tracked here.
+
+### R2-23 · Rename the weekly / monthly / yearly cadence
+**Source:** Standa's note — *"change daily weekly monthly for intensity at je to more intuitive"*.
+**Status:** **NOW — and note this is the second time it has come up.**
+
+Round 1 raised the same relabel and it was parked: *"Cadence relabel (weekly/monthly/yearly) —
+Standa's call: leave as-is for now."* A one-off suggestion is noise; the same suggestion twice, from
+different directions, is a signal. **✅ Decided 2026-09-21: rename it — but not to the word
+"intensity"**, which is already taken by the onboarding question and would collide. New labels to be
+proposed.
+
+What the labels have to carry: today's cards read "Yearly · ~72 h" and "Monthly · ~5 h", where the
+cadence word is doing a job the duration already does better. Whatever replaces it should describe
+**how big a bite this is**, not how often it recurs. Cross-check against
+[`quest-content-guidelines.md` §5](../quest-content-guidelines.md) ("Difficulty is resistance, not
+duration") so the new word doesn't re-introduce the confusion that rule exists to prevent.
+
+### R2-24 · Let people turn a quest down
+**Source:** Standa's note — *"quests shouldnt refresh automatically if they are not active - má mít
+možnost si je sám smazat?"*, clarified 2026-09-21: **the missing piece is a way to reject a quest**,
+not that the offer reshuffles.
+
+A "not for me" control that hides the quest and lets the next one through. This makes the
+five-at-a-time gating feel like a choice rather than an allocation, and it pairs directly with
+[rule 8](../quest-content-guidelines.md) — a quest you can't do because of where you live is exactly
+what you'd want to dismiss.
+
+**✅ How rejection behaves, decided 2026-09-21 (Standa):** a rejected quest **comes back once you have
+completed every quest you did not reject — including the ones still hidden in the database**, not
+just the five currently open to you.
+
+**Why this is the right shape:** rejection becomes a *deprioritisation*, never a deletion. The pool
+cannot be emptied by turning things down, so the app can never dead-end someone who is picky — which
+is the same "never restrict" rule that R2-03 and R2-01 are about. Nothing is lost, it just goes last.
+
+**This will fire in practice, not just in theory** — measured 2026-09-21: the catalogue is
+**41 quests, split 11 relax / 10 social / 10 nature / 10 adventure**, with five open per category at
+a time. A category holds ten quests. Someone who rejects three and finishes the rest empties it. So
+the comeback path is a normal state to design for, not a far-off safety valve:
+- Does the returning quest announce itself ("here are the ones you passed on"), or just reappear? If
+  it reappears silently after being dismissed, that is R2-05's problem again in a new place.
+- Worth pairing with R2-08 — a returning quest is emphatically *not* NEW, and badging it that way
+  would be a lie.
+
+**✅ Counted per category, confirmed 2026-09-21 (Standa).** Nature running dry brings back the Nature
+quests you rejected; it does not wait on Adventure. The empty category is where the person is
+looking, so that is where the refill has to happen.
+
+### R2-05 (corroborated) · Where does a like go?
+Standa's note asks *"kam vede like? je to komunikovaný?"* — the same issue as numbered 15), arrived
+at independently. **Two sources now agree**, which moves R2-05 from "one tester's report" to a
+confirmed gap: the like works, but it silently relocates the quest to a Journey section the person
+doesn't know exists. The fix is as much *telling them where it went* as it is the destination.
+
+### Content work these rules imply
+Not scheduled yet — flagging the cost so it is decided rather than discovered:
+
+- **R2-25 · Rule 9 is a two-quest job, measured across all 41** — one clear ("Sleep outside with
+  nothing over your face"), one borderline ("Swim in a river you had to walk to reach"). A third,
+  "Spend a night somewhere with no street lights", already solves it by naming legal venues and is
+  the pattern to copy. Small enough to fit this build if you want it.
+- **R2-26 · Rule 7 (open titles)** — catalogue-wide rewrite pattern; see below.
+- **R2-27 · Rule 8 (location alternatives)** — LATER.
+- **R2-28 · Rule 11 (price as display logic)** — LATER; Standa: "tohle budu dělat nakonec".
+- **Any such rewrite is quest content, so it lives in two places** — the TypeScript source and
+  Supabase. Editing the TS alone changes nothing for testers.
+- **Rule 7 (open titles) is the largest of them** — it is a rewrite pattern for the whole catalogue,
+  not a one-off. Worth doing gradually, on quests as they are touched, rather than as a big bang
+  mid-test-round.
+
+---
+
+## Not raised as problems — recorded so they aren't re-opened
+
+- **Five quests per category** (Journey screenshot: "5 quests open to you here") — nobody complained.
+  That's the game rule working as designed.
+- **Adventure quest stakes** — the screenshot shows bungee, three days away with nothing booked, and
+  sleeping outside. That's the intended level; no tester called it *nuda*.
+- **The timer concept itself** — validated by david b. (R2-21).
+
+---
+
+## Before this build reaches testers
+
+- **Check the build commit against `main`.** A build is a frozen snapshot; testers get whatever was
+  compiled, not what's in the repo. Verify before upload, every time.
+- **If anything in R2-10 or R2-08 touches quest content, run the generated SQL** against the live
+  Supabase project — otherwise the change is invisible to every tester.
