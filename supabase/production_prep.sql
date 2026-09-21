@@ -245,6 +245,12 @@ alter table if exists public.profiles
 -- 11) Self-service account deletion (App Store Guideline 5.1.1(v) / Google
 -- Play account deletion policy). See schema.sql for the full explanation —
 -- this is the same function, safe to (re-)create on an existing database.
+--
+-- Kept identical to schema.sql. It had drifted: this copy still deleted from
+-- storage.objects (now rejected by Supabase — photos are removed by the app via
+-- the Storage API first) and lacked the analytics anonymization schema.sql
+-- gained in 90aee6a, so running this file after schema.sql would have quietly
+-- undone that. Fixed 2026-09-21; see fix_account_deletion.sql.
 create or replace function public.delete_own_account()
 returns void
 language plpgsql
@@ -258,9 +264,9 @@ begin
     raise exception 'Not authenticated';
   end if;
 
-  delete from storage.objects
-    where bucket_id = 'quest-memory-photos'
-      and (storage.foldername(name))[1] = uid::text;
+  update public.analytics_events
+     set properties = properties - 'note' - 'userId'
+   where user_id = uid;
 
   delete from auth.users where id = uid;
 end;

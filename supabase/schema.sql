@@ -238,8 +238,12 @@ for each row execute function public.handle_new_user_profile();
 -- "deactivate" toggle). Operates on auth.uid() only, never a parameter, so a
 -- caller can only ever delete their own account. profiles/user_quests/
 -- memory_entries/future_goals all cascade automatically via their existing
--- "on delete cascade" FK to auth.users. Storage objects don't cascade, so
--- they're removed explicitly first.
+-- "on delete cascade" FK to auth.users. Storage objects don't cascade — the
+-- app removes the user's photos through the Storage API *before* calling this
+-- (src/repositories/accountRepository.ts). This function used to do it with
+-- `delete from storage.objects`, which Supabase now rejects for the whole
+-- statement ("Direct deletion from storage tables is not allowed"), so every
+-- account deletion failed until 2026-09-21. See fix_account_deletion.sql.
 --
 -- analytics_events.user_id is "on delete set null" so aggregate analytics
 -- survive the deletion. That alone is NOT enough to call the row anonymous:
@@ -266,10 +270,6 @@ begin
   if uid is null then
     raise exception 'Not authenticated';
   end if;
-
-  delete from storage.objects
-    where bucket_id = 'quest-memory-photos'
-      and (storage.foldername(name))[1] = uid::text;
 
   update public.analytics_events
      set properties = properties - 'note' - 'userId'
