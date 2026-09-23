@@ -14,6 +14,23 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   // `sidequestlife` and the auto-created `sidequestlifes-team` organization.
   owner: 'sidequestlife',
   version: '1.0.0',
+  // Over-the-air updates (R2-30). JavaScript-only changes — copy, screens,
+  // logic — reach testers in minutes through `eas update`, instead of a full
+  // build plus a Play review that Google states can take up to 7 days.
+  //
+  // `runtimeVersion: fingerprint` is the safety catch, and the reason this is
+  // not `appVersion`: the fingerprint is computed from the native project, so
+  // an update built after a native change (a new library, the icon, the splash)
+  // simply does not match the installed app and is never handed to it. With a
+  // version-based policy the same update would install and crash on launch.
+  // The price is that every native change needs a new build — which it needs
+  // anyway.
+  updates: {
+    url: 'https://u.expo.dev/47896bf8-1a57-4fb8-9f0c-6c84df8e4a6a',
+  },
+  runtimeVersion: {
+    policy: 'fingerprint',
+  },
   orientation: 'portrait',
   icon: './assets/images/icon.png',
   scheme: 'sidequestlife',
