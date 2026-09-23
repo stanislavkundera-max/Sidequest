@@ -28,7 +28,7 @@ const NOTIFICATION_OPTIONS: { value: NotificationIntensity; label: string }[] = 
 ];
 
 /**
- * "How much should the app bother you?" is hidden until it does something.
+ * "How often should the app nudge you?" is hidden until it does something.
  *
  * The setting is real — it saves to `profiles.notification_intensity` and reads
  * back — but nothing anywhere acts on it. The app sends no notifications at
@@ -250,7 +250,7 @@ export function AccountCard() {
 
       {NOTIFICATIONS_IMPLEMENTED && notificationIntensity ? (
         <View style={styles.notificationBlock}>
-          <Text style={styles.notificationLabel}>How much should the app bother you?</Text>
+          <Text style={styles.notificationLabel}>How often should the app nudge you?</Text>
           <View style={styles.notificationPills}>
             {NOTIFICATION_OPTIONS.map((opt) => {
               const selected = opt.value === notificationIntensity;

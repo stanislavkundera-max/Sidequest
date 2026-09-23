@@ -172,7 +172,7 @@ export default function QuestDetailScreen() {
           r.reason === 'active_path_full'
             ? QUEST_COPY.activePathFullBody
             : r.reason === 'already_active'
-              ? 'This quest is already on your active path.'
+              ? 'You are already doing this quest.'
               : 'Quest not found.';
         setAssignFeedback(reasonMessage);
         if (r.reason === 'active_path_full') {
@@ -185,7 +185,7 @@ export default function QuestDetailScreen() {
         alertCompat('Cannot add', reasonMessage);
         return false;
       }
-      setAssignFeedback('Quest added. Refreshing your active list...');
+      setAssignFeedback('Added. Getting your quests…');
       trackEvent('quest_activated', {
         sourceScreen: 'quest_detail',
         questId: quest.id,
@@ -194,7 +194,7 @@ export default function QuestDetailScreen() {
         difficulty: quest.difficulty,
       }).catch(() => undefined);
       await refreshUserQuests(user.id);
-      setAssignFeedback('Quest is active. Open the runner when you are ready to work through the steps.');
+      setAssignFeedback('You are doing this quest now. Open it when you are ready for the first step.');
       return true;
     } catch (e: unknown) {
       logError('quest.detail.onAssign', e, { questId: quest.id });
@@ -233,7 +233,7 @@ export default function QuestDetailScreen() {
         alertCompat(
           'Could not update',
           r.reason === 'not_active'
-            ? 'This quest is no longer on your active path.'
+            ? 'You are no longer doing this quest.'
             : 'Quest not found.'
         );
         return;
@@ -248,7 +248,7 @@ export default function QuestDetailScreen() {
       setAssignFeedback(null);
       alertCompat(
         'Set aside for now',
-        `It is off your active path for now. Your journey steps stay as you left them. ${QUEST_COPY.leaveDestination(
+        `It is paused for now. Your steps stay as you left them. ${QUEST_COPY.leaveDestination(
           hadProgress
         )}`
       );
@@ -511,7 +511,7 @@ export default function QuestDetailScreen() {
           <View style={styles.doneBanner}>
             <Text style={styles.doneText}>
               {/* Per-level limits were retired (see questHelpers.ts); the real reasons are these two. */}
-              Not open to you right now — either three quests are already in motion, or this one is
+              Not open to you right now — either you already have three quests going, or this one is
               still waiting behind others in {categoryName(quest.categoryId)}.
             </Text>
           </View>

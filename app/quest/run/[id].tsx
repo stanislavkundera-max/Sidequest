@@ -360,7 +360,7 @@ export default function QuestRunScreen() {
         alertCompat(
           'Cannot begin',
           r.reason === 'active_path_full'
-            ? 'Your active path is full. Open one of your active quests and let it wait, then try again.'
+            ? 'You already have three quests going. Pause one of them, then try again.'
             : 'Could not begin quest.'
         );
         return;

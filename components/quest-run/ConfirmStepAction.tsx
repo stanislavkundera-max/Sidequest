@@ -15,7 +15,7 @@ export function ConfirmStepAction({ busy, onComplete }: Props) {
   function confirm() {
     alertTwoChoice(
       'Step done?',
-      'Only confirm when you have actually finished what this step describes.',
+      'Only tap this once you have really done it.',
       {
         cancel: { text: 'Not yet' },
         confirm: {

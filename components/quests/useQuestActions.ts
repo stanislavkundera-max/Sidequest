@@ -62,7 +62,7 @@ export function useQuestActions(userId: string) {
           return;
         }
         if (r.reason === 'already_active') {
-          alertCompat('Already in motion', 'This one is already active.');
+          alertCompat('Already started', 'You are already doing this one.');
           return;
         }
         alertCompat('Cannot add', 'This quest is not available right now.');

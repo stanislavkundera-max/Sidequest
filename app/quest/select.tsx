@@ -195,11 +195,11 @@ export default function QuestSelectionScreen() {
         <Text style={styles.title}>Pick your quests</Text>
         <Text style={styles.sub}>
           Each place opens a few quests at a time; finishing one brings the next.
-          Your active path fits up to {MAX_ACTIVE_QUESTS} at once — open one and let it wait, or tap
+          You can have up to {MAX_ACTIVE_QUESTS} quests going at once — pause one, or tap
           the heart on a new pick when you want room.
         </Text>
         <Text style={styles.pathLine}>
-          On your active path now: {activePathCount} / {MAX_ACTIVE_QUESTS}
+          Quests you are doing: {activePathCount} / {MAX_ACTIVE_QUESTS}
         </Text>
 
         <ScrollView

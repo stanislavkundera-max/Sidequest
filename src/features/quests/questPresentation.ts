@@ -30,7 +30,7 @@ export function energyLevelLabel(level: QuestEnergyLevel): string {
 export function anchorMomentForQuest(timeframe: QuestTimeframe): string {
   switch (timeframe) {
     case 'weekly':
-      return 'This week, when you have a pocket of time';
+      return 'This week, when you have a spare moment';
     case 'monthly':
       return 'Sometime this month, without rushing';
     case 'yearly':

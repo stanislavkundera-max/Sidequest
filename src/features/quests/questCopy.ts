@@ -24,9 +24,9 @@ export const TIMEFRAME_LABEL: Record<QuestTimeframe, string> = {
 };
 
 export const QUEST_COPY = {
-  activePathFullTitle: 'Your path is full',
+  activePathFullTitle: 'You already have three quests going',
   activePathFullBody:
-    'You can have three quests in motion at once. Pause one that is already active, then try again.',
+    'You can have three quests going at once. Pause one of them, then try again.',
   forLaterSectionTitle: 'Liked',
   /**
    * Journey section for quests that were left mid-way. Kept separate from
@@ -40,7 +40,7 @@ export const QUEST_COPY = {
     hasProgress
       ? 'You will find it in Progress under "Pick up where you left off".'
       : 'You will find it in Progress under Liked.',
-  activePathSectionTitle: 'Your active path',
+  activePathSectionTitle: 'Quests you are doing',
   suggestedSectionTitle: 'Discover',
   chooseCategoryTitle: 'Choose a category',
   /** Journey hub — line under category name on hero. */
@@ -50,10 +50,10 @@ export const QUEST_COPY = {
   discoverTabLabel: 'Discover',
   likedEmptyTitle: 'Nothing liked yet',
   likedEmptyBody:
-    'When something from the category picks feels right for another day, tap the heart — it will land here.',
+    'Tap the heart on a quest you want to keep for another day. It stays in its category, marked Liked.',
   /** Accessible hint on the Journey hub liked strip when empty. */
   openLikedHint: 'Tap for details',
-  moveToLater: 'Let it wait',
+  moveToLater: 'Pause this quest',
   saveForLater: 'Save for later',
   /** Journey hub — same action as save-for-later, warmer label. */
   likeQuest: 'Like',
@@ -67,15 +67,15 @@ export const QUEST_COPY = {
   openQuest: 'Open',
 
   /** Progress hub — section title above Active / Completed chips. */
-  progressHubSectionTitle: 'Your path',
+  progressHubSectionTitle: 'Your quests',
   progressScopeActive: 'Active',
   progressScopeCompleted: 'Completed',
   /** Progress hub — memories shortcut pill (opens Memories tab). */
   progressScopeMemories: 'Memories',
-  progressEmptyActiveTitle: 'Nothing in motion',
+  progressEmptyActiveTitle: 'No quests going yet',
   progressEmptyActiveSub: 'Pick a quest from Journey when you want a small nudge.',
   progressEmptyCompletedTitle: 'No finished quests yet',
-  progressEmptyCompletedSub: 'Complete an active quest and it will land here.',
+  progressEmptyCompletedSub: 'Finish a quest and it will show up here.',
   progressEmptyCategoryTitle: 'Nothing in this category',
   progressEmptyCategorySub: 'Try another category chip above.',
 } as const;
