@@ -56,6 +56,26 @@ Diagnosis went deeper than the triage above; where it changed the picture, it's 
 
 ---
 
+### Second pass (2026-09-23) — after versionCode 10 shipped
+
+Picked for work Standa does not have to touch: no SQL, no Play upload.
+
+- **R2-23b** — the onboarding pace question is **gone**, Standa's option C. Ranking now reads
+  behaviour: `preferredTimeframeFromHistory` leans toward the level someone actually *completes*
+  (starting is a wish, finishing is evidence; a tie leans nowhere). Same reasoning he applied to
+  price — "logika ukazování, ne onboarding". The stored `pace` field and its column stay untouched,
+  so no migration. Onboarding is 6 steps instead of 7.
+- **R2-33 (new)** — English pass over the UI copy. The real problem was not grammar but that one
+  thing had four names ("active path", "in motion", "active list", "active quests"), plus internal
+  jargon ("the runner") and idioms a non-native reader can't take literally ("a pocket of time",
+  "it will land here"). 19 strings changed; quest text itself is in Supabase and was left alone.
+- **R2-30 (new)** — `expo-updates` wired up, `runtimeVersion` on the **fingerprint** policy so an
+  update built after a native change is never delivered to an older build. Live from the next build
+  on. See [`../ota-updates.md`](../ota-updates.md).
+- **R2-32 (new)** — the offer-logic tests now live in `tests/unit`, `npm run test:unit`, 18 passing.
+- **R2-31 dropped** — an accessibility sweep, proposed by me and backed by no feedback. Standa's
+  call: feedback first.
+
 ### Implementation status (2026-09-21)
 
 All twelve are implemented, not yet committed. Typecheck clean. The offer logic (R2-05/08/24) has
