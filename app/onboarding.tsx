@@ -34,7 +34,7 @@ import type {
 
 const MAP_BACKGROUND = require('@/assets/images/explore-map-background.png');
 
-const TOTAL_STEPS = 7;
+const TOTAL_STEPS = 6;
 /** First step shown when editing existing answers (skips welcome + how-it-works). */
 const EDIT_MODE_FIRST_STEP = 2;
 
@@ -49,34 +49,6 @@ const CATEGORY_OPTIONS: CategoryOption[] = [
   { slug: 'adventure', label: 'Adventure', description: 'New routes and small trips' },
   { slug: 'social', label: 'Social', description: 'Real conversations and connection' },
   { slug: 'relax', label: 'Relax', description: 'Slow, restorative moments' },
-];
-
-type PaceOption = {
-  value: OnboardingPace;
-  label: string;
-  description: string;
-  icon: keyof typeof Ionicons.glyphMap;
-};
-
-const PACE_OPTIONS: PaceOption[] = [
-  {
-    value: 'quick',
-    label: 'A few minutes',
-    description: 'Short quests I can finish this week — about 15–45 minutes',
-    icon: 'flash-outline',
-  },
-  {
-    value: 'steady',
-    label: 'A steady rhythm',
-    description: 'A practical mix across the month — about 1–3 hours',
-    icon: 'walk-outline',
-  },
-  {
-    value: 'deep',
-    label: 'Bigger journeys',
-    description: 'Longer quests that unfold over time — half a day or more',
-    icon: 'trail-sign-outline',
-  },
 ];
 
 type IntensityOption = {
@@ -137,6 +109,13 @@ const FEATURE_ROWS: FeatureRow[] = [
   },
 ];
 
+/**
+ * The pace question was removed 2026-09-23 (ranking now reads completions —
+ * see preferredTimeframeFromHistory). The stored shape and the profile column
+ * stay as they are, so no migration is needed: this is what gets written, and
+ * nothing reads it back for ranking.
+ */
+const STORED_PACE: OnboardingPace = 'steady';
 const SCALE_VALUES: OnboardingScaleAnswer[] = [1, 2, 3, 4, 5];
 
 export default function OnboardingScreen() {
@@ -151,7 +130,6 @@ export default function OnboardingScreen() {
 
   const [step, setStep] = useState(isEditMode ? EDIT_MODE_FIRST_STEP : 0);
   const [selectedCategories, setSelectedCategories] = useState<OnboardingCategory[]>([]);
-  const [pace, setPace] = useState<OnboardingPace>('steady');
   const [intensity, setIntensity] = useState<OnboardingIntensity>('balanced');
   const [natureConnection, setNatureConnection] = useState<OnboardingScaleAnswer>(3);
   const [isolation, setIsolation] = useState<OnboardingScaleAnswer>(3);
@@ -188,7 +166,6 @@ export default function OnboardingScreen() {
         .then((state) => {
           if (!mounted) return;
           setSelectedCategories(state.preferences.categories);
-          setPace(state.preferences.pace);
           setIntensity(state.preferences.intensity);
           setNatureConnection(state.preferences.natureConnection);
           setIsolation(state.preferences.isolation);
@@ -256,13 +233,13 @@ export default function OnboardingScreen() {
       preferences: {
         categories: selectedCategories,
         intensity,
-        pace,
+        pace: STORED_PACE,
         natureConnection,
         isolation,
       },
       limit: 3,
     });
-  }, [quests, selectedCategories, pace, intensity, natureConnection, isolation]);
+  }, [quests, selectedCategories, intensity, natureConnection, isolation]);
 
   const categoryName = useCallback(
     (categoryId: string) => categories.find((c) => c.id === categoryId)?.name ?? 'Quest',
@@ -281,7 +258,7 @@ export default function OnboardingScreen() {
       await saveOnboardingState({
         categories: selectedCategories,
         intensity,
-        pace,
+        pace: STORED_PACE,
         natureConnection,
         isolation,
       });
@@ -289,7 +266,7 @@ export default function OnboardingScreen() {
         sourceScreen: isEditMode ? 'onboarding_edit' : 'onboarding',
         categoryCount: selectedCategories.length,
         preferredCategories: selectedCategories,
-        pacePreference: pace,
+        pacePreference: STORED_PACE,
         intensityPreference: intensity,
       }).catch(() => undefined);
 
@@ -444,25 +421,6 @@ export default function OnboardingScreen() {
 
         {step === 3 ? (
           <View style={styles.stepWrap}>
-            <Text style={styles.headline}>How much time do you want to dedicate?</Text>
-            <Text style={styles.subtext}>We&apos;ll match the length of your quests.</Text>
-            <View style={styles.choiceWrap}>
-              {PACE_OPTIONS.map((option) => (
-                <OptionCard
-                  key={option.value}
-                  icon={option.icon}
-                  label={option.label}
-                  description={option.description}
-                  selected={pace === option.value}
-                  onPress={() => setPace(option.value)}
-                />
-              ))}
-            </View>
-          </View>
-        ) : null}
-
-        {step === 4 ? (
-          <View style={styles.stepWrap}>
             <Text style={styles.headline}>How bold should your quests be?</Text>
             <Text style={styles.subtext}>This sets how much of a stretch we aim for.</Text>
             <View style={styles.choiceWrap}>
@@ -486,7 +444,7 @@ export default function OnboardingScreen() {
           </View>
         ) : null}
 
-        {step === 5 ? (
+        {step === 4 ? (
           <View style={styles.stepWrap}>
             <Text style={styles.headline}>A couple of honest ones.</Text>
             <Text style={styles.subtext}>
@@ -511,7 +469,7 @@ export default function OnboardingScreen() {
           </View>
         ) : null}
 
-        {step === 6 ? (
+        {step === 5 ? (
           <View style={styles.stepWrap}>
             <Text style={styles.headline}>
               {isEditMode ? 'Updated and ready.' : 'Almost set.'}

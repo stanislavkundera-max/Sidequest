@@ -1,6 +1,5 @@
 import type {
   OnboardingIntensity,
-  OnboardingPace,
   OnboardingPreferences,
 } from '@/src/features/onboarding/types';
 import type { Quest, QuestTimeframe, UserQuest } from '@/src/types/quest';
@@ -12,12 +11,36 @@ const TIMEFRAME_RANK: Record<QuestTimeframe, number> = {
   yearly: 2,
 };
 
-/** Pace answer → the quest cadence we lean toward. */
-const PACE_TIMEFRAME: Record<OnboardingPace, QuestTimeframe> = {
-  quick: 'weekly',
-  steady: 'monthly',
-  deep: 'yearly',
-};
+/**
+ * The level someone actually goes for, read off what they have finished.
+ *
+ * Onboarding used to ask ("How much time do you want to dedicate?") and that
+ * answer carried +2 in the ranking. The question was removed 2026-09-23:
+ * it asked about minutes while the level means how much planning a quest takes
+ * (R2-23), and nobody can answer it usefully before they have seen a single
+ * quest. Standa's own rule for price applies here too — "logika ukazování, ne
+ * onboarding": watch what people do instead of asking them to predict it.
+ *
+ * Completions only, not starts: starting is a wish, finishing is evidence. A
+ * tie, or no completions yet, means no leaning at all rather than a guess.
+ */
+export function preferredTimeframeFromHistory(
+  userQuests: UserQuest[],
+  catalog: Quest[]
+): QuestTimeframe | null {
+  const byId = new Map(catalog.map((q) => [q.id, q]));
+  const counts: Record<QuestTimeframe, number> = { weekly: 0, monthly: 0, yearly: 0 };
+  for (const uq of userQuests) {
+    if (uq.status !== 'completed') continue;
+    const tf = byId.get(uq.questId)?.timeframe;
+    if (tf) counts[tf] += 1;
+  }
+  const ranked = (Object.keys(counts) as QuestTimeframe[]).sort((a, b) => counts[b] - counts[a]);
+  const [top, second] = ranked;
+  if (counts[top] === 0) return null;
+  if (counts[top] === counts[second]) return null;
+  return top;
+}
 
 /** Intensity answer → nudge toward quests whose difficulty matches the stretch. */
 function intensityScore(quest: Quest, intensity: OnboardingIntensity): number {
@@ -39,13 +62,15 @@ function intensityScore(quest: Quest, intensity: OnboardingIntensity): number {
 export function scoreQuestForPreferences(
   quest: Quest,
   preferences: OnboardingPreferences,
-  preferredCategoryIds?: Set<string>
+  preferredCategoryIds?: Set<string>,
+  /** From `preferredTimeframeFromHistory`. Null (or omitted) = no leaning yet. */
+  preferredTimeframe?: QuestTimeframe | null
 ): number {
   const preferredIds =
     preferredCategoryIds ?? new Set(preferences.categories.map((c) => `cat-${c}`));
   let score = 0;
   if (preferredIds.has(quest.categoryId)) score += 3;
-  if (quest.timeframe === PACE_TIMEFRAME[preferences.pace]) score += 2;
+  if (preferredTimeframe && quest.timeframe === preferredTimeframe) score += 2;
   score += intensityScore(quest, preferences.intensity);
   return score;
 }
@@ -149,8 +174,13 @@ export function orderCategoryQuests(params: {
 
   const prefs = params.preferences ?? null;
   const preferredIds = prefs ? new Set(prefs.categories.map((c) => `cat-${c}`)) : null;
+  // Read off completions rather than the old onboarding question — see
+  // `preferredTimeframeFromHistory`.
+  const preferredTimeframe = preferredTimeframeFromHistory(params.userQuests, params.catalog);
   const fit = (q: Quest) =>
-    prefs && preferredIds ? scoreQuestForPreferences(q, prefs, preferredIds) : 0;
+    prefs && preferredIds
+      ? scoreQuestForPreferences(q, prefs, preferredIds, preferredTimeframe)
+      : 0;
 
   return inCategory
     .filter((q) => !claimed.has(q.id) && (dismissedMayReturn || !dismissed.has(q.id)))
