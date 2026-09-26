@@ -1716,18 +1716,6 @@ const CALENDAR_REMINDER_STEP: QuestActionStep = {
   action: { kind: 'calendar' },
 };
 
-/**
- * Used when a step has no catalog match (custom DB journeys).
- *
- * The most-read line in the app by some distance — it lands on around seventy
- * steps, far more than any authored tip — so it is worth it carrying the house
- * voice rather than being filler. The previous version ("Go gently—notice one
- * small real-world detail before you mark the step done") did not: it told
- * people how to feel about a step it knew nothing about.
- */
-export const DEFAULT_JOURNEY_STEP_TIP =
-  'Mark this done once you have actually done it — not once you have decided to.';
-
 function mergeCatalogStepTips(quest: Quest): Quest {
   const bundle = QUEST_JOURNEY_BY_ID[quest.id];
   const catalogTipById = new Map<string, string>();
@@ -1745,7 +1733,14 @@ function mergeCatalogStepTips(quest: Quest): Quest {
     ...quest,
     actionSteps: quest.actionSteps.map((s) => {
       const next: QuestActionStep = { ...s };
-      if (!next.tip) next.tip = catalogTipById.get(s.id) ?? DEFAULT_JOURNEY_STEP_TIP;
+      // R2-10 ("quest structure has too much text"): this used to fall back to
+      // a generic DEFAULT_JOURNEY_STEP_TIP constant on any step without a real
+      // authored tip — 68 of 157 steps, measured 2026-09-26 — so a step with
+      // nothing specific to say still showed a whole "Guide" row saying
+      // nothing. Left `tip` unset instead; the runner now hides the row
+      // entirely when there's nothing behind it. See app/quest/run/[id].tsx.
+      const catalogTip = catalogTipById.get(s.id);
+      if (!next.tip && catalogTip) next.tip = catalogTip;
       // Catalog interactions win over missing DB ones — content lives in TS.
       if (!next.interaction) {
         const fromCatalog = catalogInteractionById.get(s.id);

@@ -208,7 +208,7 @@ const SEED_QUESTS_RAW: Array<Omit<Quest, 'journeyIntro' | 'actionSteps'>> = [
   },
   {
     id: 'q-m-06',
-    title: 'Sleep outside with nothing over your face',
+    title: "Sleep outside where it's allowed, nothing over your face",
     shortDescription: 'A sleeping bag, a mat, and the sky. No tent.',
     fullDescription:
       'Walk somewhere you can lie down for the night and sleep under the open sky — no tent, no roof. Check what is allowed where you are: many national parks forbid it, and a friend with land solves that in one message. Take a warm bag; it gets colder than you think.',
@@ -389,7 +389,7 @@ const SEED_QUESTS_RAW: Array<Omit<Quest, 'journeyIntro' | 'actionSteps'>> = [
   },
   {
     id: 'q-w-15',
-    title: 'Drive something far too fast for a road',
+    title: 'Drive something at full speed on a closed track',
     shortDescription: 'A kart track, a helmet, and a lap time you want to beat.',
     fullDescription:
       'Book a session on a kart track — or a rally school, a race sim day, anywhere with a helmet and a timer. Drive it properly: chase your own lap time until it stops improving. Somewhere safe to go flat out is the whole point.',
@@ -406,7 +406,7 @@ const SEED_QUESTS_RAW: Array<Omit<Quest, 'journeyIntro' | 'actionSteps'>> = [
     title: 'Swim in a river you had to walk to reach',
     shortDescription: 'Moving water, trees around it, no car park.',
     fullDescription:
-      'Find wild water you have to walk to — a river, a stream pool, a forest lake — and get in. Not a swimming pool and not a beach you can park at. Check the depth and the current before you commit, and take someone with you.',
+      'Find wild water you have to walk to — a river, a stream pool, a forest lake — and get in. Not a swimming pool and not a beach you can park at. Check the depth and the current before you commit, and take someone with you. Some stretches restrict swimming — a protected area, a drinking-water intake — so check locally before you go.',
     categoryId: 'cat-adventure',
     timeframe: 'monthly',
     difficulty: 'hard',

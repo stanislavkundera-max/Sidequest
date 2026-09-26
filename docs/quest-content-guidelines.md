@@ -162,15 +162,13 @@ never explain why it is good for you.
 
 | Field | Job | Real example |
 |---|---|---|
-| `title` | An instruction you could act on today | "Sleep outside with nothing over your face" |
+| `title` | An instruction you could act on today | "Sleep outside where it's allowed, nothing over your face" |
 | `shortDescription` | The scene, or the constraint — never the benefit | "A sleeping bag, a mat, and the sky. No tent." |
 | `fullDescription` | What to actually do, plus what would ruin it | "Check what is allowed where you are…" |
 
-> ⚠️ **The example quest above is due a rewrite.** It still demonstrates house voice correctly, but
-> [rule 9](#9-anything-legality-dependent-is-worded-conditionally--in-the-title-not-just-the-small-print)
-> (added 2026-09-21) now requires the legality condition to reach the *title*, and this title asserts
-> the no-tent version flatly. Swap in a different worked example, or update this one, whenever that
-> rewrite happens — do not leave the two rules disagreeing.
+*Updated 2026-09-26: the title changed to carry the legality condition, per rule 9 below — this used
+to read "Sleep outside with nothing over your face," which the two rules disagreed on. `shortDescription`
+and `fullDescription` already did the right thing and were left as they were.*
 
 **Not the house voice:**
 
@@ -245,34 +243,33 @@ and put the condition where it is actually read.
 
 | Instead of | Write |
 |---|---|
-| "Sleep outside with nothing over your face" | A title that carries the "where you're allowed to" inside it |
+| "Sleep outside with nothing over your face" | "Sleep outside where it's allowed, nothing over your face" |
 
 **Why:** a flat imperative is the app telling someone to break a law it knows nothing about. It is
 also a Play Store risk — content that reads as encouraging illegal activity is a policy problem, not
 just an editorial one.
 
-**How much of the catalogue this actually touches — measured, not guessed (2026-09-21, 41 quests):**
+**✅ Applied 2026-09-26 — the two-quest job identified 2026-09-21, done:**
 
-- **One clear case.** "Sleep outside with nothing over your face"
-  ([`src/constants/quests.ts:211`](../src/constants/quests.ts#L211)) already does the right thing in
-  `fullDescription` — *"Check what is allowed where you are: many national parks forbid it, and a
-  friend with land solves that in one message"* — but the title and shortDescription ("No tent.")
-  still assert it flatly. **§6 uses this quest as its worked example of house voice, so fixing one
-  means revisiting the other.**
-- **One borderline.** "Swim in a river you had to walk to reach"
-  ([`:406`](../src/constants/quests.ts#L406)) carries safety advice but no legality note. Wild
-  swimming is broadly fine in CZ and restricted in protected areas and drinking-water reservoirs —
-  worth a condition, not a rewrite.
-- **One that already solves it, and is the model to copy.** "Spend a night somewhere with no street
-  lights" ([`:348`](../src/constants/quests.ts#L348)) never asks for wild camping at all: it names
-  the legal ways in — *"a cabin, a campsite, a friend's place in the middle of nowhere"* — and keeps
-  the whole experience intact. **Naming legal venues beats adding a disclaimer**; the quest loses
-  nothing and needs no warning.
+- **The clear case, rewritten.** "Sleep outside with nothing over your face" is now
+  ["Sleep outside where it's allowed, nothing over your face"](../src/constants/quests.ts) — the
+  same sensory detail, with the condition read in the same breath instead of buried in
+  `fullDescription`. `shortDescription` and `fullDescription` already did the right thing (*"Check
+  what is allowed where you are…"*) and needed no change. The step-by-step journey was already
+  compliant on its own: step 1 is titled "Find a spot you are allowed to sleep on."
+- **The borderline case, given a condition, not a rewrite.** "Swim in a river you had to walk to
+  reach" keeps its title — wild swimming is broadly fine in CZ, so a flat title isn't the same risk
+  — but `fullDescription` now adds *"Some stretches restrict swimming — a protected area, a
+  drinking-water intake — so check locally before you go."*
+- **The model quest, unchanged.** "Spend a night somewhere with no street lights" already named legal
+  venues instead of asking for wild camping — nothing to fix, and still the pattern to copy for
+  anything new.
 
-So this is a two-quest job, not a catalogue sweep.
+Re-measured against the full catalogue while applying this (41 quests, 2026-09-26): no other quest
+turned up a legality condition that wasn't already handled. This was a two-quest job and stays one.
 
 *Origin: Standa, 2026-09-21 — "nothing that sounds illegal … based on the country", with the fix
-being conditional wording ("if possible…") rather than dropping the subject.*
+being conditional wording ("if possible…") rather than dropping the subject. Applied 2026-09-26.*
 
 ---
 

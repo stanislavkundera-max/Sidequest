@@ -76,6 +76,78 @@ Picked for work Standa does not have to touch: no SQL, no Play upload.
 - **R2-31 dropped** — an accessibility sweep, proposed by me and backed by no feedback. Standa's
   call: feedback first.
 
+### Third pass (2026-09-26) — the SQL items
+
+Standa: "pojďme nejprve poctivě na ty SQL" — do the SQL-requiring items thoroughly. Regenerated
+[`../../supabase/quests_catalogue.sql`](../../supabase/quests_catalogue.sql) once, at the end, so it
+carries every content change below in one run rather than one migration per item.
+
+**✅ R2-25 done — re-verified against the current catalogue, not just the 2026-09-21 spot check.**
+Re-ran the legality scan across all 41 quests (regex over title/shortDescription/fullDescription for
+wild/naked/tent/fire/drone/swim/climb/dark/camp-adjacent words, then read each hit's full text).
+12 quests matched the keyword scan; the 9 beyond the original two were all clean on inspection
+(licensed climbing gym, a public hill/ridge/tower, booked accommodation, a marked trail) — no new
+legality exposure found.
+- "Sleep outside with nothing over your face" → **"Sleep outside where it's allowed, nothing over
+  your face."** `shortDescription`/`fullDescription` already did the right thing and were untouched.
+  Step 1 of the journey was already titled "Find a spot you are allowed to sleep on" — no change
+  needed there.
+- "Swim in a river you had to walk to reach" → title kept (CZ wild swimming is broadly fine);
+  `fullDescription` gained *"Some stretches restrict swimming — a protected area, a drinking-water
+  intake — so check locally before you go."*
+- `quest-content-guidelines.md` §6's flagged worked example is resolved — it now shows the corrected
+  title and the warning is gone.
+
+**✅ Found in passing, fixed — a rule-10 violation the guidelines doc itself named but the catalogue
+never got.** Rule 10 ("The words have to match what actually happens") uses *"Drive something too
+fast for the road"* as its own worked example of a title overselling reality — a kart is slower than
+road traffic. That is q-w-15's actual live title, unfixed since the rule was written 2026-09-21.
+Retitled to **"Drive something at full speed on a closed track"** — `fullDescription` already said
+*"Somewhere safe to go flat out is the whole point,"* only the title was wrong.
+
+**✅ R2-26 audited — no rewrite needed.** Read all 41 titles against rule 7 (open goal, not a fixed
+target). Every title is already either fully open ("something," "one X," "somewhere") or names an
+activity that isn't meaningfully substitutable (sleeping under the sky isn't a stand-in for some
+other activity, the way a specific pie is a stand-in for "bake something"). Two of the catalogue's
+own strongest examples of the rule 7 pattern — "Sign up for something you are not ready for" and
+"Make something with your hands and give it away" — were already there. **Conclusion: this is not a
+rewrite pass; the catalogue earned this rule already, mostly before the rule was written down.**
+
+**✅ R2-10 done — the layer that was actually cutting into something real turned out not to be a
+content field at all.** The tasklist's original framing (pick one of title/detail/tip/prompt, delete
+it everywhere) would have meant losing real content: 89 of 157 steps (57%, measured) carry a genuine,
+specific, authored tip — safety and practical advice like *"Do not pin it to one fixed date — the
+good flights are the ones that waited for the right morning."* Deleting those to fix a density
+complaint would have been the wrong trade.
+
+The actual finding: **the other 68 steps (43%) had no real tip, and the app was filling that gap with
+a generic one-line filler** (`DEFAULT_JOURNEY_STEP_TIP`, injected by `mergeCatalogStepTips` in
+`src/constants/questJourneys.ts`) — so a whole "Guide" row (label, chevron, tap target) rendered on
+every one of those 68 steps for a sentence that said nothing about that specific step. That is the
+layer this cuts: **the Guide row no longer renders at all when a step has no real tip**, rather than
+rendering one with nothing behind it
+(`app/quest/run/[id].tsx`). The 89 real tips are completely untouched — this is not a content-loss
+trade, it is not showing a block that had nothing to show. `DEFAULT_JOURNEY_STEP_TIP` itself is
+deleted; nothing imports it any more.
+
+⚠️ **Caught during verification, worth remembering:** the fallback text was already baked into the
+live Supabase `action_steps` JSON from an earlier catalogue export, so the fix was invisible in the
+browser until the catalogue SQL was regenerated — the same two-places trap rule 3 exists to name.
+Confirmed in the regenerated file: zero occurrences of the filler sentence anywhere, and the
+previously-affected step ("Go up," `q-y-06`) now has no `tip` key at all.
+
+**Measured, not applied — R2-27 (rule 8, location alternatives) stays LATER, as Standa already
+decided.** Five quests assume access without an offered alternative: climbing gym (`q-w-04`), a train
+station (`q-w-07`), a river (`q-m-08`), a guide/class (`q-y-02`); a marked trail (`q-m-01`) already
+has a fallback ("or walk"). Not touched — flagging the exact list so it's a scoped decision whenever
+it's picked up, not a re-discovery.
+
+**⚠️ For Standa: one SQL file to run.**
+[`supabase/quests_catalogue.sql`](../../supabase/quests_catalogue.sql), regenerated
+2026-09-26 — safe to re-run, upserts by id. It carries the two title/description fixes above and the
+regenerated `action_steps` (no more filler tips) for the whole catalogue in one file. Ends in a
+sanity `select`; `missing_group` and `missing_steps` should both read 0.
+
 ### Implementation status (2026-09-21)
 
 All twelve are implemented, not yet committed. Typecheck clean. The offer logic (R2-05/08/24) has

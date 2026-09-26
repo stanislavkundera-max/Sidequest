@@ -29,7 +29,6 @@ import { Theme } from '@/constants/Theme';
 import { alertCompat, alertTwoChoice } from '@/lib/alertCompat';
 import { categoryAccentForCategoryId } from '@/lib/categoryAccent';
 import { isSupabaseConfigured, SUPABASE_CONFIGURE_HELP } from '@/lib/supabase';
-import { DEFAULT_JOURNEY_STEP_TIP } from '@/src/constants/questJourneys';
 import { composeMemoryDraftFromRun, NO_EVIDENCE_NOTE } from '@/src/features/memories/memoryDraft';
 import { useMemoryStore } from '@/src/features/memories/memoryStore';
 import {
@@ -844,31 +843,42 @@ export default function QuestRunScreen() {
                 <Text style={styles.stepDetail}>{currentStep.detail}</Text>
               ) : null}
 
-              <Pressable
-                accessibilityRole="button"
-                accessibilityLabel={
-                  tipExpandedStepId === currentStep.id ? 'Hide guide' : 'Show guide'
-                }
-                onPress={() =>
-                  setTipExpandedStepId((prev) =>
-                    prev === currentStep.id ? null : currentStep.id
-                  )
-                }
-                style={[styles.stepTipBlock, { borderLeftColor: `${accent}55` }]}>
-                <View style={styles.stepTipHeadRow}>
-                  <Text style={styles.stepTipLabel}>Guide</Text>
-                  <Ionicons
-                    name={tipExpandedStepId === currentStep.id ? 'chevron-up' : 'chevron-down'}
-                    size={14}
-                    color={Theme.textMuted}
-                  />
-                </View>
-                {tipExpandedStepId === currentStep.id ? (
-                  <Text style={styles.stepTipText}>
-                    {currentStep.tip ?? DEFAULT_JOURNEY_STEP_TIP}
-                  </Text>
-                ) : null}
-              </Pressable>
+              {/*
+               * R2-10: "quest structure has too much text". Every step used to
+               * show a Guide row, even the ~40% (68/157, measured 2026-09-26)
+               * with no real per-step tip authored — mergeCatalogStepTips filled
+               * those in with a generic one-liner (removed) that
+               * says nothing about that specific step. That is the layer this
+               * cuts: a whole UI block (label + chevron + tap target) appearing
+               * for a sentence with no information in it. The 89 steps with a
+               * real, specific tip are untouched — this is not content loss,
+               * it is not showing a block that had nothing to show.
+               */}
+              {currentStep.tip ? (
+                <Pressable
+                  accessibilityRole="button"
+                  accessibilityLabel={
+                    tipExpandedStepId === currentStep.id ? 'Hide guide' : 'Show guide'
+                  }
+                  onPress={() =>
+                    setTipExpandedStepId((prev) =>
+                      prev === currentStep.id ? null : currentStep.id
+                    )
+                  }
+                  style={[styles.stepTipBlock, { borderLeftColor: `${accent}55` }]}>
+                  <View style={styles.stepTipHeadRow}>
+                    <Text style={styles.stepTipLabel}>Guide</Text>
+                    <Ionicons
+                      name={tipExpandedStepId === currentStep.id ? 'chevron-up' : 'chevron-down'}
+                      size={14}
+                      color={Theme.textMuted}
+                    />
+                  </View>
+                  {tipExpandedStepId === currentStep.id ? (
+                    <Text style={styles.stepTipText}>{currentStep.tip}</Text>
+                  ) : null}
+                </Pressable>
+              ) : null}
 
               {renderInteraction(currentStep)}
             </View>
