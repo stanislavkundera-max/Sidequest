@@ -155,6 +155,21 @@ previously-affected step ("Go up," `q-y-06`) now has no `tip` key at all.
 regenerated `action_steps` (no more filler tips) for the whole catalogue in one file. Ends in a
 sanity `select`; `missing_group` and `missing_steps` should both read 0.
 
+### R2-34 · An optional stretch on a quest — parked until the test ends
+**Source:** Standa, 2026-09-26 — "extra level jako tip: normální quest je swim in river, extra tip: skinny dip in the river if possible". His own call: better to wait until the end of the test.
+
+**Where it would live:** in the existing `tip` (the collapsed Guide row), not in the title and not in a new field or screen. That costs no new UI and no new text on the screens just cleaned up in R2-10.
+
+**Guard rails, so it stays consistent with the rest of the rules when it is picked up:**
+- **Not a level.** AGENTS.md rules out levels, points and reward loops. It is written advice: not tracked, not counted, nothing unlocks. The word "level" should not appear in the app.
+- **Rule 9 applies in full.** Nudity, fire, drones and the like are legal in one place and fined in the next. The extra is worded conditionally ("if it is allowed where you are and you want to"), and never as the point of the quest — the quest must be complete without it.
+- **Rule 1.** It asks for something *to do*, never something to avoid.
+- **Rule 4 fits.** Adventure means real stake; an optional stretch is a natural home for it.
+
+**Why wait:** it is catalogue content, so it needs the generated SQL, and it should be written in one pass with the wording rules in front of us rather than mid-test. It also does not answer any tester feedback.
+
+---
+
 ### Implementation status (2026-09-21)
 
 All twelve are implemented, not yet committed. Typecheck clean. The offer logic (R2-05/08/24) has
