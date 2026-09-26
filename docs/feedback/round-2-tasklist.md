@@ -136,6 +136,12 @@ browser until the catalogue SQL was regenerated — the same two-places trap rul
 Confirmed in the regenerated file: zero occurrences of the filler sentence anywhere, and the
 previously-affected step ("Go up," `q-y-06`) now has no `tip` key at all.
 
+**✅ R2-10, second half — found by re-reviewing with Standa (2026-09-26), who doubted the first fix had reached the real problem. It had not.** Two more sources of repeated text, both measured:
+- **The quest detail screen said the same thing twice.** `shortDescription` sits right above the journey, and `journeyIntro` right under its heading. In **16 of 41 quests (39%)** they overlap, in three they are word for word identical (q-y-07, q-m-12, q-m-10). Fixed in the app rather than by rewriting 16 quests: the detail screen no longer shows `journeyIntro`; the runner start screen keeps it, since that screen has no shortDescription. No SQL, no per-quest judgement, no content lost.
+- **The confirm step repeated one reassurance three times** — a static sentence ("No proof needed here — just your word…"), the button, and the dialog on tap — on **58 of 157 steps (37%)**, the most common step type. The static sentence is gone (Standa: it spoils the feel, people understand). Button and dialog stay.
+
+Still there, not touched, candidates if the screens still feel heavy: "Steps update from the guided runner…" and "Add this quest, then use the runner…" on the detail screen (app chrome, and they use the word "runner"), and the photo-policy sentence under every quest.
+
 **Measured, not applied — R2-27 (rule 8, location alternatives) stays LATER, as Standa already
 decided.** Five quests assume access without an offered alternative: climbing gym (`q-w-04`), a train
 station (`q-w-07`), a river (`q-m-08`), a guide/class (`q-y-02`); a marked trail (`q-m-01`) already

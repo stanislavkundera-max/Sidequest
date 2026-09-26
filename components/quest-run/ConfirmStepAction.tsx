@@ -1,4 +1,4 @@
-import { Text, View } from 'react-native';
+import { View } from 'react-native';
 
 import { PrimaryButton } from '@/components/ui/PrimaryButton';
 import { stepInteractionStyles as styles } from '@/components/quest-run/stepInteractionStyles';
@@ -10,7 +10,14 @@ type Props = {
   onComplete: (evidence: UserQuestStepEvidence) => void;
 };
 
-/** Fallback confirm step with the calm honesty check. */
+/**
+ * Confirm step. Just the button and the one honesty dialog on tap.
+ *
+ * It used to carry a sentence above the button too ("No proof needed here — just
+ * your word…"), repeated verbatim on all 58 confirm steps, so the same reassurance
+ * was said three times per step (sentence, button, dialog). Standa, 2026-09-26:
+ * it spoils the feel of the app and people understand without it.
+ */
 export function ConfirmStepAction({ busy, onComplete }: Props) {
   function confirm() {
     alertTwoChoice(
@@ -28,9 +35,6 @@ export function ConfirmStepAction({ busy, onComplete }: Props) {
 
   return (
     <View style={styles.block}>
-      <Text style={styles.helper}>
-        No proof needed here — just your word. Take your time, then confirm.
-      </Text>
       <PrimaryButton label="Mark step done" loading={busy} onPress={confirm} />
     </View>
   );

@@ -25,12 +25,13 @@ export function QuestJourneyChecklist(props: {
   const steps = quest.actionSteps;
   if (steps.length === 0) return null;
 
-  const intro = quest.journeyIntro?.trim();
-
   return (
     <View style={styles.wrap}>
       <Text style={styles.sectionTitle}>Your journey</Text>
-      {intro ? <Text style={styles.intro}>{intro}</Text> : null}
+      {/* No journeyIntro here: this screen already shows shortDescription right above,
+          and in 16 of 41 quests the two said the same thing (two were word for word
+          identical). The runner's start screen keeps the intro — it has no
+          shortDescription. R2-10, 2026-09-26. */}
       {mode === 'browse' ? (
         <Text style={styles.browseHint}>
           Add this quest, then use the runner to advance steps when you're ready.
@@ -92,13 +93,6 @@ const styles = StyleSheet.create({
     textTransform: 'uppercase',
     letterSpacing: 0.6,
     marginBottom: 8,
-  },
-  intro: {
-    fontSize: 16,
-    fontFamily: 'Inter_400Regular',
-    lineHeight: 24,
-    color: Theme.text,
-    marginBottom: 14,
   },
   browseHint: {
     fontSize: 14,
