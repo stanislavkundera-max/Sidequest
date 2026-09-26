@@ -128,7 +128,7 @@ export const QUEST_JOURNEY_BY_ID: Record<
     actionSteps: [
       {
         id: 's1',
-        title: 'Find a climbing gym and book a beginner slot',
+        title: 'Find a climbing gym, boulder wall or rope park and book a beginner slot',
         detail: 'Bouldering needs no partner; ropes usually come with an instructor.',
         tip: 'Go on a weekday evening if you can. Weekend gyms are queues, and queues are where nerve leaks away.',
         estimateMinutes: 15,
@@ -257,13 +257,13 @@ export const QUEST_JOURNEY_BY_ID: Record<
         id: 's1',
         title: 'Get to the station with the day free',
         detail: 'Bring a charger, something to eat, and no destination.',
-        tip: 'Set yourself a budget and a last train home before you go. Two limits are what make the rest of it open.',
+        tip: 'Set yourself a budget and a last way home before you go. Two limits are what make the rest of it open.',
         estimateMinutes: 30,
         interaction: { kind: 'confirm' },
       },
       {
         id: 's2',
-        title: 'Take the next train you can afford',
+        title: 'Take the next train or bus you can afford',
         detail: 'Whatever is leaving soonest. Do not read about where it goes.',
         tip: 'The urge to check the place first is the whole quest, arriving early. Let it pass.',
         estimateMinutes: 15,

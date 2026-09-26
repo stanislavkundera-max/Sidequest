@@ -55,7 +55,7 @@ const SEED_QUESTS_RAW: Array<Omit<Quest, 'journeyIntro' | 'actionSteps'>> = [
     title: 'Climb until your arms give out',
     shortDescription: 'A climbing wall, a rented harness, one route that scares you.',
     fullDescription:
-      'Go to a climbing gym and get up a wall. Rent the shoes, take the beginner briefing, and keep going until your forearms stop working. Somewhere in there, get on one route you are fairly sure you cannot finish — and try it anyway.',
+      'Go to a climbing gym, a boulder wall or a rope park and get up it. Rent the gear, take the beginner briefing, and keep going until your forearms stop working. Somewhere in there, get on one route you are fairly sure you cannot finish — and try it anyway.',
     categoryId: 'cat-adventure',
     timeframe: 'weekly',
     difficulty: 'medium',
@@ -94,10 +94,10 @@ const SEED_QUESTS_RAW: Array<Omit<Quest, 'journeyIntro' | 'actionSteps'>> = [
   },
   {
     id: 'q-w-07',
-    title: 'Take the next train out, wherever it is going',
+    title: 'Take the next train or bus out, wherever it is going',
     shortDescription: 'Read the departure board, buy a ticket, do not look it up.',
     fullDescription:
-      'Go to the station with no destination. Take the next train leaving that you can afford, get off at the end of the line or anywhere that looks worth it, and spend a few hours there before finding your way back. Do not read about the place first.',
+      'Go to the station with no destination. Take the next train or bus leaving that you can afford, get off at the end of the line or anywhere that looks worth it, and spend a few hours there before finding your way back. Do not read about the place first.',
     categoryId: 'cat-adventure',
     timeframe: 'weekly',
     difficulty: 'medium',

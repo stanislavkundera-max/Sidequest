@@ -18,13 +18,15 @@ function rowCategoryId(uq: UserQuest, quest?: Quest): string {
   return uq.snapshotCategoryId || quest?.categoryId || '';
 }
 
-/** A milestone label that grows warmer as the collection grows. */
+/**
+ * A plain count, not praise. This used to be a ladder that grew warmer with the
+ * collection — "Keep going!", "You are on a real roll.", "Legendary. The map
+ * remembers you." — which is levels by another name, and the app has decided
+ * against levels, points and reward loops (AGENTS.md). Says what is true and stops.
+ */
 function milestoneLine(count: number): string {
-  if (count === 0) return 'Your first trophy is waiting.';
-  if (count < 3) return 'The collection begins. Keep going!';
-  if (count < 6) return 'A shelf worth showing off.';
-  if (count < 12) return 'You are on a real roll.';
-  return 'Legendary. The map remembers you.';
+  if (count === 0) return 'Nothing finished yet.';
+  return count === 1 ? '1 quest finished.' : `${count} quests finished.`;
 }
 
 export function CompletedShowcase() {

@@ -142,11 +142,12 @@ previously-affected step ("Go up," `q-y-06`) now has no `tip` key at all.
 
 **✅ The three remaining sentences on the detail screen are gone too** (Standa asked whether any is needed or whether design can replace them: none is needed). "Steps update from the guided runner…" and "Add this quest, then use the runner…" said what the ticks and the Begin button already say, in a word ("runner") nobody knows. The photo sentence ("worth having your camera ready") duplicated the photo step in the list, and photos are optional since R2-03. **Design replaces them:** each row in the step list now carries the icon for its kind of step — camera, clock, pencil, calendar — shared with the runner via `components/quest-run/stepKindIcon.ts`, so the shape of a quest reads without a sentence.
 
-**Measured, not applied — R2-27 (rule 8, location alternatives) stays LATER, as Standa already
-decided.** Five quests assume access without an offered alternative: climbing gym (`q-w-04`), a train
-station (`q-w-07`), a river (`q-m-08`), a guide/class (`q-y-02`); a marked trail (`q-m-01`) already
-has a fallback ("or walk"). Not touched — flagging the exact list so it's a scoped decision whenever
-it's picked up, not a re-discovery.
+**✅ R2-27 done (2026-09-26), and smaller than first reported.** Five quests looked place-bound; on a closer read three already carried an alternative (q-m-08 "river, canal or stream", q-m-01 "trail or signed path", q-y-02 open with examples). **Two** were real: the climbing gym and the train. Two layers, because content can never cover everyone:
+,
+- **Content** — q-w-07 is now "train or bus" (title, description, steps, and "last train home" became "last way home"); q-w-04 names "a climbing gym, a boulder wall or a rope park". Needs the regenerated `quests_catalogue.sql` run.
+- **Behaviour** — "Not for me" now opens a two-way choice: **"Not my thing — maybe later"** (returns once the category is otherwise done, Standa's rule) and **"Can't do this where I live — hide it"** (never returns). A quest nobody in a place can do is dead content, not a preference, and must not resurface as the category runs dry. Stored on the device like `seenQuests` — no SQL, OTA-able — and fires `quest_unavailable_here`, so the analytics show which quests fail where. Left out of the category entirely, so it can't hold up the return of turned-down quests either (tested). Rejected: asking where someone lives in onboarding — it contradicts "behaviour over questions".
+
+**✅ Text and tone sweep of the remaining screens.** Two things that contradicted the app's own rule against levels and reward loops (AGENTS.md): the Progress "milestone" ladder that grew warmer with the collection ("Keep going!", "You are on a real roll.", "Legendary. The map remembers you.") is now a plain count ("3 quests finished."), and the rotating encouragement above every step ("Strong. The finish is in sight.") is gone. **Not touched, needs Standa:** the whole Progress showcase is trophy-themed — trophy icon, "Trophy shelf", numbered medals (#3, #2, #1) — which is the same idea in the visuals. A design call, not a copy fix.
 
 **⚠️ For Standa: one SQL file to run.**
 [`supabase/quests_catalogue.sql`](../../supabase/quests_catalogue.sql), regenerated

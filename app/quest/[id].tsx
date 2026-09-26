@@ -7,6 +7,7 @@ import { QuestJourneyChecklist } from '@/components/quests/QuestJourneyChecklist
 import { EmptyState } from '@/components/ui/EmptyState';
 import { ErrorState } from '@/components/ui/ErrorState';
 import { LoadingState } from '@/components/ui/LoadingState';
+import { OptionSheet } from '@/components/ui/OptionSheet';
 import { PrimaryButton } from '@/components/ui/PrimaryButton';
 import { Theme } from '@/constants/Theme';
 import { alertCompat, alertTwoChoice } from '@/lib/alertCompat';
@@ -23,6 +24,7 @@ import {
 import { useQuestDomainStore } from '@/src/features/quests/questStore';
 import { markQuestSeen } from '@/src/features/quests/seenQuests';
 import { currentlyDismissedQuestIds } from '@/src/features/quests/suggestedQuests';
+import { useUnavailableQuestStore } from '@/src/features/quests/unavailableQuests';
 import { trackEvent } from '@/src/lib/analytics';
 import { logError } from '@/src/lib/monitoring/errorLogger';
 import { useSessionStore } from '@/stores/session';
@@ -287,45 +289,50 @@ export default function QuestDetailScreen() {
     router.push(`/quest/run/${quest.id}`);
   }
 
-  // Standa's rule: a turned-down quest comes back once you have done everything
-  // else in that category. The dialog says so — "not for me" should never read
-  // as "gone forever", because it isn't.
+  // "Not for me" opens two ways out (R2-24, R2-27). They are different things:
+  //  - not my thing  -> comes back once you have done everything else in the
+  //    category (Standa's rule; nothing is ever lost, it just goes last),
+  //  - can't do it here -> never comes back. No station, no river, no climbing
+  //    gym within reach is dead content, not a preference. Stored on the device.
+  // The two labels say all of this, so there is no explanatory paragraph.
+  const [turnDownOpen, setTurnDownOpen] = useState(false);
+  const markUnavailable = useUnavailableQuestStore((s) => s.markUnavailable);
+
   function requestTurnDown() {
     if (!quest || !user) return;
-    const category = categoryName(quest.categoryId);
-    alertTwoChoice(
-      'Not for you?',
-      `We'll stop offering it and open the next one. It comes back only once you've done everything else in ${category}.`,
-      {
-        cancel: { text: 'Keep it' },
-        confirm: {
-          text: 'Not for me',
-          onPress: () => {
-            void (async () => {
-              setActing(true);
-              try {
-                const r = await dismissSuggestedQuest(user.id, quest.id);
-                if (!r.ok) {
-                  alertCompat('Could not update', 'Try again in a moment.');
-                  return;
-                }
-                trackEvent('quest_dismissed', {
-                  sourceScreen: 'quest_detail',
-                  questId: quest.id,
-                  category: quest.categoryId,
-                }).catch(() => undefined);
-                if (router.canGoBack()) router.back();
-                else router.replace('/(tabs)/journey');
-              } catch {
-                // The store's ErrorState shows what went wrong.
-              } finally {
-                setActing(false);
-              }
-            })();
-          },
-        },
+    setTurnDownOpen(true);
+  }
+
+  async function handleTurnDown(choice: 'not_mine' | 'not_here') {
+    if (!quest || !user) return;
+    setActing(true);
+    try {
+      if (choice === 'not_here') {
+        await markUnavailable(quest.id);
+        trackEvent('quest_unavailable_here', {
+          sourceScreen: 'quest_detail',
+          questId: quest.id,
+          category: quest.categoryId,
+        }).catch(() => undefined);
+      } else {
+        const r = await dismissSuggestedQuest(user.id, quest.id);
+        if (!r.ok) {
+          alertCompat('Could not update', 'Try again in a moment.');
+          return;
+        }
+        trackEvent('quest_dismissed', {
+          sourceScreen: 'quest_detail',
+          questId: quest.id,
+          category: quest.categoryId,
+        }).catch(() => undefined);
       }
-    );
+      if (router.canGoBack()) router.back();
+      else router.replace('/(tabs)/journey');
+    } catch {
+      // The store's ErrorState shows what went wrong.
+    } finally {
+      setActing(false);
+    }
   }
 
   if (!id) {
@@ -505,6 +512,16 @@ export default function QuestDetailScreen() {
             </Text>
           </View>
         )}
+        <OptionSheet
+          visible={turnDownOpen}
+          title="Not for you?"
+          options={[
+            { value: 'not_mine', label: "Not my thing — maybe later" },
+            { value: 'not_here', label: "Can't do this where I live — hide it" },
+          ]}
+          onSelect={(v) => void handleTurnDown(v)}
+          onClose={() => setTurnDownOpen(false)}
+        />
         {canTurnDown ? (
           <Pressable
             accessibilityRole="button"

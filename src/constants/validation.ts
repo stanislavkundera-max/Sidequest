@@ -14,6 +14,8 @@ export const VALIDATION_EVENT_NAMES = [
   'quest_deactivated',
   /** "Not for me" on a quest offer (round 2, R2-24). */
   'quest_dismissed',
+  /** "Can't do this where I live" — a quest nobody in that place can do (R2-27). */
+  'quest_unavailable_here',
   'quest_completed',
   'quest_completion_abandoned',
   'memory_creation_started',

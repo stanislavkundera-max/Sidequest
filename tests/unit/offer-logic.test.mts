@@ -211,3 +211,41 @@ test('starting something is a wish, not evidence: only completions count', () =>
   const uqs = [row('m1', 'active'), row('q1', 'completed', { completedAt: iso(DAY) })];
   assert.equal(preferredTimeframeFromHistory(uqs, cat), 'weekly');
 });
+
+// --- "Can't do this where I live" (R2-27, 2026-09-26) ---
+
+const openWith = (userQuests: unknown[], unavailable: string[]) =>
+  openQuestsInCategory({
+    catalog: fullCatalog,
+    userQuests,
+    categoryId: CAT,
+    now: NOW,
+    unavailableQuestIds: new Set(unavailable),
+  }).map((q: { id: string }) => q.id);
+
+test('unavailable: the quest is never offered and the next one takes its place', () => {
+  assert.deepEqual(openWith([], ['q1']), ['q2', 'q3', 'q4', 'q5', 'q6']);
+});
+
+test('unavailable: does not hold up the return of turned-down quests', () => {
+  // q1 turned down, q2 unavailable here, everything else completed recently.
+  const uqs = [
+    row('q1', 'dismissed', { dismissedAt: iso(DAY) }),
+    ...catalog
+      .filter((q) => q.id !== 'q1' && q.id !== 'q2')
+      .map((q) => row(q.id, 'completed', { completedAt: iso(2 * DAY) })),
+  ];
+  // Without the exclusion q2 would count as "not done" and q1 would stay hidden forever.
+  assert.deepEqual(openWith(uqs, ['q2']), ['q1']);
+});
+
+test('unavailable: only affects the category it is in', () => {
+  const social = openQuestsInCategory({
+    catalog: fullCatalog,
+    userQuests: [],
+    categoryId: 'cat-social',
+    now: NOW,
+    unavailableQuestIds: new Set(['q1']),
+  }).map((q: { id: string }) => q.id);
+  assert.deepEqual(social, ['x1']);
+});

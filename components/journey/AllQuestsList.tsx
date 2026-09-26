@@ -20,6 +20,7 @@ import {
   orderCategoryQuests,
   QUESTS_OPEN_PER_CATEGORY,
 } from '@/src/features/quests/suggestedQuests';
+import { useUnavailableQuestIds } from '@/src/features/quests/unavailableQuests';
 import type { Quest } from '@/src/types/quest';
 
 type Props = {
@@ -67,6 +68,7 @@ export function AllQuestsList({ initialCategoryId, preferences, actions }: Props
   // are not offers any more — they live in the active and paused sections. This
   // screen used to show them anyway, so completing a quest changed nothing
   // here, which is the opposite of what finishing something should feel like.
+  const unavailableQuestIds = useUnavailableQuestIds();
   const categoryQuests = useMemo(() => {
     if (!activeCategoryId) return [] as Quest[];
     return orderCategoryQuests({
@@ -74,8 +76,9 @@ export function AllQuestsList({ initialCategoryId, preferences, actions }: Props
       userQuests,
       categoryId: activeCategoryId,
       preferences,
+      unavailableQuestIds,
     });
-  }, [quests, userQuests, preferences, activeCategoryId]);
+  }, [quests, userQuests, preferences, activeCategoryId, unavailableQuestIds]);
 
   // A "show more" control lived here for a day. It was removed because it
   // handed over the whole shelf: the rest of the catalogue is meant to be
@@ -106,8 +109,9 @@ export function AllQuestsList({ initialCategoryId, preferences, actions }: Props
       userQuests,
       categoryId: activeCategoryId,
       preferences,
+      unavailableQuestIds,
     });
-  }, [quests, userQuests, activeCategoryId, preferences]);
+  }, [quests, userQuests, activeCategoryId, preferences, unavailableQuestIds]);
 
   // Re-read on focus, not just on mount: the badge has to be gone when you come
   // back from the quest you just opened, and this screen stays mounted while

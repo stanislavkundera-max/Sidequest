@@ -26,6 +26,7 @@ import {
   newlyOpenedQuestIds,
   openQuestsInCategory,
 } from '@/src/features/quests/suggestedQuests';
+import { useUnavailableQuestIds } from '@/src/features/quests/unavailableQuests';
 import type { Quest, UserQuest } from '@/src/types/quest';
 
 type Props = {
@@ -67,6 +68,7 @@ export function ExploreQuestPanel({ userId, categoryId, preferences }: Props) {
   // surface a quest the Journey tab was still holding back — five plus three
   // reachable per category instead of five. "Discover more" leads to the rest
   // of the same five.
+  const unavailableQuestIds = useUnavailableQuestIds();
   const recommended = useMemo(() => {
     if (!categoryId) return [] as Quest[];
     return openQuestsInCategory({
@@ -74,9 +76,10 @@ export function ExploreQuestPanel({ userId, categoryId, preferences }: Props) {
       userQuests,
       categoryId,
       preferences,
+      unavailableQuestIds,
       limit: 3,
     });
-  }, [categoryId, quests, userQuests, preferences]);
+  }, [categoryId, quests, userQuests, preferences, unavailableQuestIds]);
 
   // Liking a pick keeps it here, pinned above the recommendations (R2-05) —
   // it used to vanish from the map panel and reappear only on Progress.
@@ -96,8 +99,14 @@ export function ExploreQuestPanel({ userId, categoryId, preferences }: Props) {
   // Same "new to you" rule as the Journey tab (R2-08).
   const newlyOpened = useMemo(() => {
     if (!categoryId) return new Set<string>();
-    return newlyOpenedQuestIds({ catalog: quests, userQuests, categoryId, preferences });
-  }, [categoryId, quests, userQuests, preferences]);
+    return newlyOpenedQuestIds({
+      catalog: quests,
+      userQuests,
+      categoryId,
+      preferences,
+      unavailableQuestIds,
+    });
+  }, [categoryId, quests, userQuests, preferences, unavailableQuestIds]);
 
   const [seenQuestIds, setSeenQuestIds] = useState<Set<string>>(new Set());
   useFocusEffect(

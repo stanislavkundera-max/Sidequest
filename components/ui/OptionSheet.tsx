@@ -11,7 +11,8 @@ type Props<T extends string> = {
   visible: boolean;
   title: string;
   options: Option<T>[];
-  selected: T;
+  /** Omit for a plain menu of actions where nothing is "currently chosen". */
+  selected?: T;
   onSelect: (value: T) => void;
   onClose: () => void;
 };

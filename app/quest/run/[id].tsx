@@ -63,19 +63,6 @@ function ordinalForStep(steps: QuestActionStep[], step: QuestActionStep): number
   return i < 0 ? 0 : i;
 }
 
-/** Rotating encouragement after each completed step (indexed by done count). */
-const CHEERS = [
-  'Nice one — you are in motion.',
-  'Good. Momentum is yours now.',
-  'Another one down. Keep the pace gentle.',
-  'Strong. The finish is in sight.',
-  'Almost there — stay with it.',
-];
-
-function cheerForDone(done: number): string {
-  return CHEERS[Math.min(CHEERS.length - 1, Math.max(0, done - 1))];
-}
-
 /** One line describing what a completed step left behind. */
 function evidenceSummaryLine(ev: UserQuestStepEvidence): string {
   switch (ev.kind) {
@@ -144,7 +131,6 @@ export default function QuestRunScreen() {
 
   const accent = quest ? categoryAccentForCategoryId(quest.categoryId) : Theme.accent;
   const [acting, setActing] = useState(false);
-  const [cheer, setCheer] = useState<string | null>(null);
   const [calendarHint, setCalendarHint] = useState<string | null>(null);
   const [calendarDeviceOk, setCalendarDeviceOk] = useState<boolean>(() => Platform.OS !== 'web');
   // Tracks which step's Guide tip is expanded — collapsed by default (testers
@@ -205,7 +191,6 @@ export default function QuestRunScreen() {
       if (result.ok) {
         await clearPendingCalendarVerification();
         setCalendarHint(null);
-        setCheer(cheerForDone((journeySummary?.done ?? 0) + 1));
       }
     } catch {
       // Store ErrorState reflects persistence errors.
@@ -359,19 +344,16 @@ export default function QuestRunScreen() {
       if (!user || !activeUq) return;
       setActing(true);
       try {
-        const result = await completeStepWithEvidence(user.id, activeUq.id, stepId, evidence, {
+        await completeStepWithEvidence(user.id, activeUq.id, stepId, evidence, {
           sourceScreen: 'quest_runner',
         });
-        if (result.ok) {
-          setCheer(cheerForDone((journeySummary?.done ?? 0) + 1));
-        }
       } catch {
         // Error surfaces via ErrorState when persistence fails.
       } finally {
         setActing(false);
       }
     },
-    [user, activeUq, completeStepWithEvidence, journeySummary]
+    [user, activeUq, completeStepWithEvidence]
   );
 
   async function wrapUpQuest() {
@@ -624,7 +606,6 @@ export default function QuestRunScreen() {
     setActing(true);
     try {
       await revertStep(user.id, activeUq.id, prevStep.id);
-      setCheer(null);
     } catch {
       // Store ErrorState reflects persistence errors.
     } finally {
@@ -805,13 +786,6 @@ export default function QuestRunScreen() {
                 })}
               </View>
             </View>
-
-            {cheer ? (
-              <View style={[styles.cheerBanner, { borderColor: accent }]}>
-                <Ionicons name="sparkles" size={16} color={accent} />
-                <Text style={[styles.cheerText, { color: accent }]}>{cheer}</Text>
-              </View>
-            ) : null}
 
             <View style={[styles.stepCard, { borderColor: Theme.border }]}>
               <View style={styles.stepHeadRow}>
@@ -1004,17 +978,6 @@ const styles = StyleSheet.create({
     borderRadius: 3,
     backgroundColor: Theme.border,
   },
-  cheerBanner: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    borderWidth: 1,
-    borderRadius: 12,
-    paddingVertical: 10,
-    paddingHorizontal: 14,
-    backgroundColor: Theme.surface,
-  },
-  cheerText: { fontSize: 14, fontFamily: 'Inter_700Bold', fontWeight: '700', flex: 1 },
   stepCard: {
     backgroundColor: Theme.surface,
     borderRadius: 14,

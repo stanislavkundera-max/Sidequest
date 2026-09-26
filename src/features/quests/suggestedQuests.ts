@@ -137,6 +137,8 @@ export function openQuestsInCategory(params: {
   userQuests: UserQuest[];
   categoryId: string;
   preferences?: OnboardingPreferences | null;
+  /** Quests this person said they can't do where they live — never offered, never counted. */
+  unavailableQuestIds?: ReadonlySet<string>;
   now?: number;
   /** Show fewer than the cap (Explore's panel takes the top three). Never more. */
   limit?: number;
@@ -158,6 +160,8 @@ export function orderCategoryQuests(params: {
   userQuests: UserQuest[];
   categoryId: string;
   preferences?: OnboardingPreferences | null;
+  /** Quests this person said they can't do where they live — never offered, never counted. */
+  unavailableQuestIds?: ReadonlySet<string>;
   now?: number;
 }): Quest[] {
   const now = params.now ?? Date.now();
@@ -166,8 +170,13 @@ export function orderCategoryQuests(params: {
     catalog: params.catalog,
     now,
   });
+  // Left out entirely, not just hidden: a quest nobody there can do must not hold up
+  // the "everything else is done" rule that brings turned-down quests back.
   const inCategory = params.catalog.filter(
-    (q) => q.isActive !== false && q.categoryId === params.categoryId
+    (q) =>
+      q.isActive !== false &&
+      q.categoryId === params.categoryId &&
+      !params.unavailableQuestIds?.has(q.id)
   );
   const dismissed = currentlyDismissedQuestIds(params.userQuests);
   const dismissedMayReturn = rejectedQuestsMayReturn(inCategory, dismissed, params.userQuests);
@@ -305,6 +314,8 @@ export function newlyOpenedQuestIds(params: {
   userQuests: UserQuest[];
   categoryId: string;
   preferences?: OnboardingPreferences | null;
+  /** Quests this person said they can't do where they live — never offered, never counted. */
+  unavailableQuestIds?: ReadonlySet<string>;
   now?: number;
 }): Set<string> {
   const open = openQuestsInCategory(params);

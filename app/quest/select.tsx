@@ -27,6 +27,7 @@ import {
 } from '@/src/features/quests';
 import { useQuestDomainStore } from '@/src/features/quests';
 import { openQuestsInCategory } from '@/src/features/quests/suggestedQuests';
+import { useUnavailableQuestIds } from '@/src/features/quests/unavailableQuests';
 import { questDurationLabel, TIMEFRAME_LABEL } from '@/src/features/quests/questCopy';
 import {
   CATEGORY_TAB_ICON,
@@ -126,13 +127,15 @@ export default function QuestSelectionScreen() {
   // tab held back was one tap away here, via the Memories empty state or any
   // error screen's "Browse quests". It also listed quests retired with
   // isActive: false and let them be begun.
+  const unavailableQuestIds = useUnavailableQuestIds();
   const questsInCategory = useMemo(() => {
     return openQuestsInCategory({
       catalog: quests,
       userQuests,
       categoryId: selectedCategory,
+      unavailableQuestIds,
     });
-  }, [quests, userQuests, selectedCategory]);
+  }, [quests, userQuests, selectedCategory, unavailableQuestIds]);
 
   const questsByTimeframe = useMemo(() => {
     const map: Record<QuestTimeframe, Quest[]> = {
