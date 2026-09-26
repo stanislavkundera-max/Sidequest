@@ -1,7 +1,7 @@
 import { memo } from 'react';
 import { ImageBackground, StyleSheet } from 'react-native';
 
-const EXPLORE_MAP_BACKGROUND = require('@/assets/images/explore-map-background.png');
+const EXPLORE_MAP_BACKGROUND = require('@/assets/images/explore-map-background.jpg');
 
 /**
  * Illustrated forest map behind the explore markers.

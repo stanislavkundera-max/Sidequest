@@ -32,7 +32,7 @@ import type {
   OnboardingScaleAnswer,
 } from '@/src/features/onboarding';
 
-const MAP_BACKGROUND = require('@/assets/images/explore-map-background.png');
+const MAP_BACKGROUND = require('@/assets/images/explore-map-background.jpg');
 
 const TOTAL_STEPS = 6;
 /** First step shown when editing existing answers (skips welcome + how-it-works). */

@@ -482,6 +482,8 @@ the round and worth keeping visible.
 to match quest vibe"), now with concrete imagery attached. Fold the specifics into that entry rather
 than tracking it twice.
 
+**Update 2026-09-26, later — map repainted by Standa** (`explore-map-background.jpg`, 896×1199, no watermark): it paints each scene outright — Adventure on the raft in the white water, Relax at the hammock, Nature at the big old tree, Social with the people round the campfire. Markers moved onto them; the notes below describe the previous art.
+
 **Status 2026-09-26 — DONE with the existing art (Standa un-parked it).** Bubbles moved onto landmarks the
 map already paints: Relax → the big log cabin (west), Nature → the big old tree (south), Social → the
 ring of stones in the meadow (reads as a fire pit), Adventure stays at the trail clearing. No new art.

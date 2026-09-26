@@ -8,20 +8,15 @@ export type ExploreMapMarkerDef = {
   accessibilityHint: string;
 };
 
-/** Pixel size of `explore-map-background.png` (illustrated forest map). */
-export const EXPLORE_MAP_SOURCE_SIZE = { width: 765, height: 1024 };
+/** Pixel size of `explore-map-background.jpg` (illustrated forest map). */
+export const EXPLORE_MAP_SOURCE_SIZE = { width: 896, height: 1199 };
 
-// Each category sits on a landmark that already says what it is for (round 2, R2-17 — Marian:
-// relax in a cabin, social around a fire, nature at a big tree). No new art: the map already has them.
-//   • adventure → the open clearing where the trails meet, in the middle
-//   • relax     → the big log cabin on the west side
-//   • nature    → the big old tree at the bottom of the map
-//   • social    → the ring of stones in the meadow, which reads as a fire pit
-//     (there is no drawn campfire; if one is painted later, move this onto it)
-//
-// Nudged from the exact spots only where geometry demanded it: `nature` and `social` stay above
-// roughly v 0.8 so their labels clear the tab bar on a short phone (375x667 is the binding case), and
-// their tap targets are kept apart from each other.
+// Each category sits on the scene painted for it (round 2, R2-17; map repainted 2026-09-26):
+//   • adventure → the raft in the white water below the waterfalls
+//   • relax     → the hammock between the trees, west side
+//   • nature    → the big old tree in the southern woods
+//   • social    → the people round the campfire, south-east (just left of the fire itself, so the
+//     label clears the right edge on tall phones)
 //
 // Constraints when retuning:
 //   • cover-fit crops the sides on a portrait phone while the full height
@@ -34,26 +29,26 @@ export const EXPLORE_MAP_SOURCE_SIZE = { width: 765, height: 1024 };
 export const EXPLORE_MAP_MARKERS: ExploreMapMarkerDef[] = [
   {
     categoryId: 'cat-adventure',
-    u: 0.53,
-    v: 0.47,
-    accessibilityHint: 'Adventure quests — in the clearing, new routes and small trips',
+    u: 0.39,
+    v: 0.39,
+    accessibilityHint: 'Adventure quests — on the white water, new experiences and new hobbies',
   },
   {
     categoryId: 'cat-relax',
-    u: 0.24,
+    u: 0.31,
     v: 0.53,
-    accessibilityHint: 'Relax quests — in the log cabin, time to rest',
+    accessibilityHint: 'Relax quests — at the hammock, time to rest',
   },
   {
     categoryId: 'cat-nature',
-    u: 0.41,
+    u: 0.4,
     v: 0.79,
     accessibilityHint: 'Nature quests — at the big old tree, quiet time outside',
   },
   {
     categoryId: 'cat-social',
-    u: 0.6,
-    v: 0.67,
+    u: 0.72,
+    v: 0.73,
     accessibilityHint: 'Social quests — around the fire, new people and closer friends',
   },
 ];
