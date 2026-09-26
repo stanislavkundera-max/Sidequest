@@ -485,12 +485,12 @@ export const QUEST_JOURNEY_BY_ID: Record<
     ],
   },
   'q-m-03': {
-    journeyIntro: 'Ninety seconds on the platform, then it is done.',
+    journeyIntro: 'The minute at the edge is the hard part, then it is done.',
     actionSteps: [
       {
         id: 's1',
         title: 'Find a licensed operator and book a date',
-        detail: 'A bridge, a tower, a crane. A tandem skydive counts if there is no bungee near you.',
+        detail: 'A bungee off a bridge, a tower or a crane. A tandem skydive. A zip line.',
         tip: 'Book the earliest slot of the day. The longer you wait in the queue, the more time there is to reconsider.',
         estimateMinutes: 30,
         interaction: {
@@ -523,17 +523,17 @@ export const QUEST_JOURNEY_BY_ID: Record<
       },
       {
         id: 's5',
-        title: 'Photograph the drop from the ground',
+        title: 'Photograph where you jumped from',
         estimateMinutes: 2,
-        interaction: { kind: 'photo', prompt: 'What you jumped off, seen from below.' },
+        interaction: { kind: 'photo', prompt: 'Where you started, seen from the ground.' },
       },
       {
         id: 's6',
-        title: 'Say what was in your head on the edge',
+        title: 'Say what was in your head at the edge',
         estimateMinutes: 3,
         interaction: {
           kind: 'input',
-          prompt: 'What went through your head on the edge, before you went?',
+          prompt: 'What went through your head at the edge, before you went?',
           placeholder: 'Nothing useful. Then somebody said three and my legs did it…',
         },
       },
@@ -604,7 +604,7 @@ export const QUEST_JOURNEY_BY_ID: Record<
       },
       {
         id: 's3',
-        title: 'Walk out and lie down with nothing over your face',
+        title: 'Walk out and lie down under the open sky',
         estimateMinutes: 480,
         interaction: { kind: 'confirm' },
       },
@@ -728,7 +728,7 @@ export const QUEST_JOURNEY_BY_ID: Record<
       },
       {
         id: 's2',
-        title: 'Meet or video call ≥45 minutes',
+        title: 'Meet or video call for at least 45 minutes',
         tip: 'Hold your own news until halfway. The first half is for theirs.',
         estimateMinutes: 45,
         interaction: {
@@ -833,12 +833,12 @@ export const QUEST_JOURNEY_BY_ID: Record<
   },
 
   'q-w-12': {
-    journeyIntro: 'Every street has one that was here first.',
+    journeyIntro: 'Every place has one that was here first.',
     actionSteps: [
       {
         id: 's1',
-        title: 'Walk your street looking up',
-        detail: 'The whole length of it, at least once.',
+        title: 'Walk your street or the nearest park, looking up',
+        detail: 'The whole length of it, or once round the park.',
         tip: 'Trunk width tells you more than height — a tall thin tree is usually younger than a fat short one.',
         estimateMinutes: 15,
         interaction: { kind: 'confirm' },

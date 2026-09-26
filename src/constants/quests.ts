@@ -53,7 +53,7 @@ const SEED_QUESTS_RAW: Array<Omit<Quest, 'journeyIntro' | 'actionSteps'>> = [
   {
     id: 'q-w-04',
     title: 'Climb until your arms give out',
-    shortDescription: 'A climbing wall, a rented harness, one route that scares you.',
+    shortDescription: 'A wall or a boulder, rented gear, one route that scares you.',
     fullDescription:
       'Go to a climbing gym, a boulder wall or a rope park and get up it. Rent the gear, take the beginner briefing, and keep going until your forearms stop working. Somewhere in there, get on one route you are fairly sure you cannot finish — and try it anyway.',
     categoryId: 'cat-adventure',
@@ -180,10 +180,10 @@ const SEED_QUESTS_RAW: Array<Omit<Quest, 'journeyIntro' | 'actionSteps'>> = [
   },
   {
     id: 'q-m-03',
-    title: 'Jump off something with a rope on your legs',
-    shortDescription: 'Bungee. Book it, turn up, and step off the edge.',
+    title: 'Jump off something high',
+    shortDescription: 'Bungee, a tandem skydive or a zip line. Book it, turn up, and go.',
     fullDescription:
-      'Book a bungee jump with a licensed operator — a bridge, a tower, a crane — and go through with it. The hard part is not the fall, it is the ninety seconds standing on the platform. If bungee is not available near you, a tandem skydive counts.',
+      'Book a jump with a licensed operator and go through with it. A bungee off a bridge, a tower or a crane. A tandem skydive. A zip line. The hard part is not the fall, it is the minute at the edge before it.',
     categoryId: 'cat-adventure',
     timeframe: 'monthly',
     difficulty: 'hard',
@@ -208,7 +208,7 @@ const SEED_QUESTS_RAW: Array<Omit<Quest, 'journeyIntro' | 'actionSteps'>> = [
   },
   {
     id: 'q-m-06',
-    title: "Sleep outside where it's allowed, nothing over your face",
+    title: "Sleep under the open sky, where it's allowed",
     shortDescription: 'A sleeping bag, a mat, and the sky. No tent.',
     fullDescription:
       'Walk somewhere you can lie down for the night and sleep under the open sky — no tent, no roof. Check what is allowed where you are: many national parks forbid it, and a friend with land solves that in one message. Take a warm bag; it gets colder than you think.',
@@ -224,7 +224,7 @@ const SEED_QUESTS_RAW: Array<Omit<Quest, 'journeyIntro' | 'actionSteps'>> = [
   // —— Yearly (4) ——
   {
     id: 'q-y-01',
-    title: 'Travel alone for three days with nothing booked',
+    title: 'Travel alone for three days, deciding as you go',
     shortDescription: 'One bag, a way out, and no plan past the first night.',
     fullDescription:
       'Go somewhere by yourself for three days with only the first night booked. Decide each morning where you are going next. Tell one person at home roughly where you are, keep a way to get back, and let the rest be undecided.',
@@ -252,8 +252,8 @@ const SEED_QUESTS_RAW: Array<Omit<Quest, 'journeyIntro' | 'actionSteps'>> = [
   },
   {
     id: 'q-y-03',
-    title: 'Reconnect with someone you lost touch with for a year+',
-    shortDescription: 'In-person meet preferred; otherwise video call 45+ min.',
+    title: 'Reconnect with someone you lost touch with over a year ago',
+    shortDescription: 'Meet in person if you can, or video call for 45 minutes or more.',
     fullDescription:
       'Reach out, explain you want to catch up, and meet or call for at least 45 minutes. Listen more than you talk for the first half.',
     categoryId: 'cat-social',
@@ -303,10 +303,10 @@ const SEED_QUESTS_RAW: Array<Omit<Quest, 'journeyIntro' | 'actionSteps'>> = [
   },
   {
     id: 'q-w-12',
-    title: 'Find the oldest tree on your street',
+    title: 'Find the oldest tree near you',
     shortDescription: 'Look up. Decide which one was here first.',
     fullDescription:
-      'Walk your street and pick the tree that has been there longest — thickest trunk, highest crown, most stubborn roots in the pavement. You do not need to be right, only to look properly.',
+      'Walk your street or the nearest park and pick the tree that has been there longest — thickest trunk, highest crown, most stubborn roots in the pavement. You do not need to be right, only to look properly.',
     categoryId: 'cat-nature',
     timeframe: 'weekly',
     difficulty: 'medium',
@@ -331,8 +331,8 @@ const SEED_QUESTS_RAW: Array<Omit<Quest, 'journeyIntro' | 'actionSteps'>> = [
   },
   {
     id: 'q-m-08',
-    title: 'Walk a river from one bridge to the next',
-    shortDescription: 'Follow moving water instead of a route.',
+    title: 'Follow moving water on foot',
+    shortDescription: 'From one bridge to the next. Let the water pick the route.',
     fullDescription:
       'Find a river, canal or stream and walk its bank from one crossing to the next. Let the water decide the direction — you are following it, not navigating.',
     categoryId: 'cat-nature',
@@ -403,8 +403,8 @@ const SEED_QUESTS_RAW: Array<Omit<Quest, 'journeyIntro' | 'actionSteps'>> = [
   },
   {
     id: 'q-m-09',
-    title: 'Swim in a river you had to walk to reach',
-    shortDescription: 'Moving water, trees around it, no car park.',
+    title: 'Swim in wild water you had to walk to reach',
+    shortDescription: 'A river, a stream pool or a lake, and no car park.',
     fullDescription:
       'Find wild water you have to walk to — a river, a stream pool, a forest lake — and get in. Not a swimming pool and not a beach you can park at. Check the depth and the current before you commit, and take someone with you. Some stretches restrict swimming — a protected area, a drinking-water intake — so check locally before you go.',
     categoryId: 'cat-adventure',
@@ -575,8 +575,8 @@ const SEED_QUESTS_RAW: Array<Omit<Quest, 'journeyIntro' | 'actionSteps'>> = [
   },
   {
     id: 'q-m-14',
-    title: 'Book a continuous connected breathing session',
-    shortDescription: 'A guided breathwork class, with a facilitator in the room.',
+    title: 'Book a guided breathing session',
+    shortDescription: 'A breathwork class, with a facilitator in the room.',
     fullDescription:
       'Find a facilitator running continuous connected breathing — sometimes listed as conscious connected breathing or rebirthing — and book a session. It is an hour or two of breathing without pauses, lying down, guided. Bring water and do not plan anything sharp afterwards. Tell the facilitator beforehand if you are pregnant, or have heart, blood-pressure, epilepsy or serious mental-health history: some are reasons to sit it out.',
     categoryId: 'cat-relax',

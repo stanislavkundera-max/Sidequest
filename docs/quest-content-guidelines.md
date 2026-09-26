@@ -108,8 +108,8 @@ own neighbourhood, and noticing belongs in Nature or Relax.
 | Weak (novelty) | Strong (stake) |
 |---|---|
 | "Ride one stop farther" | "Take the next train out, wherever it is going" |
-| "Try a new cuisine" | "Jump off something with a rope on your legs" |
-| "Sleep away from home" | "Sleep outside with nothing over your face" |
+| "Try a new cuisine" | "Jump off something high" |
+| "Sleep away from home" | "Sleep under the open sky, where it's allowed" |
 | "Walk a new street" | "Walk up in the dark and be at the top for sunrise" |
 
 **Safety goes in the steps, not in a warning banner.** Book with a licensed
@@ -133,7 +133,7 @@ The catalogue already behaves this way, consistently — this rule was read off 
 | Quest | Time | Difficulty | Why |
 |---|---|---|---|
 | "Do a full day with no work or chores" | 16 h | medium | Long, but nothing about it is frightening |
-| "Reconnect with someone you lost touch with for a year+" | 1 h | **hard** | An hour, and most people put it off for years |
+| "Reconnect with someone you lost touch with over a year ago" | 1 h | **hard** | An hour, and most people put it off for years |
 | "Have a 15-minute voice or video call" | 20 min | medium | Short, and still a call someone is avoiding |
 | "Sit on a bench for 10 minutes" | 10 min | easy | Nothing to overcome at all |
 
@@ -162,12 +162,12 @@ never explain why it is good for you.
 
 | Field | Job | Real example |
 |---|---|---|
-| `title` | An instruction you could act on today | "Sleep outside where it's allowed, nothing over your face" |
+| `title` | An instruction you could act on today | "Sleep under the open sky, where it's allowed" |
 | `shortDescription` | The scene, or the constraint — never the benefit | "A sleeping bag, a mat, and the sky. No tent." |
 | `fullDescription` | What to actually do, plus what would ruin it | "Check what is allowed where you are…" |
 
 *Updated 2026-09-26: the title changed to carry the legality condition, per rule 9 below — this used
-to read "Sleep outside with nothing over your face," which the two rules disagreed on. `shortDescription`
+to read "Sleep outside with nothing over your face," which the two rules disagreed on (and, later that day, "nothing over your face" was itself found not to be natural English — see rule 7's correction). `shortDescription`
 and `fullDescription` already did the right thing and were left as they were.*
 
 **Not the house voice:**
@@ -210,9 +210,29 @@ concrete nouns, constraints, no feelings. This rule is about the *target*. "Bake
 someone close to you" is open in target and still concrete in language. "Do something nice for
 someone" is neither, and is not what this rule asks for.
 
-**The catalogue already does this in places:** "Jump off something with a rope on your legs" is an
-open title; "Bungee. Book it, turn up, and step off the edge." is the specific underneath it. That
-is the shape to copy.
+**The catalogue already does this in places:** "Sign up for something you are not ready for" and
+"Make something with your hands and give it away" are open titles with the specifics underneath.
+That is the shape to copy.
+
+**⚠️ Correction, 2026-09-26.** This rule used to cite "Jump off something with a rope on your legs" as
+its example of an open title. It is not one — a rope on your legs *is* bungee, so the title had
+already chosen the one thing the quest offers. It is now **"Jump off something high"**, with the
+variants where they belong, in the description: *a bungee off a bridge, a tower or a crane; a tandem
+skydive; a zip line.* The mistake is worth naming because it is easy to repeat: a vivid detail in the
+title reads as concrete writing (§6) and passes for an open goal (§7) when it is neither. **The test:**
+could someone who cannot do *that specific thing* still do the quest? If not, the title is a fixed
+target.
+
+**Applied to the whole catalogue 2026-09-26** (all 41 read again, against every rule at once). Titles
+that were fixed targets and are now open: bungee (above); "Walk a river from one bridge to the next"
+→ "Follow moving water on foot"; "Swim in a river you had to walk to reach" → "Swim in wild water you
+had to walk to reach" (its own description already said river, stream pool *or* lake). Other rules
+found on the way: "Travel alone for three days with nothing booked" said nothing booked while the
+quest books the first night (rule 10) → "…, deciding as you go"; "Find the oldest tree on your
+street" assumed a street with trees (rule 8) → "…near you"; "Book a continuous connected breathing
+session" was a technique name, not a title (rule 6) → "Book a guided breathing session"; "nothing over
+your face" and "a year+" were not natural English → rewritten; the climbing quest promised a "rented
+harness" that a boulder wall does not have (rule 12).
 
 *Origin: Standa, 2026-09-21. Open titles complete more often than specific ones.*
 
@@ -252,13 +272,13 @@ just an editorial one.
 **✅ Applied 2026-09-26 — the two-quest job identified 2026-09-21, done:**
 
 - **The clear case, rewritten.** "Sleep outside with nothing over your face" is now
-  ["Sleep outside where it's allowed, nothing over your face"](../src/constants/quests.ts) — the
-  same sensory detail, with the condition read in the same breath instead of buried in
-  `fullDescription`. `shortDescription` and `fullDescription` already did the right thing (*"Check
+  ["Sleep under the open sky, where it's allowed"](../src/constants/quests.ts) — the condition read
+  in the same breath instead of buried in `fullDescription` (first written as "Sleep outside where
+  it's allowed, nothing over your face"; the last clause went the same day, see rule 7). `shortDescription` and `fullDescription` already did the right thing (*"Check
   what is allowed where you are…"*) and needed no change. The step-by-step journey was already
   compliant on its own: step 1 is titled "Find a spot you are allowed to sleep on."
-- **The borderline case, given a condition, not a rewrite.** "Swim in a river you had to walk to
-  reach" keeps its title — wild swimming is broadly fine in CZ, so a flat title isn't the same risk
+- **The borderline case, given a condition, not a rewrite.** The river swim (now "Swim in wild water
+  you had to walk to reach") keeps a plain title — wild swimming is broadly fine in CZ, so a flat title isn't the same risk
   — but `fullDescription` now adds *"Some stretches restrict swimming — a protected area, a
   drinking-water intake — so check locally before you go."*
 - **The model quest, unchanged.** "Spend a night somewhere with no street lights" already named legal

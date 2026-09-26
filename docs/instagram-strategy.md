@@ -72,7 +72,7 @@ hook, because they were written that way.
 
 - "Walk up in the dark and be at the top for sunrise."
 - "Take the next train out, wherever it is going."
-- "Sleep outside with nothing over your face."
+- "Sleep under the open sky, where it's allowed."
 - "Sign up for something you are not ready for."
 
 The strong format is the quest as an invitation rather than a feature demo — the title, one line of

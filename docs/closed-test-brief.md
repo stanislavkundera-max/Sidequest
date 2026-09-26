@@ -87,14 +87,17 @@ and three.
 
 ---
 
-## The message to send
+## The message to send — ✅ both links live, 2026-09-16
 
 Czech, because the testers are. Adjust freely — the parts that matter are the Google account, the two
 links, and the fourteen days.
 
-**Fill in `[ODKAZ NA SKUPINU]` and `[OPT-IN ODKAZ]` before sending.** The group link is confirmed
-working — see "Done" above. The opt-in link is the one still blocked; don't send this until task 2
-in "Next, in order" above passes on a retest.
+- Group: `https://groups.google.com/g/side-quest-life-testers`
+- App: `https://play.google.com/store/apps/details?id=com.sidequestlife.app` — confirmed installable
+  on Standa's own tester account (`stanislav.kundera@gmail.com`) after the earlier propagation delay
+  cleared. **Not yet confirmed on a completely fresh account that never went through last night's
+  troubleshooting** — ask whoever replies first whether both steps actually worked for them before
+  assuming the rest of the group will have the same experience.
 
 > Ahoj, dodělal jsem appku (Side Quest Life — dává ti malé reálné výzvy, žádnej další feed na
 > scrollování) a potřebuju ji dostat na Google Play. Google mě nepustí dál, dokud ji aspoň 12 lidí
