@@ -25,8 +25,8 @@ type Props = {
 };
 
 const MARKER_SIZE = 52;
-/** Finger travel, in px, before a touch stops being a tap and becomes a drag. */
-// A finger always wobbles a little on a tap; only a move past this counts as a drag.
+/** Finger travel, in px, before a touch stops being a tap and becomes a drag. A finger always
+ * wobbles a little on a tap, so this is generous. */
 const DRAG_SLOP = 12;
 /** Keeps a dragged marker off the very edge, and its label clear of the bottom. */
 const EDGE = MARKER_SIZE / 2 + 8;

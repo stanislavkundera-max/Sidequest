@@ -46,6 +46,9 @@ export const useUnavailableQuestStore = create<State>((set, get) => ({
   },
 
   markUnavailable: async (questId) => {
+    // Without this, a first use before anything loaded the list would write just this one id
+    // and drop every quest hidden earlier.
+    await get().load();
     const next = new Set(get().ids);
     next.add(questId);
     // Update the screen first; storage failing costs persistence, not the action.

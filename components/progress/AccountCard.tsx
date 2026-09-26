@@ -19,7 +19,10 @@ import {
   updateNotificationIntensity,
   type NotificationIntensity,
 } from '@/src/repositories/profilesRepository';
-import { cacheNotificationIntensity } from '@/src/features/notifications/questNotifications';
+import {
+  cacheNotificationIntensity,
+  cancelQuestDayNotifications,
+} from '@/src/features/notifications/questNotifications';
 import { useSessionStore } from '@/stores/session';
 
 // Named by what arrives, not by a volume. Only two kinds of notification exist (R2-13), so
@@ -86,6 +89,7 @@ export function AccountCard() {
     const previous = notificationIntensity;
     setNotificationIntensity(value);
     void cacheNotificationIntensity(value);
+    if (value === 'quiet') void cancelQuestDayNotifications();
     setNotificationBusy(true);
     void updateNotificationIntensity(user.id, value)
       .catch((e: unknown) => {

@@ -194,6 +194,19 @@ async function holdOthersUntil(endsAt: number): Promise<void> {
   for (const d of due) await schedule({ ...d, at: endsAt + 60_000 });
 }
 
+/** Switching to "Timers only": quest-day notifications already scheduled must not still arrive. */
+export async function cancelQuestDayNotifications(): Promise<void> {
+  if (!supported) return;
+  const due = (await scheduledQuestNotifications()).filter((d) => d.kind === 'quest-day');
+  await Promise.all(
+    due.map((d) =>
+      Notifications.cancelScheduledNotificationAsync(idFor('quest-day', d.userQuestId)).catch(
+        () => undefined
+      )
+    )
+  );
+}
+
 /** Signing out or wiping progress: nothing scheduled may outlive the quests it points at. */
 export async function cancelAllQuestNotifications(): Promise<void> {
   if (!supported) return;
