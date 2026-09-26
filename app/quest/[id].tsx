@@ -15,12 +15,7 @@ import { categoryAccentForCategoryId } from '@/lib/categoryAccent';
 import { isSupabaseConfigured, SUPABASE_CONFIGURE_HELP } from '@/lib/supabase';
 import { QuestFeedbackCard } from '@/src/features/feedback/QuestFeedbackCard';
 import { useMemoryStore } from '@/src/features/memories/memoryStore';
-import {
-  DIFFICULTY_LABEL,
-  formatQuestDuration,
-  QUEST_COPY,
-  TIMEFRAME_LABEL,
-} from '@/src/features/quests/questCopy';
+import { questDurationWords, QUEST_COPY, TIMEFRAME_LABEL } from '@/src/features/quests/questCopy';
 import {
   canUserBeginQuest,
   countCompletedJourneySteps,
@@ -404,28 +399,22 @@ export default function QuestDetailScreen() {
   return (
     <SafeAreaView style={styles.safe} edges={['bottom']}>
       <ScrollView contentContainerStyle={styles.scroll}>
-        <View style={[styles.badge, { backgroundColor: Theme.accentSoft }]}>
-          <Text style={[styles.badgeText, { color: accent }]}>
-            {TIMEFRAME_LABEL[quest.timeframe]}
-          </Text>
-        </View>
-        <Text style={styles.category}>{categoryName(quest.categoryId)}</Text>
+        {/* One small label above the title, not two. The level (Anytime / Plan ahead / Big
+            occasion) moved down next to the time — they are both facts about the doing. */}
+        <Text style={[styles.category, { color: accent }]}>{categoryName(quest.categoryId)}</Text>
         <Text style={styles.title}>{quest.title}</Text>
         <Text style={styles.shortDescription}>{quest.shortDescription}</Text>
         <Text style={styles.body}>{quest.fullDescription}</Text>
 
         <View style={styles.metaRow}>
+          {/* Two facts, in plain words: how much planning, and how long. Difficulty
+              ("medium", "takes nerve") is left out — it is what the app ranks by, it read
+              oddly, and the level already says most of it (Standa, 2026-09-26). */}
           <Text style={styles.meta}>
-            {[
-              // Both figures say what they are, in words. "medium · ~45 min" left readers asking
-              // medium what, 45 minutes of what (Standa, 2026-09-26). Difficulty is how much you have
-              // to overcome to start; the time is how long the doing takes once you have.
-              DIFFICULTY_LABEL[quest.difficulty],
-              (() => {
-                const d = formatQuestDuration(quest.estimatedDurationMinutes);
-                return d ? `About ${d} to do` : '';
-              })(),
-            ]
+            {[TIMEFRAME_LABEL[quest.timeframe], (() => {
+              const d = questDurationWords(quest.estimatedDurationMinutes);
+              return d ? `About ${d}` : '';
+            })()]
               .filter(Boolean)
               .join(' · ')}
           </Text>
@@ -572,24 +561,12 @@ const styles = StyleSheet.create({
     backgroundColor: Theme.bg,
   },
   muted: { color: Theme.textMuted },
-  badge: {
-    alignSelf: 'flex-start',
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 8,
-    marginBottom: 10,
-  },
-  badgeText: {
-    fontWeight: '600',
+  category: {
     fontSize: 12,
     fontFamily: 'Inter_600SemiBold',
+    fontWeight: '600',
     textTransform: 'uppercase',
-    letterSpacing: 0.6,
-  },
-  category: {
-    fontSize: 14,
-    fontFamily: 'Inter_400Regular',
-    color: Theme.textMuted,
+    letterSpacing: 0.8,
     marginBottom: 8,
   },
   title: {

@@ -1,4 +1,4 @@
-import type { QuestDifficulty, QuestTimeframe } from '@/src/types/quest';
+import type { QuestTimeframe } from '@/src/types/quest';
 
 /** Calm quest path copy — avoid productivity / failure framing (see product spec). */
 
@@ -21,19 +21,6 @@ export const TIMEFRAME_LABEL: Record<QuestTimeframe, string> = {
   weekly: 'Anytime',
   monthly: 'Plan ahead',
   yearly: 'Big occasion',
-};
-
-/**
- * What a quest's difficulty means, said in words — shown on the quest screen.
- *
- * The stored value (easy / medium / hard) is what the app ranks by; on its own "medium"
- * tells a reader nothing. These follow rule 5 in docs/quest-content-guidelines.md: difficulty
- * is how much you have to overcome to *start*, not how long it takes.
- */
-export const DIFFICULTY_LABEL: Record<QuestDifficulty, string> = {
-  easy: 'Easy to start',
-  medium: 'Needs a plan',
-  hard: 'Takes nerve',
 };
 
 export const QUEST_COPY = {
@@ -111,4 +98,18 @@ export function formatQuestDuration(minutes: number): string {
 export function questDurationLabel(minutes: number): string {
   const d = formatQuestDuration(minutes);
   return d ? `~${d}` : '';
+}
+
+/**
+ * How long a quest takes, in ordinary words — "45 minutes", "5 hours", "1 hour 30 minutes".
+ * The quest screen uses this; cards keep the compact "~5 h". Empty when unknown.
+ */
+export function questDurationWords(minutes: number): string {
+  const m = Math.round(minutes);
+  if (!Number.isFinite(m) || m <= 0) return '';
+  const unit = (n: number, one: string) => `${n} ${one}${n === 1 ? '' : 's'}`;
+  if (m < 60) return unit(m, 'minute');
+  const h = Math.floor(m / 60);
+  const rem = m % 60;
+  return rem === 0 ? unit(h, 'hour') : `${unit(h, 'hour')} ${unit(rem, 'minute')}`;
 }
