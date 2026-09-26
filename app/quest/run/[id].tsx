@@ -19,6 +19,7 @@ import { ConfirmStepAction } from '@/components/quest-run/ConfirmStepAction';
 import { CounterStepAction } from '@/components/quest-run/CounterStepAction';
 import { InputStepAction } from '@/components/quest-run/InputStepAction';
 import { PhotoStepAction } from '@/components/quest-run/PhotoStepAction';
+import { stepKindIcon } from '@/components/quest-run/stepKindIcon';
 import { TimerStepAction } from '@/components/quest-run/TimerStepAction';
 import { HeaderBackButton } from '@/components/ui/HeaderBackButton';
 import { EmptyState } from '@/components/ui/EmptyState';
@@ -73,23 +74,6 @@ const CHEERS = [
 
 function cheerForDone(done: number): string {
   return CHEERS[Math.min(CHEERS.length - 1, Math.max(0, done - 1))];
-}
-
-/** Icon per interaction so users can see the shape of the journey upfront. */
-function stepKindIcon(step: QuestActionStep): keyof typeof Ionicons.glyphMap {
-  if (step.action?.kind === 'calendar') return 'calendar-outline';
-  switch (step.interaction?.kind) {
-    case 'timer':
-      return 'time-outline';
-    case 'input':
-      return 'create-outline';
-    case 'counter':
-      return 'list-outline';
-    case 'photo':
-      return 'camera-outline';
-    default:
-      return 'checkmark-circle-outline';
-  }
 }
 
 /** One line describing what a completed step left behind. */

@@ -1,4 +1,3 @@
-import { Ionicons } from '@expo/vector-icons';
 import { useLocalSearchParams, useNavigation, useRouter } from 'expo-router';
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
@@ -413,16 +412,6 @@ export default function QuestDetailScreen() {
           </Text>
         </View>
 
-        {quest.suggestedProofType === 'photo' ? (
-          <View style={styles.photoHint}>
-            <Ionicons name="camera-outline" size={16} color={Theme.textMuted} />
-            <Text style={styles.photoHintText}>
-              This one usually ends with a photo in your memory — optional, but worth having your
-              camera ready.
-            </Text>
-          </View>
-        ) : null}
-
         <QuestJourneyChecklist
           quest={quest}
           mode={activeUq ? 'active' : completedUq ? 'completed' : 'browse'}
@@ -596,13 +585,6 @@ const styles = StyleSheet.create({
   },
   metaRow: { marginBottom: 20 },
   meta: { fontSize: 13, fontFamily: 'Inter_400Regular', color: Theme.textMuted },
-  photoHint: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    gap: 8,
-    marginBottom: 20,
-  },
-  photoHintText: { flex: 1, fontSize: 13, fontFamily: 'Inter_400Regular', lineHeight: 19, color: Theme.textMuted },
   reflection: {
     borderLeftWidth: 4,
     paddingLeft: 14,

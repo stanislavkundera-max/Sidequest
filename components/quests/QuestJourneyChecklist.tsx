@@ -1,5 +1,7 @@
+import { Ionicons } from '@expo/vector-icons';
 import { StyleSheet, Text, View } from 'react-native';
 
+import { stepKindIcon } from '@/components/quest-run/stepKindIcon';
 import { Theme } from '@/constants/Theme';
 import type { Quest, QuestActionStep, UserQuest } from '@/src/types/quest';
 
@@ -32,15 +34,9 @@ export function QuestJourneyChecklist(props: {
           and in 16 of 41 quests the two said the same thing (two were word for word
           identical). The runner's start screen keeps the intro — it has no
           shortDescription. R2-10, 2026-09-26. */}
-      {mode === 'browse' ? (
-        <Text style={styles.browseHint}>
-          Add this quest, then use the runner to advance steps when you're ready.
-        </Text>
-      ) : mode === 'active' ? (
-        <Text style={styles.browseHint}>
-          Steps update from the guided runner as you confirm each part.
-        </Text>
-      ) : null}
+      {/* Two explanatory sentences used to sit here ("Add this quest, then use the runner…",
+          "Steps update from the guided runner…"). The Begin button and the ticks say the same,
+          and nobody knows what "the runner" is. Removed 2026-09-26. */}
       <View style={styles.list}>
         {steps.map((step, index) => {
           const done = isStepDone(step, mode, userQuest);
@@ -56,11 +52,16 @@ export function QuestJourneyChecklist(props: {
           );
           const body = (
             <View style={styles.rowBody}>
-              <Text style={styles.stepTitle}>
-                {index + 1}. {step.title}
-              </Text>
+              <View style={styles.titleRow}>
+                {/* The kind of step — camera, clock, pencil — so the shape of the quest
+                    can be read without a sentence explaining it. */}
+                <Ionicons name={stepKindIcon(step)} size={15} color={Theme.textMuted} />
+                <Text style={[styles.stepTitle, styles.titleText]}>
+                  {index + 1}. {step.title}
+                </Text>
+              </View>
               {step.detail ? (
-                <Text style={styles.stepDetail}>{step.detail}</Text>
+                <Text style={[styles.stepDetail, styles.detailIndent]}>{step.detail}</Text>
               ) : null}
             </View>
           );
@@ -114,6 +115,10 @@ const styles = StyleSheet.create({
   },
   checkMark: { color: '#fff', fontSize: 14, fontFamily: 'Inter_700Bold', fontWeight: '700' },
   rowBody: { flex: 1 },
+  titleRow: { flexDirection: 'row', alignItems: 'flex-start', gap: 6 },
+  titleText: { flex: 1 },
+  // Icon width (15) + gap (6): keeps the description under the title text, not the icon.
+  detailIndent: { marginLeft: 21 },
   stepTitle: {
     fontSize: 16,
     fontFamily: 'Inter_500Medium',
