@@ -163,6 +163,8 @@ sanity `select`; `missing_group` and `missing_steps` should both read 0.
 
 **✅ Category promise on the quest screen.** The small label above the title now reads "ADVENTURE · new experiences, new hobbies" (Nature: quiet time outside; Relax: time to rest; Social: new people, closer friends) — one line, no new block. Things you get, not feelings promised (rule 6), and no "adrenaline" or "love" (rule 10: most Adventure quests are a course or a sign-up, most Social ones are calls and dinners).
 
+**✅ R2-12 done, with a caveat (2026-09-26).** The mentor's note about "A couple of honest ones" ended mid-sentence, so the objection itself is still unknown. The step was reworded against the plain-English standards instead: "A couple of honest ones." (an idiom that does not say what it is) → **"Two quick questions."**; "just a baseline" (jargon) → "Just for you to look back on — they don't change which quests you see. We'll ask again in a few months." (true: the app re-asks after ~3 months); "…have you recently felt lonely or isolated?" → "…felt lonely or isolated lately?". **Worth one message to the mentor: does this fix what bothered them?**
+
 ### R2-34 · An optional stretch on a quest — parked until the test ends
 **Source:** Standa, 2026-09-26 — "extra level jako tip: normální quest je swim in river, extra tip: skinny dip in the river if possible". His own call: better to wait until the end of the test.
 

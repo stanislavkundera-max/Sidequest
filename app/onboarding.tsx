@@ -446,9 +446,9 @@ export default function OnboardingScreen() {
 
         {step === 4 ? (
           <View style={styles.stepWrap}>
-            <Text style={styles.headline}>A couple of honest ones.</Text>
+            <Text style={styles.headline}>Two quick questions.</Text>
             <Text style={styles.subtext}>
-              This is just a baseline for you — it doesn&apos;t change which quests you see.
+              Just for you to look back on — they don&apos;t change which quests you see. We&apos;ll ask again in a few months.
             </Text>
             <View style={styles.choiceWrap}>
               <ScaleQuestion
@@ -459,7 +459,7 @@ export default function OnboardingScreen() {
                 onChange={setNatureConnection}
               />
               <ScaleQuestion
-                prompt="How often have you recently felt lonely or isolated?"
+                prompt="How often have you felt lonely or isolated lately?"
                 lowLabel="Rarely"
                 highLabel="Very often"
                 value={isolation}
