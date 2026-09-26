@@ -155,6 +155,8 @@ previously-affected step ("Go up," `q-y-06`) now has no `tip` key at all.
 regenerated `action_steps` (no more filler tips) for the whole catalogue in one file. Ends in a
 sanity `select`; `missing_group` and `missing_steps` should both read 0.
 
+**✅ Quest detail screen: describe and sell, do not instruct (Standa, 2026-09-26, from a screenshot).** Before you start, the page carried three layers per step (an empty tick-box that looks tappable and is not, an icon, and a description), the reflection question (a spoiler, and asked at the end anyway), and the quest title twice — truncated in the bar and again as the heading. Now, before starting: numbered step titles with the kind-of-step icon, nothing else; the reflection only once you are doing or have done the quest; the bar title empty. Ticks and step descriptions still appear when the quest is active, where they are useful. Reversible in three small edits if it turns out too bare.
+
 ### R2-34 · An optional stretch on a quest — parked until the test ends
 **Source:** Standa, 2026-09-26 — "extra level jako tip: normální quest je swim in river, extra tip: skinny dip in the river if possible". His own call: better to wait until the end of the test.
 

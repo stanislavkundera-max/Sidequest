@@ -40,7 +40,12 @@ export function QuestJourneyChecklist(props: {
       <View style={styles.list}>
         {steps.map((step, index) => {
           const done = isStepDone(step, mode, userQuest);
-          const checkBox = (
+          // Before you start, the list is a preview of the shape of the quest, so it is
+          // titles only: no empty tick-box (it looks tappable and isn't) and no description
+          // under each step. This page is there to describe and sell the quest, not to be
+          // its manual — the detail lines appear once you are actually doing it.
+          const browse = mode === 'browse';
+          const checkBox = browse ? null : (
             <View
               style={[
                 styles.check,
@@ -60,7 +65,7 @@ export function QuestJourneyChecklist(props: {
                   {index + 1}. {step.title}
                 </Text>
               </View>
-              {step.detail ? (
+              {step.detail && !browse ? (
                 <Text style={[styles.stepDetail, styles.detailIndent]}>{step.detail}</Text>
               ) : null}
             </View>

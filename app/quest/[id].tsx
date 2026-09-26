@@ -134,7 +134,9 @@ export default function QuestDetailScreen() {
 
   useLayoutEffect(() => {
     navigation.setOptions({
-      title: quest?.title ?? 'Quest',
+      // Empty on purpose: the title is the big heading right below, and showing it
+      // twice — truncated in the bar, whole underneath — was just more text.
+      title: '',
       // headerLeft comes from the Stack's screenOptions — see HeaderBackButton.
     });
   }, [navigation, quest?.title]);
@@ -426,7 +428,9 @@ export default function QuestDetailScreen() {
           accentColor={accent}
         />
 
-        {!existingMemory ? (
+        {/* The reflection question is for the end of the quest; before you start it is a
+            spoiler and one more block of text on a page meant to sell the quest. */}
+        {!existingMemory && (activeUq || completedUq) ? (
           <View style={[styles.reflection, { borderLeftColor: accent }]}>
             <Text style={styles.reflectionLabel}>Reflection</Text>
             <Text style={styles.reflectionBody}>{quest.promptForReflection}</Text>
