@@ -14,11 +14,13 @@ export const ExploreMapBackground = memo(function ExploreMapBackground() {
       source={EXPLORE_MAP_BACKGROUND}
       style={styles.root}
       resizeMode="cover"
+      imageStyle={styles.image}
     />
   );
 });
 
 const styles = StyleSheet.create({
+  image: { width: '100%', height: '100%' },
   root: {
     ...StyleSheet.absoluteFillObject,
     overflow: 'hidden',

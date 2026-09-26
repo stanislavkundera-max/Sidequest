@@ -482,6 +482,14 @@ the round and worth keeping visible.
 to match quest vibe"), now with concrete imagery attached. Fold the specifics into that entry rather
 than tracking it twice.
 
+**Status 2026-09-26 — DONE with the existing art (Standa un-parked it).** Bubbles moved onto landmarks the
+map already paints: Relax → the big log cabin (west), Nature → the big old tree (south), Social → the
+ring of stones in the meadow (reads as a fire pit), Adventure stays at the trail clearing. No new art.
+Left open: there is still no *drawn* campfire — if one is painted, move Social onto it. The Relax cabin
+sits at the left edge of a phone, so it is partly cropped behind its bubble. Also fixed on the way: on
+web the map background rendered at native size instead of cover-fit, so it disagreed with the marker
+math (native was already right); `ExploreMapBackground` now sizes the image to its container.
+
 ### R2-18 · Offline mode / local storage
 **Source:** numbered 12).2 — *"když člověk je třeba někde v lese ... aby si zaznamenal co chce"*.
 **Type:** architecture, big.
