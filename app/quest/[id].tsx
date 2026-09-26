@@ -15,7 +15,12 @@ import { categoryAccentForCategoryId } from '@/lib/categoryAccent';
 import { isSupabaseConfigured, SUPABASE_CONFIGURE_HELP } from '@/lib/supabase';
 import { QuestFeedbackCard } from '@/src/features/feedback/QuestFeedbackCard';
 import { useMemoryStore } from '@/src/features/memories/memoryStore';
-import { questDurationLabel, QUEST_COPY, TIMEFRAME_LABEL } from '@/src/features/quests/questCopy';
+import {
+  DIFFICULTY_LABEL,
+  formatQuestDuration,
+  QUEST_COPY,
+  TIMEFRAME_LABEL,
+} from '@/src/features/quests/questCopy';
 import {
   canUserBeginQuest,
   countCompletedJourneySteps,
@@ -412,10 +417,14 @@ export default function QuestDetailScreen() {
         <View style={styles.metaRow}>
           <Text style={styles.meta}>
             {[
-              // Difficulty (easy / medium / hard) is what the app uses to rank quests, not
-              // something a reader can act on: "medium" says nothing without the rules behind
-              // it, and the cards never showed it. Only the time is left (2026-09-26).
-              questDurationLabel(quest.estimatedDurationMinutes),
+              // Both figures say what they are, in words. "medium · ~45 min" left readers asking
+              // medium what, 45 minutes of what (Standa, 2026-09-26). Difficulty is how much you have
+              // to overcome to start; the time is how long the doing takes once you have.
+              DIFFICULTY_LABEL[quest.difficulty],
+              (() => {
+                const d = formatQuestDuration(quest.estimatedDurationMinutes);
+                return d ? `About ${d} to do` : '';
+              })(),
             ]
               .filter(Boolean)
               .join(' · ')}

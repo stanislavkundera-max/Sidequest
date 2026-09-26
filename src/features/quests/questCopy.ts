@@ -1,4 +1,4 @@
-import type { QuestTimeframe } from '@/src/types/quest';
+import type { QuestDifficulty, QuestTimeframe } from '@/src/types/quest';
 
 /** Calm quest path copy — avoid productivity / failure framing (see product spec). */
 
@@ -21,6 +21,19 @@ export const TIMEFRAME_LABEL: Record<QuestTimeframe, string> = {
   weekly: 'Anytime',
   monthly: 'Plan ahead',
   yearly: 'Big occasion',
+};
+
+/**
+ * What a quest's difficulty means, said in words — shown on the quest screen.
+ *
+ * The stored value (easy / medium / hard) is what the app ranks by; on its own "medium"
+ * tells a reader nothing. These follow rule 5 in docs/quest-content-guidelines.md: difficulty
+ * is how much you have to overcome to *start*, not how long it takes.
+ */
+export const DIFFICULTY_LABEL: Record<QuestDifficulty, string> = {
+  easy: 'Easy to start',
+  medium: 'Needs a plan',
+  hard: 'Takes nerve',
 };
 
 export const QUEST_COPY = {
