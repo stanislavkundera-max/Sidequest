@@ -41,13 +41,11 @@ export function runnerUrl(questId: string): string {
 export function configureQuestNotifications(): void {
   if (!supported) return;
   Notifications.setNotificationHandler({
-    handleNotification: async (n) => {
-      // With the app open the timer screen already says the time is up.
-      const kind = (n.request.content.data as Partial<QuestNotificationData> | undefined)?.kind;
-      const show = kind !== 'timer';
+    // Shown with the app open too: you may be on another screen when the timer ends.
+    handleNotification: async () => {
       return {
-        shouldShowBanner: show,
-        shouldShowList: show,
+        shouldShowBanner: true,
+        shouldShowList: true,
         shouldPlaySound: false,
         shouldSetBadge: false,
       };

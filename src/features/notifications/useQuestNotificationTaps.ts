@@ -26,6 +26,8 @@ export function useQuestNotificationTaps(sessionReady: boolean): void {
       const key = response.notification.request.identifier + response.notification.date;
       if (handled.current.has(key)) return;
       handled.current.add(key);
+      // Otherwise the same tap is handed back on the next ordinary launch and opens the quest again.
+      void Notifications.clearLastNotificationResponseAsync().catch(() => undefined);
       const url = (response.notification.request.content.data as { url?: unknown } | undefined)?.url;
       if (typeof url === 'string' && url.startsWith('/quest/run/')) router.push(url as never);
     };
