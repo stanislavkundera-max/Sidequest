@@ -66,13 +66,20 @@ export async function openQuestCalendarEditor(params: {
   const startDate = params.suggestedStart;
   const endDate = new Date(startDate.getTime() + duration * 60_000);
 
-  const result = await Calendar.createEventInCalendarAsync({
-    title: params.title.trim(),
-    notes: params.notes?.trim(),
-    startDate,
-    endDate,
-    allDay: false,
-  });
+  // Android: open the editor inside our task, not as a new one (the library default). As a new task
+  // the promise resolved the moment the calendar opened, and saving left you in the calendar app with
+  // no way back into the step (Standa, 2026-09-26). In our task, saving or backing out closes the
+  // editor and lands you back on the step, and only then do we ask whether it was saved.
+  const result = await Calendar.createEventInCalendarAsync(
+    {
+      title: params.title.trim(),
+      notes: params.notes?.trim(),
+      startDate,
+      endDate,
+      allDay: false,
+    },
+    { startNewActivityTask: false }
+  );
   if (result.action === 'saved' && result.id) return { outcome: 'saved', eventId: result.id };
   if (result.action === 'canceled' || result.action === 'deleted') return { outcome: 'canceled' };
   return { outcome: 'unknown' };
