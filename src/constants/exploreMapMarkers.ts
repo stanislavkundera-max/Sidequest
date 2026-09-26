@@ -13,7 +13,7 @@ export const EXPLORE_MAP_SOURCE_SIZE = { width: 896, height: 1200 };
 
 // One category per quadrant, each on the scene painted for it (round 2, R2-17; map repainted and
 // placed with Standa 2026-09-26):
-//   • adventure (top left)     → the raft in the white water below the waterfalls
+//   • adventure (top left)     → just left of the raft in the white water, so the raft stays visible
 //   • nature    (top right)    → the meadow with the deer, level with adventure
 //   • social    (bottom left)  → just below and right of the campfire, so the bubble does not cover
 //     the fire and stays clear of the left edge on phones
@@ -31,8 +31,8 @@ export const EXPLORE_MAP_SOURCE_SIZE = { width: 896, height: 1200 };
 export const EXPLORE_MAP_MARKERS: ExploreMapMarkerDef[] = [
   {
     categoryId: 'cat-adventure',
-    u: 0.39,
-    v: 0.39,
+    u: 0.27,
+    v: 0.4,
     accessibilityHint: 'Adventure quests — on the white water, new experiences and new hobbies',
   },
   {
