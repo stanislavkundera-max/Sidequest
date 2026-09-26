@@ -1,5 +1,6 @@
 import { useCallback, useMemo, useState } from 'react';
-import { StyleSheet, Text, View, useWindowDimensions, type LayoutChangeEvent } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+import { Pressable, StyleSheet, Text, View, useWindowDimensions, type LayoutChangeEvent } from 'react-native';
 
 import { CategoryMapMarker } from '@/components/explore/CategoryMapMarker';
 import { ExploreMapBackground } from '@/components/explore/ExploreMapBackground';
@@ -29,6 +30,7 @@ export function ExploreMapScene({
   const categories = useQuestDomainStore((s) => s.categories);
   const { width: windowWidth, height: windowHeight } = useWindowDimensions();
   const [measured, setMeasured] = useState({ w: 0, h: 0 });
+  const [infoOpen, setInfoOpen] = useState(false);
 
   const onMapLayout = useCallback((e: LayoutChangeEvent) => {
     const w = Math.round(e.nativeEvent.layout.width);
@@ -63,11 +65,6 @@ export function ExploreMapScene({
   return (
     <View style={styles.root} onLayout={onMapLayout}>
       <ExploreMapBackground />
-      <View style={styles.topScrim} pointerEvents="none" />
-      <View style={styles.heroCopy} pointerEvents="none">
-        <Text style={styles.title}>{EXPLORE_COPY.title}</Text>
-        <Text style={styles.subtitle}>{EXPLORE_COPY.subtitle}</Text>
-      </View>
       {layout
         ? EXPLORE_MAP_MARKERS.map((marker) => {
             const { x, y } = imageNormToViewPixels(size.w, size.h, marker.u, marker.v, layout);
@@ -87,6 +84,26 @@ export function ExploreMapScene({
             );
           })
         : null}
+      <View style={styles.infoCorner} pointerEvents="box-none">
+        <Pressable
+          onPress={() => setInfoOpen((o) => !o)}
+          hitSlop={10}
+          accessibilityRole="button"
+          accessibilityLabel={infoOpen ? 'Hide map help' : 'What is this map?'}
+          style={[styles.infoButton, infoOpen && styles.infoButtonOpen]}>
+          <Ionicons
+            name={infoOpen ? 'close' : 'information'}
+            size={16}
+            color={infoOpen ? Theme.text : 'rgba(255, 255, 255, 0.9)'}
+          />
+        </Pressable>
+        {infoOpen ? (
+          <Pressable onPress={() => setInfoOpen(false)} style={styles.infoCard}>
+            <Text style={styles.title}>{EXPLORE_COPY.title}</Text>
+            <Text style={styles.subtitle}>{EXPLORE_COPY.subtitle}</Text>
+          </Pressable>
+        ) : null}
+      </View>
     </View>
   );
 }
@@ -97,38 +114,55 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     backgroundColor: Theme.bg,
   },
-  topScrim: {
+  // No title on the map itself: the bubbles explain themselves. The explanation waits behind a
+  // quiet info button, closed by default (Standa, 2026-09-26).
+  infoCorner: {
     position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    height: 132,
-    backgroundColor: 'rgba(16, 24, 18, 0.42)',
+    top: 12,
+    right: 12,
+    alignItems: 'flex-end',
+    zIndex: 2,
   },
-  heroCopy: {
-    position: 'absolute',
-    top: 14,
-    left: 16,
-    right: 16,
-    zIndex: 1,
+  infoButton: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'rgba(16, 24, 18, 0.35)',
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: 'rgba(255, 255, 255, 0.35)',
+  },
+  infoButtonOpen: {
+    backgroundColor: 'rgba(252, 251, 248, 0.95)',
+    borderColor: Theme.border,
+  },
+  infoCard: {
+    marginTop: 8,
+    maxWidth: 260,
+    paddingVertical: 10,
+    paddingHorizontal: 14,
+    borderRadius: 14,
+    backgroundColor: 'rgba(252, 251, 248, 0.95)',
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: Theme.border,
+    shadowColor: '#000',
+    shadowOpacity: 0.12,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 2 },
+    elevation: 3,
   },
   title: {
-    fontSize: 22,
-    fontFamily: 'Inter_700Bold',
-    fontWeight: '700',
-    color: '#ffffff',
-    marginBottom: 4,
-    textShadowColor: 'rgba(0, 0, 0, 0.55)',
-    textShadowOffset: { width: 0, height: 1 },
-    textShadowRadius: 6,
+    fontSize: 15,
+    fontFamily: 'Inter_600SemiBold',
+    fontWeight: '600',
+    color: Theme.text,
+    marginBottom: 2,
   },
   subtitle: {
-    fontSize: 14,
+    fontSize: 13,
     fontFamily: 'Inter_400Regular',
-    lineHeight: 20,
-    color: 'rgba(255, 255, 255, 0.92)',
-    textShadowColor: 'rgba(0, 0, 0, 0.55)',
-    textShadowOffset: { width: 0, height: 1 },
-    textShadowRadius: 5,
+    lineHeight: 18,
+    color: Theme.textMuted,
   },
 });

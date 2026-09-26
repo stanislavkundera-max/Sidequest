@@ -26,7 +26,8 @@ type Props = {
 
 const MARKER_SIZE = 52;
 /** Finger travel, in px, before a touch stops being a tap and becomes a drag. */
-const DRAG_SLOP = 6;
+// A finger always wobbles a little on a tap; only a move past this counts as a drag.
+const DRAG_SLOP = 12;
 /** Keeps a dragged marker off the very edge, and its label clear of the bottom. */
 const EDGE = MARKER_SIZE / 2 + 8;
 const LABEL_ROOM = 44;
@@ -73,6 +74,9 @@ export const CategoryMapMarker = memo(function CategoryMapMarker({
 
   // The marker claims the touch straight away and decides tap-vs-drag on release: react-native-web
   // never offers a parent the chance to take over from a child that already holds the press.
+  // The pan decides taps itself; the Pressable's own press (a browser click after mouseup) is
+  // ignored right after a gesture, so a drag never opens the panel. Screen readers still use it.
+  const ignorePressUntil = useRef(0);
   const onPressRef = useRef(onPress);
   onPressRef.current = onPress;
   const pan = useRef(
@@ -84,7 +88,7 @@ export const CategoryMapMarker = memo(function CategoryMapMarker({
       },
       onPanResponderMove: (_e, g) => {
         if (!dragging.current) {
-          if (Math.abs(g.dx) + Math.abs(g.dy) <= DRAG_SLOP) return;
+          if (Math.hypot(g.dx, g.dy) <= DRAG_SLOP) return;
           dragging.current = true;
           scale.value = withTiming(1.12, { duration: 120 });
         }
@@ -95,18 +99,23 @@ export const CategoryMapMarker = memo(function CategoryMapMarker({
       },
       onPanResponderRelease: () => {
         const wasDrag = dragging.current;
+        ignorePressUntil.current = Date.now() + 400;
         dragging.current = false;
         settle();
         if (!wasDrag) onPressRef.current(categoryId);
       },
       onPanResponderTerminate: () => {
+        ignorePressUntil.current = Date.now() + 400;
         dragging.current = false;
         settle();
       },
     })
   ).current;
 
-  const handlePress = useCallback(() => onPress(categoryId), [categoryId, onPress]);
+  const handlePress = useCallback(() => {
+    if (Date.now() < ignorePressUntil.current) return;
+    onPress(categoryId);
+  }, [categoryId, onPress]);
 
   const accent = categoryAccentForCategoryId(categoryId);
 

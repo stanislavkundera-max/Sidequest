@@ -11,12 +11,12 @@ export type ExploreMapMarkerDef = {
 /** Pixel size of `explore-map-background.jpg` (illustrated forest map). */
 export const EXPLORE_MAP_SOURCE_SIZE = { width: 896, height: 1199 };
 
-// Each category sits on the scene painted for it (round 2, R2-17; map repainted 2026-09-26):
-//   • adventure → the raft in the white water below the waterfalls
-//   • relax     → the hammock between the trees, west side
-//   • nature    → the big old tree in the southern woods
-//   • social    → the people round the campfire, south-east (just left of the fire itself, so the
-//     label clears the right edge on tall phones)
+// One category per quadrant, each on the scene painted for it (round 2, R2-17; map repainted and
+// placed with Standa 2026-09-26):
+//   • adventure (top left)     → the raft in the white water below the waterfalls
+//   • nature    (top right)    → the meadow with the deer, level with adventure
+//   • relax     (bottom left)  → the pond (its right half: the left half is cropped on phones)
+//   • social    (bottom right) → just below the campfire, so the bubble does not cover the fire
 //
 // Constraints when retuning:
 //   • cover-fit crops the sides on a portrait phone while the full height
@@ -24,7 +24,7 @@ export const EXPLORE_MAP_SOURCE_SIZE = { width: 896, height: 1199 };
 //     ~60–90px wide; the invisible tap target is 112px, which is what has to
 //     stay clear of a neighbour's.
 //   • `v` is the centre of the circle. The label hangs ~30px below it, and the
-//     header scrim covers the top 132px — so keep `v` inside roughly
+//     title card covers roughly the top 90px — so keep `v` inside roughly
 //     0.25–0.83 and leave vertical or horizontal room between neighbours.
 export const EXPLORE_MAP_MARKERS: ExploreMapMarkerDef[] = [
   {
@@ -35,20 +35,20 @@ export const EXPLORE_MAP_MARKERS: ExploreMapMarkerDef[] = [
   },
   {
     categoryId: 'cat-relax',
-    u: 0.31,
-    v: 0.53,
-    accessibilityHint: 'Relax quests — at the hammock, time to rest',
+    u: 0.27,
+    v: 0.665,
+    accessibilityHint: 'Relax quests — at the pond, time to rest',
   },
   {
     categoryId: 'cat-nature',
-    u: 0.4,
-    v: 0.79,
-    accessibilityHint: 'Nature quests — at the big old tree, quiet time outside',
+    u: 0.68,
+    v: 0.38,
+    accessibilityHint: 'Nature quests — in the meadow with the deer, quiet time outside',
   },
   {
     categoryId: 'cat-social',
     u: 0.72,
-    v: 0.73,
+    v: 0.785,
     accessibilityHint: 'Social quests — around the fire, new people and closer friends',
   },
 ];
