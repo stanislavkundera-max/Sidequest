@@ -26,6 +26,8 @@ import { supabase } from '@/lib/supabase';
 import { identifyUser, resetAnalytics, trackAppOpened } from '@/src/lib/analytics';
 import { logError } from '@/src/lib/monitoring/errorLogger';
 import { useMemoryStore } from '@/src/features/memories/memoryStore';
+import { cancelAllQuestNotifications } from '@/src/features/notifications/questNotifications';
+import { useQuestNotificationTaps } from '@/src/features/notifications/useQuestNotificationTaps';
 import { useQuestDomainStore } from '@/src/features/quests/questStore';
 import { ensureProfileForUser } from '@/src/repositories/profilesRepository';
 import { useSessionStore } from '@/stores/session';
@@ -109,6 +111,8 @@ function RootLayoutNav() {
   const setInitialized = useSessionStore((s) => s.setInitialized);
   const clearQuestDomain = useQuestDomainStore((s) => s.resetDomainState);
   const clearMemories = useMemoryStore((s) => s.clearMemories);
+  const sessionReady = useSessionStore((s) => s.initialized);
+  useQuestNotificationTaps(sessionReady);
 
   useEffect(() => {
     let mounted = true;
@@ -149,6 +153,7 @@ function RootLayoutNav() {
         );
       } else {
         resetAnalytics().catch(() => undefined);
+        void cancelAllQuestNotifications();
         clearQuestDomain();
         clearMemories();
       }

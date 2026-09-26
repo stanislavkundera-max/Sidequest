@@ -93,6 +93,13 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   plugins: [
     'expo-router',
     [
+      'expo-notifications',
+      {
+        icon: './assets/images/notification-icon.png',
+        color: '#536534',
+      },
+    ],
+    [
       'expo-calendar',
       {
         calendarPermission:

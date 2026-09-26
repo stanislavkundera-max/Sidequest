@@ -16,7 +16,7 @@ export function alertTwoChoice(
   title: string,
   message: string,
   choices: {
-    cancel: { text: string };
+    cancel: { text: string; onPress?: () => void };
     confirm: { text: string; onPress: () => void };
   }
 ): void {
@@ -26,7 +26,7 @@ export function alertTwoChoice(
     return;
   }
   Alert.alert(title, message, [
-    { text: choices.cancel.text, style: 'cancel' },
+    { text: choices.cancel.text, style: 'cancel', onPress: choices.cancel.onPress },
     { text: choices.confirm.text, onPress: choices.confirm.onPress },
   ]);
 }

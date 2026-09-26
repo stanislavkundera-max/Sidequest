@@ -21,6 +21,10 @@ import {
   type AssignQuestResult,
   type CompleteQuestResult,
 } from '@/src/repositories/userQuestsRepository';
+import {
+  cancelAllQuestNotifications,
+  cancelQuestNotifications,
+} from '@/src/features/notifications/questNotifications';
 import { trackEvent } from '@/src/lib/analytics';
 import { logError } from '@/src/lib/monitoring/errorLogger';
 import type { Category } from '@/src/types/category';
@@ -314,6 +318,7 @@ export const useQuestDomainStore = create<QuestDomainState>((set, get) => ({
             uq.id === userQuestId ? result.userQuest : uq
           ),
         }));
+        void cancelQuestNotifications(userQuestId);
       }
       return result;
     } catch (e: unknown) {
@@ -334,6 +339,7 @@ export const useQuestDomainStore = create<QuestDomainState>((set, get) => ({
         set((s) => ({
           userQuests: s.userQuests.map((u) => (u.id === userQuestId ? result.userQuest : u)),
         }));
+        void cancelQuestNotifications(userQuestId);
       }
       return result.ok ? { ok: true as const } : { ok: false as const, reason: result.reason };
     } catch (e: unknown) {
@@ -419,6 +425,7 @@ export const useQuestDomainStore = create<QuestDomainState>((set, get) => ({
     try {
       await deleteAllUserQuestsForUser(userId);
       set({ userQuests: [] });
+      void cancelAllQuestNotifications();
     } catch (e: unknown) {
       logError('questStore.deleteAllProgress', e, { userId });
       set({ error: formatUnknownError(e, 'Could not delete progress.') });

@@ -94,3 +94,14 @@ export async function calendarEventStillExists(eventId: string): Promise<boolean
     return false;
   }
 }
+
+/** When a saved event starts — iOS only, where the editor hands back the event id. */
+export async function calendarEventStart(eventId: string): Promise<Date | null> {
+  try {
+    const ev = await Calendar.getEventAsync(eventId.trim());
+    const start = ev?.startDate ? new Date(ev.startDate) : null;
+    return start && !Number.isNaN(start.getTime()) ? start : null;
+  } catch {
+    return null;
+  }
+}

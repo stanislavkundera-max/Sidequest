@@ -19,32 +19,16 @@ import {
   updateNotificationIntensity,
   type NotificationIntensity,
 } from '@/src/repositories/profilesRepository';
+import { cacheNotificationIntensity } from '@/src/features/notifications/questNotifications';
 import { useSessionStore } from '@/stores/session';
 
+// Named by what arrives, not by a volume. Only two kinds of notification exist (R2-13), so
+// 'chatty' is not offered; a stored 'chatty' behaves like 'occasional'.
 const NOTIFICATION_OPTIONS: { value: NotificationIntensity; label: string }[] = [
-  { value: 'quiet', label: 'Quiet' },
-  { value: 'occasional', label: 'Occasional' },
-  { value: 'chatty', label: 'Chatty' },
+  { value: 'quiet', label: 'Timers only' },
+  { value: 'occasional', label: 'Timers and quest days' },
 ];
 
-/**
- * "How often should the app nudge you?" is hidden until it does something.
- *
- * The setting is real — it saves to `profiles.notification_intensity` and reads
- * back — but nothing anywhere acts on it. The app sends no notifications at
- * all: there is no notification library in `package.json`, no permission
- * request, no scheduling code. So the control answers a question the app never
- * asks, whichever way you set it.
- *
- * Hidden rather than deleted, ahead of the closed test, because a dead control
- * in front of twelve testers spends their attention on "notifications don't
- * work" — a bug report that is already known and cannot be fixed inside a
- * 14-day window that restarts if the group thins out.
- *
- * Flip this to true the moment notifications are actually scheduled. The
- * column, the repository functions and the UI below all still work.
- */
-const NOTIFICATIONS_IMPLEMENTED = false;
 
 /**
  * Account controls.
@@ -78,14 +62,16 @@ export function AccountCard() {
     };
   }, [admin]);
 
-  // Gated on the flag as well as the user: with the control hidden, this was a
-  // profile fetch on every visit to Progress to populate something nobody sees.
   useEffect(() => {
-    if (!user || !NOTIFICATIONS_IMPLEMENTED) return;
+    if (!user) return;
     let alive = true;
     getProfile(user.id)
       .then((profile) => {
-        if (alive && profile) setNotificationIntensity(profile.notificationIntensity);
+        if (alive && profile) {
+          const value = profile.notificationIntensity === 'chatty' ? 'occasional' : profile.notificationIntensity;
+          setNotificationIntensity(value);
+          void cacheNotificationIntensity(value);
+        }
       })
       .catch((e: unknown) => {
         logError('account.loadNotificationIntensity', e, { userId: user.id });
@@ -99,10 +85,12 @@ export function AccountCard() {
     if (!user || value === notificationIntensity) return;
     const previous = notificationIntensity;
     setNotificationIntensity(value);
+    void cacheNotificationIntensity(value);
     setNotificationBusy(true);
     void updateNotificationIntensity(user.id, value)
       .catch((e: unknown) => {
         setNotificationIntensity(previous);
+        if (previous) void cacheNotificationIntensity(previous);
         logError('account.updateNotificationIntensity', e, { userId: user.id });
         alertCompat(
           'Could not save',
@@ -248,9 +236,9 @@ export function AccountCard() {
         </Text>
       </View>
 
-      {NOTIFICATIONS_IMPLEMENTED && notificationIntensity ? (
+      {notificationIntensity ? (
         <View style={styles.notificationBlock}>
-          <Text style={styles.notificationLabel}>How often should the app nudge you?</Text>
+          <Text style={styles.notificationLabel}>Notifications</Text>
           <View style={styles.notificationPills}>
             {NOTIFICATION_OPTIONS.map((opt) => {
               const selected = opt.value === notificationIntensity;

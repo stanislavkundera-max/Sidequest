@@ -440,6 +440,19 @@ scheduled notifications (`expo-notifications`) plus the existing `sidequestlife:
 the step. It does need a new native build. "Needs infrastructure" above overstated it. Open design
 questions: which steps notify, what tapping does, quiet while a timer runs (R2-21).
 
+**Status 2026-09-26 — BUILT, needs build 11 to test on a phone.** Decided with Standa: two kinds only.
+- **Quest day** — at the time you put the quest in your calendar. iOS reads the saved event; Android
+  never says which day you picked, so it uses the prefilled time (tomorrow / in a week / in a month,
+  10:00). Your calendar reminds you too; Standa accepted that.
+- **Timer done** — when a step timer ends while the phone is away.
+- Tapping either opens `/quest/run/<questId>`, which lands on the step you are on.
+- Account setting shown again, renamed by what arrives: *Timers only* / *Timers and quest days*.
+- Cancelled when a quest is finished, paused, progress wiped, or you sign out.
+- **Calendar bug found on the way (Standa):** on Android the calendar opened as a separate task, so
+  saving left you in the calendar and the step never continued. It now opens inside the app, and a
+  second tap on the step offers "Yes, it's in" instead of reopening the calendar.
+- Permission is asked the first time something is scheduled, never at app start.
+
 ### R2-21 · Don't disturb while the timer runs
 **Source:** **david b.** — *"Tohle bych zmáčknul v moment, kdy začnu vycházet na track alá zapnutí
 Garmin hodinek a po danou dobu nechci bejt rušenej a chci vychutnávat přírodu"*.
@@ -450,6 +463,9 @@ R2-13: whatever notification system gets built must **go quiet while a timer is 
 someone mid-quest would break the very thing the quest was for.
 
 File it against R2-13 so it isn't discovered the hard way after the notifications ship.
+
+**Status 2026-09-26 — BUILT with R2-13.** Starting a timer moves any quest-day notification due before it
+ends to a minute after; the timer's own "time is up" is not shown while the app is open.
 
 ### R2-15 · Draggable map bubbles + zoom
 **Source:** **Don Marian** — *"Pro moje špatně soustředicí já / Když by se ty bublinky na mapě daly

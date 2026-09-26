@@ -32,7 +32,9 @@ import { categoryAccentForCategoryId } from '@/lib/categoryAccent';
 import { isSupabaseConfigured, SUPABASE_CONFIGURE_HELP } from '@/lib/supabase';
 import { composeMemoryDraftFromRun, NO_EVIDENCE_NOTE } from '@/src/features/memories/memoryDraft';
 import { useMemoryStore } from '@/src/features/memories/memoryStore';
+import { scheduleQuestDay } from '@/src/features/notifications/questNotifications';
 import {
+  calendarEventStart,
   calendarEventStillExists,
   isDeviceCalendarCreationAvailable,
   openQuestCalendarEditor,
@@ -42,7 +44,9 @@ import {
 // event. Kept for testers who update mid-step with one still pending.
 import {
   clearPendingCalendarVerification,
+  markCalendarOpened,
   readPendingCalendarVerification,
+  wasCalendarOpened,
 } from '@/src/features/quests/questRunnerPending';
 import { formatQuestDuration, QUEST_COPY } from '@/src/features/quests/questCopy';
 import {
@@ -475,17 +479,20 @@ export default function QuestRunScreen() {
     const title = (tpl?.title ?? `${quest.title}: ${step.title}`).trim();
     const notes = [tpl?.notes, step.detail].filter(Boolean).join('\n\n').trim() || undefined;
 
+    const suggestedStart = suggestedQuestStart(quest.timeframe);
     setActing(true);
     try {
+      await markCalendarOpened(activeUq.id, step.id);
       const result = await openQuestCalendarEditor({
         title,
         notes,
         durationMinutes: duration,
-        suggestedStart: suggestedQuestStart(quest.timeframe),
+        suggestedStart,
       });
       if (result.outcome === 'saved') {
         // iOS tells us it was saved and gives the id — no need to ask.
         await finishStep(step.id, { kind: 'calendar', eventId: result.eventId });
+        remindOnQuestDay((await calendarEventStart(result.eventId)) ?? suggestedStart);
       } else if (result.outcome === 'unknown') {
         // Android closes the editor without saying whether you saved — so ask,
         // rather than guess either way.
@@ -502,17 +509,37 @@ export default function QuestRunScreen() {
     }
   }
 
-  function askIfScheduled(step: QuestActionStep, message?: string) {
+  /**
+   * The quest-day notification. Android never says which day you picked, so it uses the time the
+   * editor was prefilled with; iOS reads the saved event. Your calendar reminds you as well.
+   */
+  function remindOnQuestDay(at: Date) {
+    if (!quest || !activeUq) return;
+    void scheduleQuestDay({
+      userQuestId: activeUq.id,
+      questId: quest.id,
+      questTitle: quest.title,
+      at,
+    });
+  }
+
+  function confirmScheduled(step: QuestActionStep) {
+    if (!quest) return;
+    void finishStep(step.id, { kind: 'self_attest' });
+    remindOnQuestDay(suggestedQuestStart(quest.timeframe));
+  }
+
+  function askIfScheduled(step: QuestActionStep, message?: string, openAgain?: () => void) {
     alertTwoChoice(
       'Is it in your calendar?',
       message ?? 'Once it has a day, this step is done.',
       {
-        cancel: { text: 'Not yet' },
+        cancel: openAgain
+          ? { text: 'Open calendar again', onPress: openAgain }
+          : { text: 'Not yet' },
         confirm: {
           text: "Yes, it's in",
-          onPress: () => {
-            void finishStep(step.id, { kind: 'self_attest' });
-          },
+          onPress: () => confirmScheduled(step),
         },
       }
     );
@@ -523,6 +550,12 @@ export default function QuestRunScreen() {
     void (async () => {
       const nativeCalendar = await isDeviceCalendarCreationAvailable();
       if (nativeCalendar) {
+        // Second tap: the calendar was already opened for this step, so offer to move on rather
+        // than sending you back into it.
+        if (await wasCalendarOpened(activeUq.id, step.id)) {
+          askIfScheduled(step, undefined, () => void addCalendarReminder(step));
+          return;
+        }
         await addCalendarReminder(step);
         return;
       }
@@ -653,7 +686,9 @@ export default function QuestRunScreen() {
           <TimerStepAction
             key={step.id}
             userQuestId={activeUq.id}
+            questId={activeUq.questId}
             stepId={step.id}
+            stepTitle={step.title}
             minSeconds={interaction.minSeconds}
             runningHint={interaction.runningHint}
             accent={accent}

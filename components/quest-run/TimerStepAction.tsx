@@ -5,6 +5,10 @@ import { PrimaryButton } from '@/components/ui/PrimaryButton';
 import { stepInteractionStyles as styles } from '@/components/quest-run/stepInteractionStyles';
 import { alertTwoChoice } from '@/lib/alertCompat';
 import {
+  cancelTimerDone,
+  scheduleTimerDone,
+} from '@/src/features/notifications/questNotifications';
+import {
   clearStepTimer,
   elapsedSeconds,
   formatTimerClock,
@@ -15,7 +19,9 @@ import type { UserQuestStepEvidence } from '@/src/types/quest';
 
 type Props = {
   userQuestId: string;
+  questId: string;
   stepId: string;
+  stepTitle: string;
   minSeconds: number;
   runningHint?: string;
   accent: string;
@@ -35,7 +41,9 @@ type Props = {
  */
 export function TimerStepAction({
   userQuestId,
+  questId,
   stepId,
+  stepTitle,
   minSeconds,
   runningHint,
   accent,
@@ -73,16 +81,20 @@ export function TimerStepAction({
     const ts = await startStepTimer(userQuestId, stepId);
     setNow(Date.now());
     setStartedAt(ts);
+    // You are out doing the step with the phone away: say when the time is up.
+    void scheduleTimerDone({ userQuestId, questId, stepTitle, endsAt: ts + minSeconds * 1000 });
   }
 
   function finish() {
     onComplete({ kind: 'timer', seconds: elapsed });
     void clearStepTimer(userQuestId, stepId);
+    void cancelTimerDone(userQuestId);
   }
 
   function skip() {
     onComplete({ kind: 'self_attest' });
     void clearStepTimer(userQuestId, stepId);
+    void cancelTimerDone(userQuestId);
   }
 
   const skipLink = (
@@ -109,6 +121,7 @@ export function TimerStepAction({
         confirm: {
           text: 'Reset timer',
           onPress: () => {
+            void cancelTimerDone(userQuestId);
             void clearStepTimer(userQuestId, stepId).then(() => {
               setStartedAt(null);
             });
