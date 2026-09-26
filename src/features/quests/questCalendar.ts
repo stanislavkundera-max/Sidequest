@@ -85,16 +85,6 @@ export async function openQuestCalendarEditor(params: {
   return { outcome: 'unknown' };
 }
 
-export async function calendarEventStillExists(eventId: string): Promise<boolean> {
-  if (!eventId.trim()) return false;
-  try {
-    const ev = await Calendar.getEventAsync(eventId.trim());
-    return Boolean(ev?.id);
-  } catch {
-    return false;
-  }
-}
-
 /** When a saved event starts — iOS only, where the editor hands back the event id. */
 export async function calendarEventStart(eventId: string): Promise<Date | null> {
   try {

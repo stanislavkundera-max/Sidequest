@@ -1,10 +1,7 @@
-import { useFocusEffect } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import { useLocalSearchParams, useNavigation, useRouter } from 'expo-router';
-import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useMemo, useState } from 'react';
 import {
-  AppState,
-  type AppStateStatus,
   Platform,
   Pressable,
   ScrollView,
@@ -35,17 +32,12 @@ import { useMemoryStore } from '@/src/features/memories/memoryStore';
 import { scheduleQuestDay } from '@/src/features/notifications/questNotifications';
 import {
   calendarEventStart,
-  calendarEventStillExists,
   isDeviceCalendarCreationAvailable,
   openQuestCalendarEditor,
   suggestedQuestStart,
 } from '@/src/features/quests/questCalendar';
-// Pending verification is how the pre-R2-02 build confirmed a silently created
-// event. Kept for testers who update mid-step with one still pending.
 import {
-  clearPendingCalendarVerification,
   markCalendarOpened,
-  readPendingCalendarVerification,
   wasCalendarOpened,
 } from '@/src/features/quests/questRunnerPending';
 import { formatQuestDuration, QUEST_COPY } from '@/src/features/quests/questCopy';
@@ -135,7 +127,6 @@ export default function QuestRunScreen() {
 
   const accent = quest ? categoryAccentForCategoryId(quest.categoryId) : Theme.accent;
   const [acting, setActing] = useState(false);
-  const [calendarHint, setCalendarHint] = useState<string | null>(null);
   const [calendarDeviceOk, setCalendarDeviceOk] = useState<boolean>(() => Platform.OS !== 'web');
   // Tracks which step's Guide tip is expanded — collapsed by default (testers
   // found it noisy always-on), and keyed by step id so moving to a new step
@@ -144,7 +135,6 @@ export default function QuestRunScreen() {
   // Optional feelings note captured at the wrap-up moment itself (à la Garmin
   // Connect), folded into the auto-created memory rather than a separate step.
   const [feelingsNote, setFeelingsNote] = useState('');
-  const appStateRef = useRef<AppStateStatus>(AppState.currentState);
 
   useEffect(() => {
     let alive = true;
@@ -169,37 +159,6 @@ export default function QuestRunScreen() {
     const remaining = total - done;
     return { total, done, remaining };
   }, [quest, activeUq]);
-
-  const tryVerifyCalendarPending = useCallback(async () => {
-    if (!user || !quest || !activeUq || !currentStep) return;
-    if (currentStep.action?.kind !== 'calendar') return;
-
-    const saved = await readPendingCalendarVerification();
-    if (!saved || saved.userQuestId !== activeUq.id) return;
-    if (saved.stepId !== currentStep.id) {
-      await clearPendingCalendarVerification();
-      return;
-    }
-
-    const exists = await calendarEventStillExists(saved.eventId);
-    if (!exists) return;
-
-    try {
-      const result = await completeStepWithEvidence(
-        user.id,
-        activeUq.id,
-        currentStep.id,
-        { kind: 'calendar', eventId: saved.eventId },
-        { sourceScreen: 'quest_runner' }
-      );
-      if (result.ok) {
-        await clearPendingCalendarVerification();
-        setCalendarHint(null);
-      }
-    } catch {
-      // Store ErrorState reflects persistence errors.
-    }
-  }, [user, quest, activeUq, currentStep, completeStepWithEvidence, journeySummary]);
 
   const leaveQuest = useCallback(async () => {
     if (!user || !quest || !activeUq) return;
@@ -276,47 +235,6 @@ export default function QuestRunScreen() {
         : undefined,
     });
   }, [navigation, quest, activeUq, acting, pendingStore, confirmLeaveQuest]);
-
-  useFocusEffect(
-    useCallback(() => {
-      void tryVerifyCalendarPending();
-    }, [tryVerifyCalendarPending])
-  );
-
-  useEffect(() => {
-    const sub = AppState.addEventListener('change', (next) => {
-      const prev = appStateRef.current;
-      appStateRef.current = next;
-      if (prev.match(/inactive|background/) && next === 'active') {
-        void tryVerifyCalendarPending();
-      }
-    });
-    return () => sub.remove();
-  }, [tryVerifyCalendarPending]);
-
-  useEffect(() => {
-    void (async () => {
-      if (!activeUq || !currentStep || currentStep.action?.kind !== 'calendar') {
-        setCalendarHint(null);
-        return;
-      }
-      const saved = await readPendingCalendarVerification();
-      const nativeOk = await isDeviceCalendarCreationAvailable();
-      if (
-        saved &&
-        saved.userQuestId === activeUq.id &&
-        saved.stepId === currentStep.id &&
-        nativeOk
-      ) {
-        setCalendarHint(
-          'Added to your calendar. This step finishes on its own once the event is saved.'
-        );
-      } else {
-        setCalendarHint(null);
-      }
-    })();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeUq?.id, currentStep?.id]);
 
   async function beginIfNeeded() {
     if (!quest || !user) return;
@@ -657,18 +575,6 @@ export default function QuestRunScreen() {
             loading={primaryBusy}
             onPress={() => handleCalendarStep(step)}
           />
-          {calendarHint ? (
-            <View style={styles.hintBlock}>
-              <Text style={styles.hintText}>{calendarHint}</Text>
-              <Pressable
-                accessibilityRole="button"
-                accessibilityLabel="Check whether the calendar event is saved"
-                onPress={() => void tryVerifyCalendarPending()}
-                style={({ pressed }) => [pressed && styles.linkPressed]}>
-                <Text style={[styles.link, { color: accent }]}>Check again</Text>
-              </Pressable>
-            </View>
-          ) : null}
         </View>
       );
     }
@@ -948,9 +854,6 @@ const styles = StyleSheet.create({
   scroll: { padding: 20, paddingBottom: 40, gap: 16 },
   headerLeaveBtn: { paddingHorizontal: 12, paddingVertical: 6 },
   headerLeaveBtnText: { color: Theme.danger, fontSize: 15, fontFamily: 'Inter_600SemiBold', fontWeight: '600' },
-  hintBlock: { marginTop: 12, gap: 8 },
-  hintText: { fontSize: 13, fontFamily: 'Inter_400Regular', lineHeight: 18, color: Theme.textMuted },
-  link: { fontSize: 14, fontFamily: 'Inter_600SemiBold', fontWeight: '600' },
   linkPressed: { opacity: 0.75 },
   header: {
     backgroundColor: Theme.surface,

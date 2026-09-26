@@ -163,7 +163,7 @@ sanity `select`; `missing_group` and `missing_steps` should both read 0.
 
 **✅ Category promise on the quest screen.** The small label above the title now reads "ADVENTURE · new experiences, new hobbies" (Nature: quiet time outside; Relax: time to rest; Social: new people, closer friends) — one line, no new block. Things you get, not feelings promised (rule 6), and no "adrenaline" or "love" (rule 10: most Adventure quests are a course or a sign-up, most Social ones are calls and dinners).
 
-**✅ R2-12 done, with a caveat (2026-09-26).** The mentor's note about "A couple of honest ones" ended mid-sentence, so the objection itself is still unknown. The step was reworded against the plain-English standards instead: "A couple of honest ones." (an idiom that does not say what it is) → **"Two quick questions."**; "just a baseline" (jargon) → "Just for you to look back on — they don't change which quests you see. We'll ask again in a few months." (true: the app re-asks after ~3 months); "…have you recently felt lonely or isolated?" → "…felt lonely or isolated lately?". **Worth one message to the mentor: does this fix what bothered them?**
+**✅ R2-12 done, with a caveat (2026-09-26).** The mentor's note about "A couple of honest ones" ended mid-sentence, so the objection itself is still unknown. The step was reworded against the plain-English standards instead: "A couple of honest ones." (an idiom that does not say what it is) → **"Two quick questions."**; "just a baseline" (jargon) → "Just for you to look back on — they don't change which quests you see. We'll ask again in a few months." (true: the app re-asks after ~3 months); "…have you recently felt lonely or isolated?" → "…felt lonely or isolated lately?". The follow-up with the mentor was dropped (Standa, 2026-09-26): the reworded step stands.
 
 ### R2-34 · An optional stretch on a quest — parked until the test ends
 **Source:** Standa, 2026-09-26 — "extra level jako tip: normální quest je swim in river, extra tip: skinny dip in the river if possible". His own call: better to wait until the end of the test.
@@ -556,17 +556,6 @@ it's applied unevenly.
 **What I'd do:** ask what specifically looked wrong before changing anything. If it's the pairing,
 defend the decision. If it's the application, that's a real (and different) task.
 → See [`feedback-mentor-ambiguity-handling`] — this is exactly the ambiguous-mentor-call pattern.
-
-### R2-12 · Onboarding wording in "A couple of honest ones"
-**Source:** numbered 16) — *"špatný wording při onboardingu v sekci a couple of honest ones-"*. The
-sentence ends mid-thought; **the specifics never arrived.**
-
-The current copy is already the *post-round-1* version: both questions were reworded after Mára and
-Martin flagged them ("recently felt lonely or isolated", "How much time have you spent in nature
-lately?"). So round 2 is objecting to wording that round 1 feedback produced — which makes guessing
-actively risky.
-
-**Ask for the specific phrase** before touching it.
 
 ### R2-19 · Social layer — see friends' milestones
 **Source:** numbered 12).3 — *"něco jak máš v appkách na běhání"*.
