@@ -378,7 +378,7 @@ const SEED_QUESTS_RAW: Array<Omit<Quest, 'journeyIntro' | 'actionSteps'>> = [
     title: 'Sign up for something you are not ready for',
     shortDescription: 'A race, a climb, a stage. Pay the entry fee today.',
     fullDescription:
-      'Find something with a real date on it that you could not do today — a half marathon, a long ride, an open mic, a competition — and enter it. Pay the fee, so backing out costs something. The training is the rest of the year; the quest is the commitment.',
+      'Find something with a real date on it that you could not do today, and enter it. A race: a half marathon, a triathlon, a bike race. A climb: a climbing course, a bouldering course, a pole dancing course. A stage: an open mic, stand-up comedy. Pay the fee, so backing out costs something. The training is the rest of the year; the quest is the commitment.',
     categoryId: 'cat-adventure',
     timeframe: 'weekly',
     difficulty: 'medium',
@@ -420,7 +420,7 @@ const SEED_QUESTS_RAW: Array<Omit<Quest, 'journeyIntro' | 'actionSteps'>> = [
     title: 'Leave the ground',
     shortDescription: 'Paraglide, skydive, or balloon — feet off the earth, on purpose.',
     fullDescription:
-      'Get airborne with nothing much around you: a tandem paraglide off a hillside, a jump, a balloon at dawn. Book it with a licensed operator and pick a weather window rather than a fixed date — the good flights are the ones that wait for the right morning.',
+      'Get airborne with nothing much around you: a tandem paraglide off a hillside, a tandem skydive, a balloon at dawn. Book it with a licensed operator and pick a weather window rather than a fixed date — the good flights are the ones that wait for the right morning.',
     categoryId: 'cat-adventure',
     timeframe: 'yearly',
     difficulty: 'hard',
@@ -508,7 +508,7 @@ const SEED_QUESTS_RAW: Array<Omit<Quest, 'journeyIntro' | 'actionSteps'>> = [
     title: 'Read on paper somewhere that is not home',
     shortDescription: 'A book, a café or a park, thirty minutes.',
     fullDescription:
-      'Take something printed — book, magazine, newspaper — somewhere that is not your flat, and read it there for half an hour.',
+      'Take something printed — a book, a magazine, a newspaper — to a café, a park, or anywhere that is not your flat, and read it there for half an hour.',
     categoryId: 'cat-relax',
     timeframe: 'weekly',
     difficulty: 'easy',

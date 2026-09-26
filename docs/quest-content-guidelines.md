@@ -309,6 +309,25 @@ Social/Relax.
 *Origin: Standa, 2026-09-21.*
 
 ---
+## 12. The examples must match the words that promise them
+
+When the short line names kinds of thing, the examples further down name exactly those kinds — one for one, in the same order, in the same spirit. If the line says *a race*, the examples are races. If it says *a stage*, they are stages.
+
+| The short line says | The full description must then give |
+|---|---|
+| "A race, a climb, a stage." | **A race:** a half marathon, a triathlon, a bike race. **A climb:** a climbing course, a bouldering course, a pole dancing course. **A stage:** an open mic, stand-up comedy. |
+| "Paraglide, skydive, or balloon" | A tandem paraglide, a tandem skydive, a balloon at dawn — not "a jump" for the skydive. |
+
+**Not:** the same quest listing *a half marathon, a long ride, an open mic, a competition* — which is what it said before. Only two of those four answer to "race, climb, stage", and *climb* has no example at all, so a reader who wanted to climb finds nothing that is theirs.
+
+**Why:** a promise in the first line that the second line does not keep reads as carelessness, and it quietly drops one of the audiences the first line invited. It is also how the same idea ends up said twice in different words, which is the density problem R2-10 was about.
+
+**How to check:** for each quest whose short line is a list, put the list next to the full description and tick each item off. Applied 2026-09-26 to the whole catalogue: three quests needed a fix (sign up for something, leave the ground, read on paper); the rest already matched.
+
+*Origin: Standa, 2026-09-26, reading the quest screen — "pokud tam říkáme race, tak bych se to vždycky snažil udržet v tomhle duchu".*
+
+---
+
 ## More rules
 
 _(Add as they are decided — e.g. quest length/time framing, difficulty calibration,

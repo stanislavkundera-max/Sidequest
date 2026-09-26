@@ -412,8 +412,9 @@ export default function QuestDetailScreen() {
         <View style={styles.metaRow}>
           <Text style={styles.meta}>
             {[
-              // The level is already the badge above; saying it twice was noise.
-              quest.difficulty,
+              // Difficulty (easy / medium / hard) is what the app uses to rank quests, not
+              // something a reader can act on: "medium" says nothing without the rules behind
+              // it, and the cards never showed it. Only the time is left (2026-09-26).
               questDurationLabel(quest.estimatedDurationMinutes),
             ]
               .filter(Boolean)

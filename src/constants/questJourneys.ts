@@ -1064,7 +1064,7 @@ export const QUEST_JOURNEY_BY_ID: Record<
       {
         id: 's1',
         title: 'Name the thing you would need months to be ready for',
-        detail: 'A distance, a route, a stage, a competition.',
+        detail: 'A race, a course, or a stage.',
         tip: 'If you could do it next weekend, it is the wrong one. It should sit just past believable.',
         estimateMinutes: 10,
         interaction: {
