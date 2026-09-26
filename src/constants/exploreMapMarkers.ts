@@ -9,14 +9,16 @@ export type ExploreMapMarkerDef = {
 };
 
 /** Pixel size of `explore-map-background.jpg` (illustrated forest map). */
-export const EXPLORE_MAP_SOURCE_SIZE = { width: 896, height: 1199 };
+export const EXPLORE_MAP_SOURCE_SIZE = { width: 896, height: 1200 };
 
 // One category per quadrant, each on the scene painted for it (round 2, R2-17; map repainted and
 // placed with Standa 2026-09-26):
 //   • adventure (top left)     → the raft in the white water below the waterfalls
 //   • nature    (top right)    → the meadow with the deer, level with adventure
-//   • relax     (bottom left)  → the pond (its right half: the left half is cropped on phones)
-//   • social    (bottom right) → just below the campfire, so the bubble does not cover the fire
+//   • social    (bottom left)  → just below and right of the campfire, so the bubble does not cover
+//     the fire and stays clear of the left edge on phones
+//   • relax     (bottom right) → the pond with the jetty
+// Relax and social swapped sides when the map was repainted (Standa, 2026-09-26), for a better flow.
 //
 // Constraints when retuning:
 //   • cover-fit crops the sides on a portrait phone while the full height
@@ -35,8 +37,8 @@ export const EXPLORE_MAP_MARKERS: ExploreMapMarkerDef[] = [
   },
   {
     categoryId: 'cat-relax',
-    u: 0.27,
-    v: 0.665,
+    u: 0.71,
+    v: 0.74,
     accessibilityHint: 'Relax quests — at the pond, time to rest',
   },
   {
@@ -47,8 +49,8 @@ export const EXPLORE_MAP_MARKERS: ExploreMapMarkerDef[] = [
   },
   {
     categoryId: 'cat-social',
-    u: 0.72,
-    v: 0.785,
+    u: 0.28,
+    v: 0.79,
     accessibilityHint: 'Social quests — around the fire, new people and closer friends',
   },
 ];
