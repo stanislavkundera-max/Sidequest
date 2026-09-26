@@ -463,6 +463,9 @@ spring back to their landmark on release, and a plain tap still opens the panel.
 via `onStartShouldSetPanResponderCapture` and decides tap-vs-drag on release, because react-native-web
 never lets a parent take over from a child (the Pressable) that already holds the press.
 
+**Zoom (15b) dropped 2026-09-26 (Standa).** In its place, a standing design note: the map has to be more
+interesting so that people *want* to interact with it — dragging is a first step, not the answer.
+
 Note *why* he wants it — fidget-friendliness, holding the attention of someone who doesn't
 concentrate easily. That's a real audience argument, not decoration.
 
