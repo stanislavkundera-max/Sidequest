@@ -434,6 +434,12 @@ So this is "build the notification system", not "tweak the runner".
 
 **Do R2-06 now; do this deliberately, as its own piece of work.**
 
+**Status 2026-09-26 — reframed, and it is a real task, not a parked one.** Standa: some steps should be
+communicated by a notification that leads straight back into the app. That needs no server: local
+scheduled notifications (`expo-notifications`) plus the existing `sidequestlife://` scheme deep-link to
+the step. It does need a new native build. "Needs infrastructure" above overstated it. Open design
+questions: which steps notify, what tapping does, quiet while a timer runs (R2-21).
+
 ### R2-21 · Don't disturb while the timer runs
 **Source:** **david b.** — *"Tohle bych zmáčknul v moment, kdy začnu vycházet na track alá zapnutí
 Garmin hodinek a po danou dobu nechci bejt rušenej a chci vychutnávat přírodu"*.
@@ -450,6 +456,12 @@ File it against R2-13 so it isn't discovered the hard way after the notification
 posouvat / A hrát si s nimi / Me by to bavilo mnohem víc 🤣 / Nebo zoomovat mapu"* · numbered 14)
 *"viz screen posouvání bublinek atd"*.
 **Type:** interaction design. Two testers' worth of signal (Marian, plus whoever wrote 14).
+
+**Status 2026-09-26 — dragging DONE, zoom still open.** Bubbles follow the finger (clamped to the map),
+spring back to their landmark on release, and a plain tap still opens the panel. Verified in the browser
+(175 px drag, edge clamp, tap). Not yet in a build. Implementation note: the marker claims the touch
+via `onStartShouldSetPanResponderCapture` and decides tap-vs-drag on release, because react-native-web
+never lets a parent take over from a child (the Pressable) that already holds the press.
 
 Note *why* he wants it — fidget-friendliness, holding the attention of someone who doesn't
 concentrate easily. That's a real audience argument, not decoration.

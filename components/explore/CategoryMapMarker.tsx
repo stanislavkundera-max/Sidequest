@@ -1,8 +1,9 @@
-import { memo, useCallback } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { memo, useCallback, useRef } from 'react';
+import { PanResponder, Pressable, StyleSheet, Text, View } from 'react-native';
 import Animated, {
   useAnimatedStyle,
   useSharedValue,
+  withSpring,
   withTiming,
 } from 'react-native-reanimated';
 
@@ -18,10 +19,17 @@ type Props = {
   left: number;
   top: number;
   accessibilityHint: string;
+  /** Size of the map the marker sits on; a dragged marker is kept inside it. */
+  bounds: { w: number; h: number };
   onPress: (categoryId: string) => void;
 };
 
 const MARKER_SIZE = 52;
+/** Finger travel, in px, before a touch stops being a tap and becomes a drag. */
+const DRAG_SLOP = 6;
+/** Keeps a dragged marker off the very edge, and its label clear of the bottom. */
+const EDGE = MARKER_SIZE / 2 + 8;
+const LABEL_ROOM = 44;
 /** Wide enough for the longest category name; the circle stays centred in it. */
 const WRAP_WIDTH = 112;
 
@@ -33,30 +41,78 @@ export const CategoryMapMarker = memo(function CategoryMapMarker({
   left,
   top,
   accessibilityHint,
+  bounds,
   onPress,
 }: Props) {
   const scale = useSharedValue(1);
+  const tx = useSharedValue(0);
+  const ty = useSharedValue(0);
 
   const animatedStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: scale.value }],
+    transform: [
+      { translateX: tx.value },
+      { translateY: ty.value },
+      { scale: scale.value },
+    ],
   }));
 
-  const handlePressIn = useCallback(() => {
-    scale.value = withTiming(0.92, { duration: 120 });
-  }, [scale]);
+  // Bubbles can be picked up and moved about (round 2, R2-15 — Marian: "když by se ty
+  // bublinky na mapě daly posouvat a hrát si s nimi", who wants something to fidget with).
+  // They spring back to their landmark when let go: the map stays what it is, and nobody
+  // can leave a category stranded somewhere meaningless. A tap still opens the panel — the
+  // gesture only takes over once the finger has actually moved.
+  const geometry = useRef({ left, top, bounds });
+  geometry.current = { left, top, bounds };
+  const dragging = useRef(false);
 
-  const handlePressOut = useCallback(() => {
-    scale.value = withTiming(1, { duration: 400 });
-  }, [scale]);
+  const settle = useCallback(() => {
+    tx.value = withSpring(0, { damping: 11, stiffness: 140 });
+    ty.value = withSpring(0, { damping: 11, stiffness: 140 });
+    scale.value = withTiming(1, { duration: 200 });
+  }, [scale, tx, ty]);
 
-  const handlePress = useCallback(() => {
-    onPress(categoryId);
-  }, [categoryId, onPress]);
+  // The marker claims the touch straight away and decides tap-vs-drag on release: react-native-web
+  // never offers a parent the chance to take over from a child that already holds the press.
+  const onPressRef = useRef(onPress);
+  onPressRef.current = onPress;
+  const pan = useRef(
+    PanResponder.create({
+      onStartShouldSetPanResponderCapture: () => true,
+      onPanResponderGrant: () => {
+        dragging.current = false;
+        scale.value = withTiming(0.92, { duration: 120 });
+      },
+      onPanResponderMove: (_e, g) => {
+        if (!dragging.current) {
+          if (Math.abs(g.dx) + Math.abs(g.dy) <= DRAG_SLOP) return;
+          dragging.current = true;
+          scale.value = withTiming(1.12, { duration: 120 });
+        }
+        const { left: cx, top: cy, bounds: b } = geometry.current;
+        const clamp = (v: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, v));
+        tx.value = clamp(cx + g.dx, EDGE, b.w - EDGE) - cx;
+        ty.value = clamp(cy + g.dy, EDGE + 100, b.h - LABEL_ROOM) - cy;
+      },
+      onPanResponderRelease: () => {
+        const wasDrag = dragging.current;
+        dragging.current = false;
+        settle();
+        if (!wasDrag) onPressRef.current(categoryId);
+      },
+      onPanResponderTerminate: () => {
+        dragging.current = false;
+        settle();
+      },
+    })
+  ).current;
+
+  const handlePress = useCallback(() => onPress(categoryId), [categoryId, onPress]);
 
   const accent = categoryAccentForCategoryId(categoryId);
 
   return (
     <Animated.View
+      {...pan.panHandlers}
       style={[
         styles.wrap,
         { left: left - WRAP_WIDTH / 2, top: top - MARKER_SIZE / 2 },
@@ -64,8 +120,6 @@ export const CategoryMapMarker = memo(function CategoryMapMarker({
       ]}>
       <Pressable
         onPress={handlePress}
-        onPressIn={handlePressIn}
-        onPressOut={handlePressOut}
         accessibilityRole="button"
         accessibilityLabel={`${categoryName}. ${accessibilityHint}`}
         accessibilityState={{ selected }}

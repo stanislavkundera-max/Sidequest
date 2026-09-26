@@ -81,6 +81,7 @@ export function ExploreMapScene({
                 left={x}
                 top={y}
                 accessibilityHint={marker.accessibilityHint}
+                bounds={size}
                 onPress={onSelectCategory}
               />
             );
