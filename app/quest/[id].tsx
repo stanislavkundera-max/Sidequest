@@ -15,7 +15,12 @@ import { categoryAccentForCategoryId } from '@/lib/categoryAccent';
 import { isSupabaseConfigured, SUPABASE_CONFIGURE_HELP } from '@/lib/supabase';
 import { QuestFeedbackCard } from '@/src/features/feedback/QuestFeedbackCard';
 import { useMemoryStore } from '@/src/features/memories/memoryStore';
-import { questDurationWords, QUEST_COPY, TIMEFRAME_LABEL } from '@/src/features/quests/questCopy';
+import {
+  CATEGORY_PROMISE,
+  questDurationWords,
+  QUEST_COPY,
+  TIMEFRAME_LABEL,
+} from '@/src/features/quests/questCopy';
 import {
   canUserBeginQuest,
   countCompletedJourneySteps,
@@ -401,7 +406,12 @@ export default function QuestDetailScreen() {
       <ScrollView contentContainerStyle={styles.scroll}>
         {/* One small label above the title, not two. The level (Anytime / Plan ahead / Big
             occasion) moved down next to the time — they are both facts about the doing. */}
-        <Text style={[styles.category, { color: accent }]}>{categoryName(quest.categoryId)}</Text>
+        <Text style={[styles.category, { color: accent }]}>
+          {categoryName(quest.categoryId)}
+          {CATEGORY_PROMISE[quest.categoryId] ? (
+            <Text style={styles.categoryPromise}> · {CATEGORY_PROMISE[quest.categoryId]}</Text>
+          ) : null}
+        </Text>
         <Text style={styles.title}>{quest.title}</Text>
         <Text style={styles.shortDescription}>{quest.shortDescription}</Text>
         <Text style={styles.body}>{quest.fullDescription}</Text>
@@ -568,6 +578,16 @@ const styles = StyleSheet.create({
     textTransform: 'uppercase',
     letterSpacing: 0.8,
     marginBottom: 8,
+  },
+  // Nested in the label above: undo its capitals and spacing so the promise reads as a
+  // plain phrase beside the category name, not a second shouting tag.
+  categoryPromise: {
+    textTransform: 'none',
+    letterSpacing: 0,
+    fontFamily: 'Inter_400Regular',
+    fontWeight: '400',
+    fontSize: 13,
+    color: Theme.textMuted,
   },
   title: {
     fontSize: 24,

@@ -23,6 +23,23 @@ export const TIMEFRAME_LABEL: Record<QuestTimeframe, string> = {
   yearly: 'Big occasion',
 };
 
+/**
+ * What each category is for — one short phrase, shown next to its name on the quest screen.
+ *
+ * The screen said what a quest *is* but never what the category gives you (Standa,
+ * 2026-09-26). Kept to things you get, not feelings promised: rule 6 says the app names
+ * the thing and does not tell you how it will make you feel, and rule 10 says the words
+ * must match what happens. That is why Adventure does not say "adrenaline" (most of it is a
+ * course, a train ride, a sign-up) and Social does not say "love" (it is calls, dinners and
+ * invitations).
+ */
+export const CATEGORY_PROMISE: Record<string, string> = {
+  'cat-adventure': 'new experiences, new hobbies',
+  'cat-nature': 'quiet time outside',
+  'cat-relax': 'time to rest',
+  'cat-social': 'new people, closer friends',
+};
+
 export const QUEST_COPY = {
   activePathFullTitle: 'You already have three quests going',
   activePathFullBody:
