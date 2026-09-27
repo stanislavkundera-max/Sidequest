@@ -84,6 +84,19 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
      * selection on Android 12 and below (minSdk is 24).
      */
     blockedPermissions: ['android.permission.SYSTEM_ALERT_WINDOW'],
+    /**
+     * On-time "Time is up" notifications (code review 2026-09-27).
+     *
+     * Without this, expo-notifications can only set an inexact alarm on Android 12+, which the
+     * system may deliver well after the timer ends — up to three quarters of the timer's length
+     * late with the phone locked in a pocket, the exact situation the timer is for. Declared,
+     * it is granted by default on Android 12 and 13. On Android 14+ it starts off and the person
+     * can turn it on under App info → Alarms & reminders; the app does not ask (a design call —
+     * one more prompt), so there the alert stays as timely as before.
+     *
+     * Not USE_EXACT_ALARM: Play restricts that one to alarm-clock and calendar apps.
+     */
+    permissions: ['android.permission.SCHEDULE_EXACT_ALARM'],
   },
   web: {
     bundler: 'metro',
