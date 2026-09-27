@@ -828,11 +828,12 @@ checked in the web build (phone size) with throwaway guest accounts.
 | CR-14 | ⚪ `/quest/select` unreachable | Deleted | Typecheck |
 
 **Standa, to do — one flat list:**
-1. Publish the OTA update (PowerShell, from the project folder):
+1. ✅ Done 2026-09-27 — OTA published from `1c2b796`, Android runtime `bb7b76b1…` (matches build 11).
+   For the record, the command (PowerShell, from the project folder):
    `$env:NODE_ENV="production"; npx.cmd eas-cli update --branch production --environment production --message "Code review fixes"`
    — Android runtime must read `bb7b76b1…`.
-2. Run `supabase/analytics_rls_own_only.sql` in the SQL editor.
-3. **Set up custom SMTP before testers create accounts.** Checked in Supabase's docs 2026-09-27: the
+2. ✅ Done 2026-09-27 — `supabase/analytics_rls_own_only.sql` run; both policies read `auth.uid() = user_id`.
+3. **In progress 2026-09-27 — Gmail SMTP** (`smtp.gmail.com`, 465, user `sidequestlifeapp@gmail.com`, password = a Google app password, still to create). **Set up custom SMTP before testers create accounts.** Checked in Supabase's docs 2026-09-27: the
    built-in e-mail service *"will refuse to deliver messages to addresses that are not part of the
    project's team"* and sends at most 2 an hour. Without SMTP no tester gets a confirmation code —
    not for Create an account, not for sign-up, not for a password reset (the app then shows "We

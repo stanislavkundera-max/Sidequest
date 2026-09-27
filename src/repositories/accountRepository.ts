@@ -64,6 +64,12 @@ export function describeAccountSaveError(e: unknown): string {
   if (code === 'email_exists' || /already (been )?registered/i.test(message)) {
     return 'That e-mail already has an account. Your quests are in this guest account, so use a different e-mail to keep them.';
   }
+  // The built-in Supabase mailer refuses any address outside the project team; until the project
+  // has its own SMTP, every guest gets this. Their data is untouched — say so, and that it is not
+  // their doing (docs/play-store-roadmap.md, "Custom SMTP").
+  if (code === 'email_address_not_authorized' || /not authorized/i.test(message)) {
+    return "We can't send e-mails yet — that's on our side, not yours. Your quests and memories stay safe in this guest account; try again in a few days.";
+  }
   if (code === 'over_email_send_rate_limit' || /rate limit/i.test(message)) {
     return 'Too many e-mails in a short time. Wait a few minutes, then try again.';
   }
