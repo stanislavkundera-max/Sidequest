@@ -832,10 +832,11 @@ checked in the web build (phone size) with throwaway guest accounts.
    `$env:NODE_ENV="production"; npx.cmd eas-cli update --branch production --environment production --message "Code review fixes"`
    — Android runtime must read `bb7b76b1…`.
 2. Run `supabase/analytics_rls_own_only.sql` in the SQL editor.
-3. **Check that account e-mails reach testers.** Saving a guest account sends a confirmation e-mail;
-   the built-in Supabase e-mail service is rate-limited (see play-store-roadmap "Custom SMTP") and
-   may not deliver to addresses outside the project team. Try it with an address that is not yours
-   before telling testers; if it does not arrive, set up SMTP (Resend) first.
+3. **Set up custom SMTP before testers create accounts.** Checked in Supabase's docs 2026-09-27: the
+   built-in e-mail service *"will refuse to deliver messages to addresses that are not part of the
+   project's team"* and sends at most 2 an hour. Without SMTP no tester gets a confirmation code —
+   not for Create an account, not for sign-up, not for a password reset (the app then shows "We
+   can't send the e-mail yet"). Resend's free tier is enough; see play-store-roadmap "Custom SMTP".
 4. Optional: Supabase → Authentication → Emails → **"Change email address"** template — add
    `{{ .Token }}` so the e-mail carries a code as well as the link (the link alone works too).
 5. On a phone after the update: create an account from the guest one; on a calendar step, pick a

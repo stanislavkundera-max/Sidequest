@@ -450,6 +450,12 @@ of it is your problem:
 
 ### Custom SMTP for Supabase auth emails
 
+> **Update 2026-09-27 — now a blocker, not backlog.** Supabase's docs say the built-in service
+> *"will refuse to deliver messages to addresses that are not part of the project's team"*, at most
+> 2 per hour. So no tester has ever been able to confirm a sign-up or reset a password, and the new
+> "Create an account" screen (a guest keeping their data, code review 2026-09-27) cannot work for
+> anyone outside the team until SMTP is set up. The reasoning below predates that.
+
 Supabase's dashboard warns it plainly: *"You're using the built-in email service. This service has
 rate limits and is not meant to be used for production apps."* The limit is a handful of emails per
 hour.
