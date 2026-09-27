@@ -800,3 +800,44 @@ on tap), so the map fills up as you live. That gives the map a reason to be open
 cannot give, turns task #17 ("make the map invite interaction") into something concrete, and stays
 clear of points and levels: it is a record, not a score. Cost: marker art and a layout rule for
 many marks per landmark; no schema change (completed quests and memories already exist).
+
+---
+
+## Code review 2026-09-27 — fixed
+
+Whole-app review (every finding checked twice), then fixed at Standa's request — all of it except
+the trophy and medal visuals, which stay a design call. Commit `8cadd20`, JavaScript only: the
+fingerprint still matches build 11 (`bb7b76b1…`), so it ships over the air. 32 unit tests pass;
+checked in the web build (phone size) with throwaway guest accounts.
+
+| # | Finding | Fix | Checked |
+|---|---|---|---|
+| CR-1 | 🔴 Signing out a guest deleted everything, dialog said "You can sign back in anytime" | Guest sign-out warns: *if you don't want to lose your quests and memories, create an account first*. New **Create an account** screen (`app/account/save.tsx`) turns the guest into an account — same user id, everything kept (e-mail → confirm by code or link → password). Account card offers it to guests. | Warning text and screen in the browser; the e-mail step itself not sent (it mails a real address) |
+| CR-2 | 🟠 Android quest-day reminder claimed the prefilled date ("It's tomorrow") | After "Yes, it's in", the app reads the event's real start back from the calendar (asks for calendar access then); no match → no reminder rather than a wrong one | Matching unit-tested; **on a phone still to test** |
+| CR-3 | 🟠 `app_opened` without a user on every cold start; token refreshes counted as opens | Counted after identify (cold start), on a sign-in to a new account, and on return from background | Browser: one `app_opened` with user per reload and per return |
+| CR-4 | 🟠 `quest_activated` only from the quest page | Lifecycle events sent from the store with `sourceScreen` | Browser: Journey start + pause emit all three events |
+| CR-5 | 🟠 Photos stored as one-year links | Path stored, 7-day link signed when shown and refreshed; old rows read too | Browser: DB got the path, link lifetime 7 days |
+| CR-6 | 🟡 Offline start → onboarding again | Session read locally; state cached per account; no signal = not sent back | Browser with profile requests blocked: onboarding skipped |
+| CR-7 | 🟡 Failed first load = endless "Loading…" | "Try again" on Journey, map panel, Progress; auto-retry on return | Browser with quest requests blocked, then retry |
+| CR-8 | 🟡 Timer "Time is up" may come late (inexact alarm) | `SCHEDULE_EXACT_ALARM` on branch **`next-build`** (native — would break OTA to build 11 on main) | Merge before the next build; test a 5-min timer with the phone locked |
+| CR-9 | 🟡 Paused before the first step shown as "Liked" | Told apart by the row's own timestamps; shown under "Pick up where you left off" | Browser + unit tests |
+| CR-10 | ⚪ Anyone could read/insert analytics rows without a user | `supabase/analytics_rls_own_only.sql` | **Standa runs it** |
+| CR-11 | ⚪ Device-local choices shared across accounts on one phone | Kept per account; notification setting synced from the profile at start | Browser: keys per account, old shared key moved |
+| CR-12 | ⚪ Deleted/replaced photos stayed in storage | Removed from storage when replaced, removed or deleted | Browser: DELETE sent after removing a photo |
+| CR-13 | ⚪ Analytics printed to the device log in release | Console copy dev-only | Code |
+| CR-14 | ⚪ `/quest/select` unreachable | Deleted | Typecheck |
+
+**Standa, to do — one flat list:**
+1. Publish the OTA update (PowerShell, from the project folder):
+   `$env:NODE_ENV="production"; npx.cmd eas-cli update --branch production --environment production --message "Code review fixes"`
+   — Android runtime must read `bb7b76b1…`.
+2. Run `supabase/analytics_rls_own_only.sql` in the SQL editor.
+3. **Check that account e-mails reach testers.** Saving a guest account sends a confirmation e-mail;
+   the built-in Supabase e-mail service is rate-limited (see play-store-roadmap "Custom SMTP") and
+   may not deliver to addresses outside the project team. Try it with an address that is not yours
+   before telling testers; if it does not arrive, set up SMTP (Resend) first.
+4. Optional: Supabase → Authentication → Emails → **"Change email address"** template — add
+   `{{ .Token }}` so the e-mail carries a code as well as the link (the link alone works too).
+5. On a phone after the update: create an account from the guest one; Leave on the calendar step
+   and pick another day → the reminder should come a day before *that* day.
+6. Next build: merge branch `next-build` into `main` right before `eas build`.
