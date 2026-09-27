@@ -706,3 +706,52 @@ Not scheduled yet — flagging the cost so it is decided rather than discovered:
   compiled, not what's in the repo. Verify before upload, every time.
 - **If anything in R2-10 or R2-08 touches quest content, run the generated SQL** against the live
   Supabase project — otherwise the change is invisible to every tester.
+
+---
+
+## Open tasks, 2026-09-27 — one flat list
+
+Build 11 (`71e006c`) is the current build and the first with OTA (`eas update`). "No build" means
+it ships via OTA, SQL, the web deploy, or is not code at all.
+
+**Done 2026-09-27:** ✅ build 11 uploaded to Closed testing (Alpha) · ✅ testers messaged ·
+✅ `supabase/quests_catalogue.sql` (regenerated 2026-09-26) run against the live project.
+
+| # | Task | Needs a build? |
+|---|---|---|
+| 4 | Delete throwaway account `a3747ca8-…` (R2-29) — its `analytics_events` first | No — SQL |
+| 5 | Verify on a phone: calendar step returns to the step (R2-02) | No |
+| 6 | Verify on a phone: memory photo upload / save without photo (R2-04) | No |
+| 7 | Verify on a phone: new splash (R2-07) | No |
+| 8 | Verify on a phone: quest-day reminder, tap opens the step (R2-13) | No |
+| 9 | Verify on a phone: "time is up" after a timer | No |
+| 10 | Verify on a phone: nothing disturbs a running timer (R2-21) | No |
+| 11 | Verify on a phone: dragging map bubbles (R2-15) | No |
+| 12 | Verify the NEW badge on live data (R2-08) | No |
+| 13 | Watch 12+ testers for 14 continuous days — **start date and count not recorded yet** | No |
+| 14 | Prepare the Play forms (R2-22) | No |
+| 15 | After 14 days: request production access (roadmap 4.1) | No |
+| 16 | Demo / reviewer account | No |
+| 17 | Make the map more interesting, so people want to touch it | No — OTA |
+| 18 | Upscaled map art | No — OTA |
+| 19 | Relax cabin partly hidden behind its bubble on a phone — check on the new painting | No — OTA |
+| 20 | Progress "trophy shelf" (trophy, medals #1–#3) — Standa's design call | No — OTA |
+| 21 | R2-34 optional stretch as a tip — parked until the test ends | No — SQL |
+| 22 | R2-28 price as display logic — Standa: last | No — OTA + SQL |
+| 23 | R2-16 real city map with places | **Yes** — location permission, maps library |
+| 24 | R2-18 offline mode | **Likely yes** — native storage (SQLite) |
+| 25 | R2-19 social layer — decision first (read `1c4415f`) | Decision; no build to decide |
+| 26 | R2-14 full redesign — after the test, with named reference apps | No — OTA |
+| 27 | Dark mode | **Yes** — `userInterfaceStyle: 'light'` in `app.config.ts` |
+| 28 | Play feature graphic still in Fraunces — Standa decides | No |
+| 29 | Welcome screen: use the Morocco story line or not | No — OTA |
+| 30 | Web calendar step: Google Calendar link (`tasks.md` #11a) | No — web deploy |
+| 31 | Domain `sidequestlife.com` | No |
+| 32 | Branding open questions: wordmark, short form, Play descriptor | No, unless the app icon changes |
+| 33 | Watch for "Leave doesn't save progress" (round-1 #8E) | No |
+| 34 | Content, process and brand voice (`tasks.md` #7) | No |
+| 35 | Instagram batching (`docs/instagram-strategy.md`) | No |
+| 36 | iOS / App Store — parked since 2026-09-05 | **Yes** — separate build |
+
+OTA caveat: with `runtimeVersion: fingerprint`, an update reaches build 11 only if nothing native
+changed. If any "No — OTA" item ends up touching native code, it needs a build.
