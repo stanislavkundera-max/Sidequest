@@ -46,4 +46,15 @@ air; only the icon and splash are native.
 
 1. Land the JS changes on `main`.
 2. If anything native changed → `eas build` → upload to Play, and the update is carried in it.
-3. If not → `eas update --branch production` and it is with testers in minutes.
+3. If not → publish with **`NODE_ENV=production`** set, and it is with testers in minutes:
+
+   ```
+   NODE_ENV=production npx eas-cli update --branch production --environment production --message "…"
+   ```
+
+   **Without `NODE_ENV=production` the update never arrives** (found 2026-09-27). `app.config.ts`
+   adds `devLoginEmail`/`devLoginPassword` to `extra` whenever `NODE_ENV` is not `production`. EAS
+   builds run with it set, a local shell does not, so the app config differs, the fingerprint
+   differs, and the update is published under a runtime no installed build has. It says
+   "Published!" either way. Check before publishing:
+   `NODE_ENV=production npx eas-cli fingerprint:compare --build-id <build id>` must say *matches*.
