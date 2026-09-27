@@ -23,6 +23,7 @@ import { loadSeenQuestIds } from '@/src/features/quests/seenQuests';
 import {
   isRecentlyAdded,
   likedQuestsInCategory,
+  newlyOpenedFirst,
   newlyOpenedQuestIds,
   openQuestsInCategory,
 } from '@/src/features/quests/suggestedQuests';
@@ -69,7 +70,7 @@ export function ExploreQuestPanel({ userId, categoryId, preferences }: Props) {
   // reachable per category instead of five. "Discover more" leads to the rest
   // of the same five.
   const unavailableQuestIds = useUnavailableQuestIds();
-  const recommended = useMemo(() => {
+  const openFive = useMemo(() => {
     if (!categoryId) return [] as Quest[];
     return openQuestsInCategory({
       catalog: quests,
@@ -77,7 +78,6 @@ export function ExploreQuestPanel({ userId, categoryId, preferences }: Props) {
       categoryId,
       preferences,
       unavailableQuestIds,
-      limit: 3,
     });
   }, [categoryId, quests, userQuests, preferences, unavailableQuestIds]);
 
@@ -115,6 +115,13 @@ export function ExploreQuestPanel({ userId, categoryId, preferences }: Props) {
       loadSeenQuestIds().then((v) => { if (alive) setSeenQuestIds(v); });
       return () => { alive = false; };
     }, [])
+  );
+
+  // Top three of the five, with what just opened first (round 2b) — otherwise the quest that
+  // replaced one you turned down lands in slot five and never shows on the map at all.
+  const recommended = useMemo(
+    () => newlyOpenedFirst(openFive, newlyOpened, seenQuestIds).slice(0, 3),
+    [openFive, newlyOpened, seenQuestIds]
   );
 
   const nothingToShow =
@@ -252,6 +259,7 @@ export function ExploreQuestPanel({ userId, categoryId, preferences }: Props) {
       <PathFullModal
         visible={actions.pathFullOpen}
         activeForModal={actions.activeForModal}
+        waitingUserQuestId={actions.waitingUserQuestId}
         getQuestById={getQuestById}
         onLetWait={(id) => void actions.onLetWait(id)}
         onClose={actions.closePathFull}

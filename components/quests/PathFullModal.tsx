@@ -10,6 +10,8 @@ type Props = {
   getQuestById: (id: string) => Quest | undefined;
   onLetWait: (userQuestId: string) => void;
   onClose: () => void;
+  /** The quest being paused right now; while set, the rows take no more taps. */
+  waitingUserQuestId?: string | null;
 };
 
 /** "Your path is full" chooser — shared by Explore and Journey. */
@@ -19,7 +21,9 @@ export function PathFullModal({
   getQuestById,
   onLetWait,
   onClose,
+  waitingUserQuestId = null,
 }: Props) {
+  const working = waitingUserQuestId != null;
   return (
     <Modal transparent visible={visible} animationType="fade" onRequestClose={onClose}>
       <View style={styles.modalBackdrop}>
@@ -31,18 +35,26 @@ export function PathFullModal({
             {activeForModal.map((uq) => {
               const q = getQuestById(uq.questId);
               const title = uq.snapshotTitle?.trim() || q?.title || 'Side quest';
+              const isWaiting = uq.id === waitingUserQuestId;
               return (
                 <Pressable
                   key={uq.id}
+                  disabled={working}
                   onPress={() => onLetWait(uq.id)}
-                  style={({ pressed }) => [styles.modalRow, pressed && styles.pressed]}>
+                  style={({ pressed }) => [
+                    styles.modalRow,
+                    pressed && styles.pressed,
+                    working && !isWaiting && { opacity: 0.45 },
+                  ]}>
                   <Text style={styles.modalRowTitle}>{title}</Text>
-                  <Text style={styles.modalRowAction}>{QUEST_COPY.moveToLater}</Text>
+                  <Text style={styles.modalRowAction}>
+                    {isWaiting ? 'Pausing…' : QUEST_COPY.moveToLater}
+                  </Text>
                 </Pressable>
               );
             })}
           </ScrollView>
-          <Pressable onPress={onClose} style={styles.modalClose}>
+          <Pressable onPress={onClose} disabled={working} style={styles.modalClose}>
             <Text style={styles.modalCloseText}>Close</Text>
           </Pressable>
         </View>

@@ -756,3 +756,47 @@ it ships via OTA, SQL, the web deploy, or is not code at all.
 
 OTA caveat: with `runtimeVersion: fingerprint`, an update reaches build 11 only if nothing native
 changed. If any "No — OTA" item ends up touching native code, it needs a build.
+
+---
+
+## Round 2b — Standa's list, 2026-09-27
+
+Verbatim source: [`round-2b-raw-notes.md`](round-2b-raw-notes.md) (screenshots in `round-2b-screens/`).
+All fixes are JavaScript only → OTA to build 11. Checked in the web build (phone-sized, touch
+events) with a throwaway anonymous account; 23 unit tests pass.
+
+| # | Item | Status |
+|---|---|---|
+| 2b-1 | Explore panel's grey bar looks draggable but was not (tester Eva) | ✅ Pulling the bar or header down closes the panel; a short pull springs back; the list keeps its own scroll; ✕ still works (`app/(tabs)/explore.tsx`) |
+| 2b-2 | After "Not for me" the replacement quest lands at the bottom | ✅ Newly opened, not-yet-seen quests go to the top, right under the liked ones — Journey and the Explore panel (`newlyOpenedFirst`). On the map it also means the replacement is now among the three shown at all |
+| 2b-3 | Turn everything down → empty category | ✅ Rule loosened: turned-down quests return as soon as nothing un-rejected is left to *offer* (in motion, liked, recently finished all count as taken). Was: only once everything else was *completed*, so three quests in motion blocked it. Unit tests updated + two new |
+| 2b-4 | Memories "Pick a quest" goes somewhere other than Journey | ✅ It went to the old `/quest/select` picker. It and the three "Browse quests" fallbacks now lead to Journey |
+| 2b-5 | "Let it wait" does nothing and throws an error | ✅ It worked, slowly: four round trips with no feedback, while the paused row vanished from the still-open modal — so people tapped again and paused a second quest or hit "Could not update". Now one tap at a time, the row says "Pausing…", the list holds still, and a network failure says so instead of failing silently |
+| 2b-6 | Does Explore add anything beyond Journey? | **DECIDE** — see below |
+
+**Found on the way, not fixed — for Standa:**
+- **A paused quest with no finished step shows as "Liked".** Pausing and liking both write
+  `saved_for_later`; only step progress tells them apart. Pause a quest you just started and it
+  reappears in Journey with a filled heart. Needs a way to tell the two apart (a column, or treat
+  "paused before any step" as a like on purpose and say so).
+- **`/quest/select` is now unreachable.** Nothing links to it any more; it still shows the old
+  "easy / medium", "cadence" wording. Candidate for deletion.
+- **Item 29 (welcome screen story) is already done** — onboarding opens with "Stuck in the same
+  week on repeat. Until a sunset in Morocco…".
+- Screenshots 03 and 05 show pre-build-11 wording ("Let it wait", "Drive something far too fast for
+  a road", "rented harness") — from an older install or taken before the catalogue SQL ran.
+
+### 2b-6 · What Explore is for — my read, Standa decides
+
+Today Explore is Journey with a painting on top: the panel shows the same five (top three), the
+same likes, and the in-progress ones. The only thing it has that Journey does not is the reveal of
+a category the first time you tap it. So as it stands, the honest answer is: **no, beyond the look,
+it adds nothing Journey does not.**
+
+What it could be, and what the positioning line already promises — *"a map of a life you actually
+lived"*: Journey stays **what's next** (the list), and the map becomes **where you have been** —
+every finished quest leaves a mark on its landmark (a pin, a small drawn object, the memory photo
+on tap), so the map fills up as you live. That gives the map a reason to be opened that the list
+cannot give, turns task #17 ("make the map invite interaction") into something concrete, and stays
+clear of points and levels: it is a record, not a score. Cost: marker art and a layout rule for
+many marks per landmark; no schema change (completed quests and memories already exist).

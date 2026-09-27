@@ -16,6 +16,7 @@ import { loadSeenQuestIds } from '@/src/features/quests/seenQuests';
 import {
   isRecentlyAdded,
   likedQuestsInCategory,
+  newlyOpenedFirst,
   newlyOpenedQuestIds,
   orderCategoryQuests,
   QUESTS_OPEN_PER_CATEGORY,
@@ -83,8 +84,11 @@ export function AllQuestsList({ initialCategoryId, preferences, actions }: Props
   // A "show more" control lived here for a day. It was removed because it
   // handed over the whole shelf: the rest of the catalogue is meant to be
   // earned by finishing something, so there is deliberately no way to reach it.
-  const visibleQuests = categoryQuests.slice(0, QUESTS_OPEN_PER_CATEGORY);
-  const lockedCount = Math.max(0, categoryQuests.length - visibleQuests.length);
+  const openFive = useMemo(
+    () => categoryQuests.slice(0, QUESTS_OPEN_PER_CATEGORY),
+    [categoryQuests]
+  );
+  const lockedCount = Math.max(0, categoryQuests.length - openFive.length);
 
   // Liked quests stay in their category, above the open five (R2-05).
   const getQuestById = useQuestDomainStore((s) => s.getQuestById);
@@ -127,6 +131,12 @@ export function AllQuestsList({ initialCategoryId, preferences, actions }: Props
         alive = false;
       };
     }, [])
+  );
+
+  // What just opened goes on top, right under the liked ones (round 2b).
+  const visibleQuests = useMemo(
+    () => newlyOpenedFirst(openFive, newlyOpened, seenQuestIds),
+    [openFive, newlyOpened, seenQuestIds]
   );
 
   if (quests.length === 0) {

@@ -350,7 +350,7 @@ export default function QuestDetailScreen() {
             title="Quest link is incomplete"
             message="The quest id is missing."
             actionLabel="Go to quests"
-            onAction={() => router.replace('/quest/select')}
+            onAction={() => router.replace('/(tabs)/journey')}
           />
         </View>
       </SafeAreaView>
@@ -373,7 +373,7 @@ export default function QuestDetailScreen() {
             title="Quest not found"
             message="This quest may be inactive or no longer available."
             actionLabel="Browse quests"
-            onAction={() => router.replace('/quest/select')}
+            onAction={() => router.replace('/(tabs)/journey')}
           />
         </View>
       </SafeAreaView>

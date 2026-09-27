@@ -130,8 +130,21 @@ export function useQuestActions(userId: string) {
     [refreshUserQuests, unlikeQuest, userId]
   );
 
+  // Pausing one quest and starting the waiting one takes four round trips. The modal used to sit
+  // there unchanged meanwhile, apart from the paused row vanishing, so people tapped again — and
+  // a second tap paused another quest or failed with "Could not update" (round 2b). Now one tap
+  // at a time, and the modal shows which quest is being paused.
+  const [waitingUserQuestId, setWaitingUserQuestId] = useState<string | null>(null);
+  const letWaitInFlight = useRef(false);
+  // The list as it was when the tap landed — the paused row must not vanish mid-way.
+  const frozenModalList = useRef<UserQuest[] | null>(null);
+
   const onLetWait = useCallback(
     async (userQuestId: string) => {
+      if (letWaitInFlight.current) return;
+      letWaitInFlight.current = true;
+      frozenModalList.current = activeForModal;
+      setWaitingUserQuestId(userQuestId);
       setBusy(true);
       try {
         const r = await deactivateQuest(userId, userQuestId);
@@ -146,11 +159,16 @@ export function useQuestActions(userId: string) {
         } else {
           setPathFullOpen(false);
         }
+      } catch {
+        alertCompat('Could not update', 'Check your connection and try again.');
       } finally {
+        letWaitInFlight.current = false;
+        frozenModalList.current = null;
+        setWaitingUserQuestId(null);
         setBusy(false);
       }
     },
-    [deactivateQuest, refreshUserQuests, runActivate, userId]
+    [activeForModal, deactivateQuest, refreshUserQuests, runActivate, userId]
   );
 
   const openQuest = useCallback(
@@ -161,7 +179,9 @@ export function useQuestActions(userId: string) {
   return {
     primaryBusy,
     pathFullOpen,
-    activeForModal,
+    activeForModal:
+      waitingUserQuestId && frozenModalList.current ? frozenModalList.current : activeForModal,
+    waitingUserQuestId,
     getQuestById,
     onStartNow,
     onLike,

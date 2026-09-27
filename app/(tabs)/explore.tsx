@@ -1,6 +1,12 @@
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { PanResponder, Pressable, StyleSheet, Text, View } from 'react-native';
+import Animated, {
+  useAnimatedStyle,
+  useSharedValue,
+  withSpring,
+  withTiming,
+} from 'react-native-reanimated';
 import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -64,6 +70,43 @@ export default function ExploreScreen() {
     [categories, selectedCategoryId]
   );
 
+  // The grey bar reads as "pull me down", so pulling down closes the panel (round 2b, Eva: "mám
+  // tendenci vždycky to jen protáhnout dolů abych se z toho dostala pryč. Ale nefunguje to").
+  // Only the bar and the header take the drag; the quest list below keeps its own scrolling.
+  const sheetDrag = useSharedValue(0);
+  const sheetDragStyle = useAnimatedStyle(() => ({
+    transform: [{ translateY: sheetDrag.value }],
+  }));
+  const closeSheet = useCallback(() => setSelectedCategoryId(null), []);
+  // A new panel always opens in place, whatever the last one was dragged to.
+  useEffect(() => {
+    sheetDrag.value = 0;
+  }, [selectedCategoryId, sheetDrag]);
+  const sheetPan = useMemo(
+    () =>
+      PanResponder.create({
+        // Claimed on touch-down: react-native-web never hands a move to a parent that did not
+        // hold the touch from the start. The close button inside still takes its own taps.
+        onStartShouldSetPanResponder: () => true,
+        onMoveShouldSetPanResponder: (_e, g) => g.dy > 6 && Math.abs(g.dy) > Math.abs(g.dx),
+        onPanResponderMove: (_e, g) => {
+          sheetDrag.value = Math.max(0, g.dy);
+        },
+        onPanResponderRelease: (_e, g) => {
+          if (g.dy > 90 || g.vy > 0.9) {
+            sheetDrag.value = withTiming(800, { duration: 180 });
+            setTimeout(closeSheet, 180);
+          } else {
+            sheetDrag.value = withSpring(0, { damping: 18, stiffness: 180 });
+          }
+        },
+        onPanResponderTerminate: () => {
+          sheetDrag.value = withSpring(0, { damping: 18, stiffness: 180 });
+        },
+      }),
+    [closeSheet, sheetDrag]
+  );
+
   const selectedQuestCount = useMemo(
     () =>
       selectedCategoryId ? quests.filter((q) => q.categoryId === selectedCategoryId).length : 0,
@@ -94,8 +137,11 @@ export default function ExploreScreen() {
           onSelectCategory={handleSelectCategory}
         />
         {selectedCategoryId ? (
-          <View style={styles.sheet}>
-            <View style={styles.grabber} />
+          <Animated.View style={[styles.sheet, sheetDragStyle]}>
+            <View {...sheetPan.panHandlers}>
+            <View style={styles.grabberArea}>
+              <View style={styles.grabber} />
+            </View>
             <View style={styles.sheetHeader}>
               <View
                 style={[
@@ -120,13 +166,14 @@ export default function ExploreScreen() {
                 <Ionicons name="close" size={18} color={Theme.text} />
               </Pressable>
             </View>
+            </View>
             <ExploreQuestPanel
               userId={user.id}
               categoryId={selectedCategoryId}
               preferences={preferences}
               hideHeader
             />
-          </View>
+          </Animated.View>
         ) : null}
       </View>
     </SafeAreaView>
@@ -153,13 +200,11 @@ const styles = StyleSheet.create({
     shadowRadius: 18,
     elevation: 16,
   },
+  grabberArea: { alignItems: 'center', paddingTop: 8, paddingBottom: 4 },
   grabber: {
-    alignSelf: 'center',
     width: 40,
     height: 5,
     borderRadius: 3,
-    marginTop: 8,
-    marginBottom: 4,
     backgroundColor: Theme.border,
   },
   sheetHeader: {

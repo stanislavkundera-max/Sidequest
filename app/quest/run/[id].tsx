@@ -529,7 +529,7 @@ export default function QuestRunScreen() {
           title="Quest not found"
           message="This quest may be inactive or no longer available."
           actionLabel="Browse quests"
-          onAction={() => router.replace('/quest/select')}
+          onAction={() => router.replace('/(tabs)/journey')}
         />
       </SafeAreaView>
     );

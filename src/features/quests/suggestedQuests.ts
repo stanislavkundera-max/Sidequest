@@ -179,7 +179,7 @@ export function orderCategoryQuests(params: {
       !params.unavailableQuestIds?.has(q.id)
   );
   const dismissed = currentlyDismissedQuestIds(params.userQuests);
-  const dismissedMayReturn = rejectedQuestsMayReturn(inCategory, dismissed, params.userQuests);
+  const dismissedMayReturn = rejectedQuestsMayReturn(inCategory, dismissed, claimed);
 
   const prefs = params.preferences ?? null;
   const preferredIds = prefs ? new Set(prefs.categories.map((c) => `cat-${c}`)) : null;
@@ -246,17 +246,21 @@ export function currentlyDismissedQuestIds(userQuests: UserQuest[]): Set<string>
  *
  * It replaced a flat 30-day comeback, under which a quest you had said no to
  * could reappear while there was still plenty you hadn't tried.
+ *
+ * Loosened 2026-09-27 (round 2b): "completed" was too strict. Someone with three
+ * Adventure quests in motion who turned down the rest saw an empty category —
+ * the quests in motion were not completed, so nothing came back (Standa: "mělo
+ * by to fungovat tak, že mi tam začnou naskakovat ty, který jsem odmítl"). Now
+ * they return as soon as nothing un-rejected is left to *offer* — in motion,
+ * liked or recently finished all count as taken, not as still on offer.
  */
 function rejectedQuestsMayReturn(
   inCategory: Quest[],
   dismissed: Set<string>,
-  userQuests: UserQuest[]
+  claimed: Set<string>
 ): boolean {
   if (!inCategory.some((q) => dismissed.has(q.id))) return false;
-  const everCompleted = new Set(
-    userQuests.filter((uq) => uq.status === 'completed').map((uq) => uq.questId)
-  );
-  return inCategory.every((q) => dismissed.has(q.id) || everCompleted.has(q.id));
+  return inCategory.every((q) => dismissed.has(q.id) || claimed.has(q.id));
 }
 
 /**
@@ -326,6 +330,22 @@ export function newlyOpenedQuestIds(params: {
   return new Set(
     open.filter((q) => !freshFive.has(q.id) && !touched.has(q.id)).map((q) => q.id)
   );
+}
+
+/**
+ * The open quests with the ones that just opened to you — and you have not looked at
+ * yet — moved to the top, order otherwise kept. Turning a quest down used to slide its
+ * replacement in at the bottom of the five, out of sight under the others (round 2b:
+ * "novy quest se dá dolu a ne nahoru"). The quest that just appeared is the one worth
+ * seeing first, directly under the liked ones.
+ */
+export function newlyOpenedFirst(
+  open: Quest[],
+  newlyOpened: ReadonlySet<string>,
+  seen: ReadonlySet<string>
+): Quest[] {
+  const isFresh = (q: Quest) => newlyOpened.has(q.id) && !seen.has(q.id);
+  return [...open.filter(isFresh), ...open.filter((q) => !isFresh(q))];
 }
 
 /**

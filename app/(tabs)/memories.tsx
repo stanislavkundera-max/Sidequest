@@ -210,7 +210,7 @@ export default function MemoriesScreen() {
               title="No memories yet"
               message="Complete a quest or add a short reflection to begin your timeline."
               actionLabel="Pick a quest"
-              onAction={() => router.push('/quest/select' as never)}
+              onAction={() => router.push('/(tabs)/journey' as never)}
             />
           ) : (
             <EmptyState

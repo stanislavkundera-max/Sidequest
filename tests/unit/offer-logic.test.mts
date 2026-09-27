@@ -93,13 +93,29 @@ test('return is counted per category — another category does not matter', () =
   assert.deepEqual(open(uqs), ['q1']);
 });
 
-test('a liked (not completed) quest keeps rejected ones hidden', () => {
+test('a liked quest is taken, not on offer — rejected ones come back (round 2b)', () => {
   const uqs = [
     row('q1', 'dismissed', { dismissedAt: iso(DAY) }),
     row('q2', 'saved_for_later', { savedAt: iso(DAY) }),
     ...catalog.slice(2).map((q) => row(q.id, 'completed', { completedAt: iso(2 * DAY) })),
   ];
-  assert.deepEqual(open(uqs), [], 'q2 is liked, not completed — q1 stays hidden');
+  assert.deepEqual(open(uqs), ['q1']);
+});
+
+test('three in motion, the rest turned down: the category is not left empty (round 2b)', () => {
+  const uqs = [
+    ...['q1', 'q2', 'q3'].map((id) => row(id, 'active')),
+    ...catalog.slice(3).map((q) => row(q.id, 'dismissed', { dismissedAt: iso(DAY) })),
+  ];
+  assert.deepEqual(open(uqs), ['q4', 'q5', 'q6', 'q7', 'q8']);
+});
+
+test('turning down one of the five still opens an un-rejected quest first', () => {
+  const uqs = [
+    ...['q1', 'q2', 'q3'].map((id) => row(id, 'active')),
+    row('q4', 'dismissed', { dismissedAt: iso(DAY) }),
+  ];
+  assert.deepEqual(open(uqs), ['q5', 'q6', 'q7', 'q8', 'q9']);
 });
 
 test('returned-then-started quest is no longer counted as dismissed', () => {

@@ -60,6 +60,7 @@ export default function JourneyScreen() {
       <PathFullModal
         visible={actions.pathFullOpen}
         activeForModal={actions.activeForModal}
+        waitingUserQuestId={actions.waitingUserQuestId}
         getQuestById={actions.getQuestById}
         onLetWait={(id) => void actions.onLetWait(id)}
         onClose={actions.closePathFull}
