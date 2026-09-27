@@ -743,7 +743,7 @@ it ships via OTA, SQL, the web deploy, or is not code at all.
 | 26 | R2-14 full redesign — after the test, with named reference apps | No — OTA |
 | 27 | Dark mode | **Yes** — `userInterfaceStyle: 'light'` in `app.config.ts` |
 | 28 | Play feature graphic still in Fraunces — Standa decides | No |
-| 29 | Welcome screen: use the Morocco story line or not | No — OTA |
+| 29 | ✅ Welcome screen already opens with the Morocco story (found 2026-09-27) | — |
 | 30 | ~~Web calendar step: Google Calendar link~~ — dropped 2026-09-27: the app ships on mobile only (Standa) | — |
 | 31 | Domain `sidequestlife.com` | No |
 | 32 | Branding open questions: wordmark, short form, Play descriptor | No, unless the app icon changes |
