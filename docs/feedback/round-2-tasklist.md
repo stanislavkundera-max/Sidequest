@@ -733,7 +733,7 @@ it ships via OTA, SQL, the web deploy, or is not code at all.
 | 16 | Demo / reviewer account | No |
 | 17 | Make the map more interesting, so people want to touch it | No — OTA |
 | 18 | Upscaled map art | No — OTA |
-| 19 | Relax cabin partly hidden behind its bubble on a phone — check on the new painting | No — OTA |
+| 19 | ✅ Relax cabin no longer hidden behind its bubble (Standa, 2026-09-27) | — |
 | 20 | Progress "trophy shelf" (trophy, medals #1–#3) — Standa's design call | No — OTA |
 | 21 | R2-34 optional stretch as a tip — parked until the test ends | No — SQL |
 | 22 | R2-28 price as display logic — Standa: last | No — OTA + SQL |
@@ -744,7 +744,7 @@ it ships via OTA, SQL, the web deploy, or is not code at all.
 | 27 | Dark mode | **Yes** — `userInterfaceStyle: 'light'` in `app.config.ts` |
 | 28 | Play feature graphic still in Fraunces — Standa decides | No |
 | 29 | Welcome screen: use the Morocco story line or not | No — OTA |
-| 30 | Web calendar step: Google Calendar link (`tasks.md` #11a) | No — web deploy |
+| 30 | ~~Web calendar step: Google Calendar link~~ — dropped 2026-09-27: the app ships on mobile only (Standa) | — |
 | 31 | Domain `sidequestlife.com` | No |
 | 32 | Branding open questions: wordmark, short form, Play descriptor | No, unless the app icon changes |
 | 33 | Watch for "Leave doesn't save progress" (round-1 #8E) | No |
