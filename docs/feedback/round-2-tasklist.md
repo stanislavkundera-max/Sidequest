@@ -752,5 +752,7 @@ it ships via OTA, SQL, the web deploy, or is not code at all.
 | 35 | Instagram batching (`docs/instagram-strategy.md`) | No |
 | 36 | iOS / App Store — parked since 2026-09-05 | **Yes** — separate build |
 
+**OTA 2026-09-27:** items 5, 8, 9 (reminder a day before, calendar and timer hints) published to build 11 — Android update group `4b924fc1`, runtime `bb7b76b1…`, commit `37de366`.
+
 OTA caveat: with `runtimeVersion: fingerprint`, an update reaches build 11 only if nothing native
 changed. If any "No — OTA" item ends up touching native code, it needs a build.
