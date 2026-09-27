@@ -52,6 +52,12 @@ air; only the icon and splash are native.
    NODE_ENV=production npx eas-cli update --branch production --environment production --message "…"
    ```
 
+   In PowerShell (the default terminal here) the prefix does not work; set it first:
+
+   ```
+   $env:NODE_ENV="production"; npx eas-cli update --branch production --environment production --message "…"
+   ```
+
    **Without `NODE_ENV=production` the update never arrives** (found 2026-09-27). `app.config.ts`
    adds `devLoginEmail`/`devLoginPassword` to `extra` whenever `NODE_ENV` is not `production`. EAS
    builds run with it set, a local shell does not, so the app config differs, the fingerprint
