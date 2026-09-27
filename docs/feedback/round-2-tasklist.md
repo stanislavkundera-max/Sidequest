@@ -838,6 +838,6 @@ checked in the web build (phone size) with throwaway guest accounts.
    before telling testers; if it does not arrive, set up SMTP (Resend) first.
 4. Optional: Supabase → Authentication → Emails → **"Change email address"** template — add
    `{{ .Token }}` so the e-mail carries a code as well as the link (the link alone works too).
-5. On a phone after the update: create an account from the guest one; Leave on the calendar step
-   and pick another day → the reminder should come a day before *that* day.
+5. On a phone after the update: create an account from the guest one; on a calendar step, pick a
+   different day in the calendar editor → the reminder should come a day before *that* day.
 6. Next build: merge branch `next-build` into `main` right before `eas build`.
