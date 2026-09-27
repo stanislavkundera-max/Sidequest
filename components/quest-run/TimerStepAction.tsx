@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Pressable, Text, View } from 'react-native';
+import { Platform, Pressable, Text, View } from 'react-native';
 
 import { PrimaryButton } from '@/components/ui/PrimaryButton';
 import { stepInteractionStyles as styles } from '@/components/quest-run/stepInteractionStyles';
@@ -137,8 +137,9 @@ export function TimerStepAction({
     return (
       <View style={styles.block}>
         <Text style={styles.helper}>
-          This step takes about {formatTimerClock(minSeconds)}. Start the timer when you begin
-          for real — it keeps running even if you lock your phone.
+          {Platform.OS === 'web'
+            ? `This step takes about ${formatTimerClock(minSeconds)}. Start the timer when you begin for real.`
+            : `This step takes about ${formatTimerClock(minSeconds)}. Start the timer when you begin, then put your phone away — we'll let you know when time is up.`}
         </Text>
         <PrimaryButton label="Start the timer" loading={busy} onPress={() => void begin()} />
         {skipLink}
@@ -160,6 +161,9 @@ export function TimerStepAction({
         />
       </View>
       {!reached && runningHint ? <Text style={styles.helper}>{runningHint}</Text> : null}
+      {!reached && Platform.OS !== 'web' ? (
+        <Text style={styles.helper}>You can lock your phone. We'll let you know when time is up.</Text>
+      ) : null}
       <PrimaryButton
         label={reached ? 'Finish this step' : `Unlocks in ${formatTimerClock(remaining)}`}
         disabled={!reached}

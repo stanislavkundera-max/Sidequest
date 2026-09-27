@@ -29,7 +29,7 @@ import { categoryAccentForCategoryId } from '@/lib/categoryAccent';
 import { isSupabaseConfigured, SUPABASE_CONFIGURE_HELP } from '@/lib/supabase';
 import { composeMemoryDraftFromRun, NO_EVIDENCE_NOTE } from '@/src/features/memories/memoryDraft';
 import { useMemoryStore } from '@/src/features/memories/memoryStore';
-import { scheduleQuestDay } from '@/src/features/notifications/questNotifications';
+import { questDayRemindersOn, scheduleQuestDay } from '@/src/features/notifications/questNotifications';
 import {
   calendarEventStart,
   isDeviceCalendarCreationAvailable,
@@ -136,10 +136,16 @@ export default function QuestRunScreen() {
   // Connect), folded into the auto-created memory rather than a separate step.
   const [feelingsNote, setFeelingsNote] = useState('');
 
+  // The calendar step promises the day-before reminder only when the account setting sends one.
+  const [questDayReminders, setQuestDayReminders] = useState(false);
+
   useEffect(() => {
     let alive = true;
     void isDeviceCalendarCreationAvailable().then((ok) => {
       if (alive) setCalendarDeviceOk(ok);
+    });
+    void questDayRemindersOn().then((on) => {
+      if (alive) setQuestDayReminders(on);
     });
     return () => {
       alive = false;
@@ -575,6 +581,16 @@ export default function QuestRunScreen() {
             loading={primaryBusy}
             onPress={() => handleCalendarStep(step)}
           />
+          {calendarDeviceOk ? (
+            <Text style={styles.calendarNote}>
+              {[
+                questDayReminders ? "Don't worry about remembering it — we'll remind you the day before." : null,
+                Platform.OS === 'android' ? 'After saving, tap back to return here.' : null,
+              ]
+                .filter(Boolean)
+                .join(' ')}
+            </Text>
+          ) : null}
         </View>
       );
     }
@@ -965,6 +981,7 @@ const styles = StyleSheet.create({
     fontStyle: 'italic',
   },
   calendarBlock: { gap: 4 },
+  calendarNote: { fontSize: 13, fontFamily: 'Inter_400Regular', lineHeight: 19, color: Theme.textMuted, marginTop: 4 },
   doneCard: {
     backgroundColor: Theme.surface,
     borderRadius: 14,

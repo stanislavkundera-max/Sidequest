@@ -719,16 +719,15 @@ it ships via OTA, SQL, the web deploy, or is not code at all.
 
 | # | Task | Needs a build? |
 |---|---|---|
-| 4 | Delete throwaway account `a3747ca8-…` (R2-29) — its `analytics_events` first | No — SQL |
-| 5 | Verify on a phone: calendar step returns to the step (R2-02) | No |
-| 6 | Verify on a phone: memory photo upload / save without photo (R2-04) | No |
-| 7 | Verify on a phone: new splash (R2-07) | No |
-| 8 | Verify on a phone: quest-day reminder, tap opens the step (R2-13) | No |
-| 9 | Verify on a phone: "time is up" after a timer | No |
-| 10 | Verify on a phone: nothing disturbs a running timer (R2-21) | No |
-| 11 | Verify on a phone: dragging map bubbles (R2-15) | No |
-| 12 | Verify the NEW badge on live data (R2-08) | No |
-| 13 | Watch 12+ testers for 14 continuous days — **start date and count not recorded yet** | No |
+| 4 | Delete throwaway test accounts (`supabase/cleanup_test_accounts.sql`, R2-29 account included) — step 1 run 2026-09-27; **deleting deferred until after the test** (Standa) | No — SQL |
+| 5 | ⚠️ Phone 2026-09-27: saving in the calendar does **not** return to the app; tapping back does, and the step continues. Hint added under the button (OTA) | No |
+| 6 | ✅ Phone 2026-09-27: memory photo upload works (R2-04) | — |
+| 7 | ✅ Phone 2026-09-27: new splash (R2-07) | — |
+| 8 | ✅ Phone 2026-09-27: quest-day reminder arrives (R2-13) — but at a different time from the calendar's own. Changed: now **24 h before** (2 h if planned sooner), and the calendar step says we will remind you. **Open, Standa undecided:** keep both reminders, or only the app's | No — OTA |
+| 9 | Phone: "time is up" after a timer — not reported yet. Timer step now tells you to put the phone away, we notify you (OTA) | No |
+| 10 | ✅ Phone 2026-09-27 (R2-21) | — |
+| 11 | ✅ Phone 2026-09-27: dragging map bubbles (R2-15) | — |
+| 12 | NEW badge on live data (R2-08) — not visible yet; every quest is still inside the 30-day "new in catalogue" window. Re-check once it ends | No |
 | 14 | Prepare the Play forms (R2-22) | No |
 | 15 | After 14 days: request production access (roadmap 4.1) | No |
 | 16 | Demo / reviewer account | No |

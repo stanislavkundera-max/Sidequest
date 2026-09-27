@@ -7,7 +7,7 @@ import type { NotificationIntensity } from '@/src/repositories/profilesRepositor
 /**
  * Local notifications for quests (round 2, R2-13 / R2-21). No server: everything is scheduled on the
  * phone. Two kinds only, chosen with Standa 2026-09-26:
- *   • quest day — at the time you put the quest in your calendar
+ *   • quest day — a day before the time you put the quest in your calendar
  *   • timer done — when a step timer ends while you are out doing it
  * Tapping either opens the quest runner, which lands on the step you are on.
  */
@@ -101,7 +101,19 @@ async function schedule(data: QuestNotificationData): Promise<void> {
   });
 }
 
-/** A notification when the quest's calendar slot comes round. Off in "Quiet". */
+/** Whether quest-day reminders are on ("Timers and quest days"), for copy that promises one. */
+export async function questDayRemindersOn(): Promise<boolean> {
+  return supported && (await readIntensity()) !== 'quiet';
+}
+
+const DAY_MS = 24 * 60 * 60 * 1000;
+const SHORT_NOTICE_MS = 2 * 60 * 60 * 1000;
+
+/**
+ * A day before the quest's calendar slot — time to get ready, and a different moment from the
+ * calendar's own reminder at the slot itself, so the two never arrive together (Standa,
+ * 2026-09-27). Planned less than a day ahead: two hours before instead. Off in "Quiet".
+ */
 export async function scheduleQuestDay(params: {
   userQuestId: string;
   questId: string;
@@ -111,9 +123,11 @@ export async function scheduleQuestDay(params: {
   if (!supported) return;
   try {
     if ((await readIntensity()) === 'quiet') return;
-    if (params.at.getTime() <= Date.now() + 60_000) return;
+    const start = params.at.getTime();
+    const dayBefore = start - DAY_MS > Date.now() + 60_000;
+    let at = dayBefore ? start - DAY_MS : start - SHORT_NOTICE_MS;
+    if (at <= Date.now() + 60_000) return;
     if (!(await ensurePermission())) return;
-    let at = params.at.getTime();
     // Never land inside a running timer (R2-21).
     const timerEnd = await runningTimerEnd();
     if (timerEnd != null && at < timerEnd) at = timerEnd + 60_000;
@@ -123,7 +137,9 @@ export async function scheduleQuestDay(params: {
       at,
       userQuestId: params.userQuestId,
       title: params.questTitle,
-      body: 'This is the time you set aside for it. Tap to pick up where you left off.',
+      body: dayBefore
+        ? "It's tomorrow. Tap to see what's next and get ready."
+        : "It's in two hours. Tap to see what's next.",
     });
   } catch {
     // A missing reminder must never break the quest itself.
