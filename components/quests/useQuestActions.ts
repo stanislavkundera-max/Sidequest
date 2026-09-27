@@ -10,7 +10,7 @@ import type { UserQuest } from '@/src/types/quest';
  * Shared quest-engagement actions (start / like / continue) plus the
  * "active path full" modal wiring, used by Explore and Journey.
  */
-export function useQuestActions(userId: string) {
+export function useQuestActions(userId: string, sourceScreen: string) {
   const router = useRouter();
   const userQuests = useQuestDomainStore((s) => s.userQuests);
   const pending = useQuestDomainStore((s) => s.pending);
@@ -49,7 +49,7 @@ export function useQuestActions(userId: string) {
     async (questId: string, afterNavigate?: string) => {
       setBusy(true);
       try {
-        const r = await assignQuestToUser(userId, questId);
+        const r = await assignQuestToUser(userId, questId, { sourceScreen });
         if (r.ok) {
           await refreshUserQuests(userId);
           setPathFullOpen(false);
@@ -70,7 +70,7 @@ export function useQuestActions(userId: string) {
         setBusy(false);
       }
     },
-    [assignQuestToUser, openPathFull, refreshUserQuests, router, userId]
+    [assignQuestToUser, openPathFull, refreshUserQuests, router, sourceScreen, userId]
   );
 
   const onStartNow = useCallback(
@@ -147,7 +147,7 @@ export function useQuestActions(userId: string) {
       setWaitingUserQuestId(userQuestId);
       setBusy(true);
       try {
-        const r = await deactivateQuest(userId, userQuestId);
+        const r = await deactivateQuest(userId, userQuestId, { sourceScreen });
         if (!r.ok) {
           alertCompat('Could not update', 'Try again in a moment.');
           return;
@@ -168,7 +168,7 @@ export function useQuestActions(userId: string) {
         setBusy(false);
       }
     },
-    [activeForModal, deactivateQuest, refreshUserQuests, runActivate, userId]
+    [activeForModal, deactivateQuest, refreshUserQuests, runActivate, sourceScreen, userId]
   );
 
   const openQuest = useCallback(

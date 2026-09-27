@@ -263,6 +263,28 @@ function rejectedQuestsMayReturn(
   return inCategory.every((q) => dismissed.has(q.id) || claimed.has(q.id));
 }
 
+/** A like writes started_at and saved_at in one insert; anything further apart was a pause. */
+const PAUSE_GAP_MS = 2000;
+
+/**
+ * Whether a set-aside quest was paused (it had been started) rather than liked.
+ *
+ * Both are `saved_for_later` in the database, and the app used to tell them apart only by step
+ * progress — so a quest paused before its first step showed up with a filled heart under Liked,
+ * as if the person had liked it (round 2b; code review 2026-09-27). The row itself says which it
+ * was: a like is inserted with `started_at` and `saved_at` set to the same moment; a pause keeps
+ * the original `started_at` and stamps `saved_at` when the quest is set aside. Starting a liked
+ * quest resets `started_at` and clears `saved_at`, so a like that was started and then paused
+ * reads as paused, as it should. No migration: rows already paused read correctly too.
+ */
+export function isPausedQuest(uq: UserQuest): boolean {
+  if (uq.status !== 'saved_for_later' || !uq.savedAt) return false;
+  const started = Date.parse(uq.startedAt);
+  const saved = Date.parse(uq.savedAt);
+  if (!Number.isFinite(started) || !Number.isFinite(saved)) return false;
+  return saved - started > PAUSE_GAP_MS;
+}
+
 /**
  * Liked quests in a category — hearted and not yet started.
  *
@@ -272,8 +294,8 @@ function rejectedQuestsMayReturn(
  * word — so it looked deleted ("Likenutej příspěvek nejde nahoru ale zmizí").
  * A liked quest still does not occupy one of the five slots.
  *
- * `saved_for_later` also covers quests left mid-way; those have step progress
- * and belong to "Paused", so they are excluded here via `hasProgress`.
+ * `saved_for_later` also covers quests set aside after starting; those belong to "Paused" and
+ * are excluded here — by step progress, and by `isPausedQuest` for a pause before the first step.
  */
 export function likedQuestsInCategory(params: {
   catalog: Quest[];
@@ -283,7 +305,9 @@ export function likedQuestsInCategory(params: {
 }): { quest: Quest; userQuest: UserQuest }[] {
   const byId = new Map(params.catalog.map((q) => [q.id, q]));
   return params.userQuests
-    .filter((uq) => uq.status === 'saved_for_later' && !params.hasProgress(uq))
+    .filter(
+      (uq) => uq.status === 'saved_for_later' && !params.hasProgress(uq) && !isPausedQuest(uq)
+    )
     .map((uq) => ({ quest: byId.get(uq.questId), userQuest: uq }))
     .filter(
       (row): row is { quest: Quest; userQuest: UserQuest } =>

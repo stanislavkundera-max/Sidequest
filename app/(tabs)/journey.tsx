@@ -26,7 +26,7 @@ export default function JourneyScreen() {
   }, []);
   // Called unconditionally (rules of hooks) — harmless with an empty userId
   // when signed out, since the early return below prevents any action firing.
-  const actions = useQuestActions(user?.id ?? '');
+  const actions = useQuestActions(user?.id ?? '', 'journey');
 
   if (!user) {
     return (

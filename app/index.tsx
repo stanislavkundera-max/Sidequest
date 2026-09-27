@@ -1,11 +1,10 @@
 import { Redirect } from 'expo-router';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { ActivityIndicator, Image, StyleSheet, Text, View } from 'react-native';
 
 import { getDevAutoLoginCredentials } from '@/lib/devAuth';
 import { getOnboardingComplete } from '@/lib/onboarding';
 import { isSupabaseConfigured, supabase } from '@/lib/supabase';
-import { trackAppOpened } from '@/src/lib/analytics';
 import { logError } from '@/src/lib/monitoring/errorLogger';
 import { useSessionStore } from '@/stores/session';
 
@@ -15,13 +14,8 @@ export default function Index() {
   const setSession = useSessionStore((s) => s.setSession);
   const [onboardingDone, setOnboardingDone] = useState<boolean | null>(null);
   const [authChecked, setAuthChecked] = useState(false);
-  const appOpenedTracked = useRef(false);
-
-  useEffect(() => {
-    if (appOpenedTracked.current) return;
-    appOpenedTracked.current = true;
-    trackAppOpened('index').catch(() => undefined);
-  }, []);
+  // app_opened is counted in app/_layout.tsx once the user is known. Counting it here ran before
+  // identify, so every cold start was stored without a user (code review 2026-09-27).
 
   useEffect(() => {
     if (!initialized) return;

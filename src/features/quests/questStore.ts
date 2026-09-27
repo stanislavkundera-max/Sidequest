@@ -52,12 +52,48 @@ function isSupabaseQuestProgressSetupError(message: string): boolean {
   );
 }
 
+/** Which screen an action came from — the only thing a caller adds to the event. */
+export type QuestEventSource = { sourceScreen: string };
+
+/**
+ * The quest lifecycle events (started, set aside, finished, turned down) are sent from here, where
+ * the thing actually happens, not from the screens. Sent from screens, only the quest detail page
+ * reported a start: Start now in Journey, on the map and in Progress, Begin in the runner and the
+ * onboarding picks never did, so quest_activation_rate — a stage-6 success metric — counted a
+ * fraction of real starts (code review 2026-09-27).
+ */
+function trackQuestEvent(
+  name:
+    | 'quest_activated'
+    | 'quest_activation_failed_limit_reached'
+    | 'quest_deactivated'
+    | 'quest_completed'
+    | 'quest_dismissed',
+  quest: Quest | undefined,
+  questId: string,
+  analytics?: QuestEventSource
+): void {
+  trackEvent(name, {
+    sourceScreen: analytics?.sourceScreen ?? 'unknown',
+    questId,
+    timeframe: quest?.timeframe ?? null,
+    category: quest?.categoryId ?? null,
+    difficulty: quest?.difficulty ?? null,
+  }).catch(() => undefined);
+}
+
 type QuestDomainState = {
   categories: Category[];
   quests: Quest[];
   userQuests: UserQuest[];
   initializedForUserId: string | null;
   loading: boolean;
+  /**
+   * The last full load failed, so there is no catalogue to show. Separate from `error`, which
+   * screens clear on mount: this one stays until a load succeeds, so Journey and the map can offer
+   * "Try again" instead of spinning forever (code review 2026-09-27).
+   */
+  catalogFailed: boolean;
   pending: boolean;
   error: string | null;
   /**
@@ -72,7 +108,11 @@ type QuestDomainState = {
   getActiveUserQuests: () => UserQuest[];
   getQuestById: (id: string) => Quest | undefined;
   getCategoryById: (id: string) => Category | undefined;
-  assignQuestToUser: (userId: string, questId: string) => Promise<AssignQuestResult>;
+  assignQuestToUser: (
+    userId: string,
+    questId: string,
+    analytics?: QuestEventSource
+  ) => Promise<AssignQuestResult>;
   completeStepWithEvidence: (
     userId: string,
     userQuestId: string,
@@ -92,11 +132,13 @@ type QuestDomainState = {
     options?: {
       note?: string | null;
       photoUrl?: string | null;
-    }
+    },
+    analytics?: QuestEventSource
   ) => Promise<CompleteQuestResult>;
   deactivateQuest: (
     userId: string,
-    userQuestId: string
+    userQuestId: string,
+    analytics?: QuestEventSource
   ) => Promise<{ ok: true } | { ok: false; reason: 'not_found' | 'not_active' }>;
   saveQuestForLater: (
     userId: string,
@@ -109,7 +151,8 @@ type QuestDomainState = {
   ) => Promise<{ ok: true } | { ok: false; reason: 'not_found' | 'not_saved_for_later' }>;
   dismissSuggestedQuest: (
     userId: string,
-    questId: string
+    questId: string,
+    analytics?: QuestEventSource
   ) => Promise<{ ok: true } | { ok: false; reason: string }>;
   /** Admin tool: wipes every user_quests row for this user, locally and remotely. */
   deleteAllProgress: (userId: string) => Promise<void>;
@@ -122,6 +165,7 @@ export const useQuestDomainStore = create<QuestDomainState>((set, get) => ({
   userQuests: [],
   initializedForUserId: null,
   loading: false,
+  catalogFailed: false,
   pending: false,
   error: null,
 
@@ -131,7 +175,7 @@ export const useQuestDomainStore = create<QuestDomainState>((set, get) => ({
 
   bootstrap: async (userId) => {
     if (get().initializedForUserId === userId && get().quests.length > 0) return;
-    set({ loading: true, error: null });
+    set({ loading: true, error: null, catalogFailed: false });
     try {
       const [categories, quests, userQuests] = await Promise.all([
         fetchCategories(),
@@ -149,6 +193,7 @@ export const useQuestDomainStore = create<QuestDomainState>((set, get) => ({
       logError('questStore.bootstrap', e, { userId });
       set({
         loading: false,
+        catalogFailed: true,
         error: formatUnknownError(e, 'Failed to load quests.'),
       });
     }
@@ -271,7 +316,7 @@ export const useQuestDomainStore = create<QuestDomainState>((set, get) => ({
     }
   },
 
-  assignQuestToUser: async (userId, questId) => {
+  assignQuestToUser: async (userId, questId, analytics) => {
     set({ pending: true, error: null });
     try {
       const result = await assignQuestToUserRemote({
@@ -286,6 +331,14 @@ export const useQuestDomainStore = create<QuestDomainState>((set, get) => ({
             ? s.userQuests.map((u) => (u.id === result.userQuest.id ? result.userQuest : u))
             : [...s.userQuests, result.userQuest],
         }));
+        trackQuestEvent('quest_activated', get().getQuestById(questId), questId, analytics);
+      } else if (result.reason === 'active_path_full') {
+        trackQuestEvent(
+          'quest_activation_failed_limit_reached',
+          get().getQuestById(questId),
+          questId,
+          analytics
+        );
       }
       // A full path is an answer, not a failure: every caller turns it into its
       // own modal, alert or inline text. It used to be written to the shared
@@ -303,7 +356,7 @@ export const useQuestDomainStore = create<QuestDomainState>((set, get) => ({
     }
   },
 
-  completeQuest: async (userId, userQuestId, options) => {
+  completeQuest: async (userId, userQuestId, options, analytics) => {
     set({ pending: true, error: null });
     try {
       const result = await completeUserQuest({
@@ -319,6 +372,8 @@ export const useQuestDomainStore = create<QuestDomainState>((set, get) => ({
           ),
         }));
         void cancelQuestNotifications(userQuestId);
+        const questId = result.userQuest.questId;
+        trackQuestEvent('quest_completed', get().getQuestById(questId), questId, analytics);
       }
       return result;
     } catch (e: unknown) {
@@ -331,7 +386,7 @@ export const useQuestDomainStore = create<QuestDomainState>((set, get) => ({
     }
   },
 
-  deactivateQuest: async (userId, userQuestId) => {
+  deactivateQuest: async (userId, userQuestId, analytics) => {
     set({ pending: true, error: null });
     try {
       const result = await moveActiveQuestToLater({ userId, userQuestId });
@@ -340,6 +395,8 @@ export const useQuestDomainStore = create<QuestDomainState>((set, get) => ({
           userQuests: s.userQuests.map((u) => (u.id === userQuestId ? result.userQuest : u)),
         }));
         void cancelQuestNotifications(userQuestId);
+        const questId = result.userQuest.questId;
+        trackQuestEvent('quest_deactivated', get().getQuestById(questId), questId, analytics);
       }
       return result.ok ? { ok: true as const } : { ok: false as const, reason: result.reason };
     } catch (e: unknown) {
@@ -397,7 +454,7 @@ export const useQuestDomainStore = create<QuestDomainState>((set, get) => ({
     }
   },
 
-  dismissSuggestedQuest: async (userId, questId) => {
+  dismissSuggestedQuest: async (userId, questId, analytics) => {
     set({ pending: true, error: null });
     try {
       const result = await dismissSuggestedQuestRemote({
@@ -408,6 +465,7 @@ export const useQuestDomainStore = create<QuestDomainState>((set, get) => ({
       });
       if (result.ok) {
         set((s) => ({ userQuests: [...s.userQuests, result.userQuest] }));
+        trackQuestEvent('quest_dismissed', get().getQuestById(questId), questId, analytics);
       }
       return result.ok ? { ok: true as const } : { ok: false as const, reason: result.reason };
     } catch (e: unknown) {
@@ -442,6 +500,7 @@ export const useQuestDomainStore = create<QuestDomainState>((set, get) => ({
       userQuests: [],
       initializedForUserId: null,
       loading: false,
+      catalogFailed: false,
       pending: false,
       error: null,
     }),

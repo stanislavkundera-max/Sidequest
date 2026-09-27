@@ -26,9 +26,11 @@ export function ProgressOverview() {
   const loadingQuests = useQuestDomainStore((s) => s.loading);
   const questError = useQuestDomainStore((s) => s.error);
   const refreshUserQuests = useQuestDomainStore((s) => s.refreshUserQuests);
+  const bootstrap = useQuestDomainStore((s) => s.bootstrap);
+  const catalogFailed = useQuestDomainStore((s) => s.catalogFailed);
   // Called unconditionally (rules of hooks) — harmless with an empty userId;
   // this screen only renders past sign-in anyway.
-  const actions = useQuestActions(user?.id ?? '');
+  const actions = useQuestActions(user?.id ?? '', 'progress');
 
   useFocusEffect(
     useCallback(() => {
@@ -58,7 +60,13 @@ export function ProgressOverview() {
           <View style={styles.paddedBlock}>
             <ErrorState
               message={questError}
-              onRetry={user ? () => refreshUserQuests(user.id) : undefined}
+              // When the whole load failed, refreshing only the user's quests left the catalogue
+              // empty; load everything again instead.
+              onRetry={
+                user
+                  ? () => void (catalogFailed ? bootstrap(user.id) : refreshUserQuests(user.id))
+                  : undefined
+              }
             />
           </View>
         ) : null}

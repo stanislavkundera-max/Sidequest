@@ -14,7 +14,7 @@ import { useFonts } from 'expo-font';
 import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { useEffect } from 'react';
-import { Platform, StyleSheet, View } from 'react-native';
+import { AppState, Platform, StyleSheet, View, type AppStateStatus } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 
 import { HeaderBackButton } from '@/components/ui/HeaderBackButton';
@@ -25,6 +25,11 @@ import { Theme } from '@/constants/Theme';
 import { supabase } from '@/lib/supabase';
 import { identifyUser, resetAnalytics, trackAppOpened } from '@/src/lib/analytics';
 import { logError } from '@/src/lib/monitoring/errorLogger';
+import {
+  onAppForeground,
+  resetDeviceStateForSignOut,
+  syncDeviceStateForUser,
+} from '@/src/features/app/appLifecycle';
 import { useMemoryStore } from '@/src/features/memories/memoryStore';
 import { cancelAllQuestNotifications } from '@/src/features/notifications/questNotifications';
 import { useQuestNotificationTaps } from '@/src/features/notifications/useQuestNotificationTaps';
@@ -116,18 +121,28 @@ function RootLayoutNav() {
 
   useEffect(() => {
     let mounted = true;
+    // The account this listener last saw. SIGNED_IN also fires for the *same* account — when the
+    // stored session is restored at start, and when a guest confirms their e-mail — and neither
+    // is a new open.
+    let lastUserId: string | null = null;
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((event, session) => {
       if (!mounted) return;
       setSession(session);
+      const previousUserId = lastUserId;
+      lastUserId = session?.user?.id ?? null;
 
       // One startup path only — avoids racing getSession() with INITIAL_SESSION (Web Locks / process lock timeouts).
       if (event === 'INITIAL_SESSION') {
         setInitialized(true);
         if (session?.user) {
+          // Identify first, then count the open: an `app_opened` sent before identify carried no
+          // user, and the D2/D7 queries (validation_queries.sql) skip rows without one — so cold
+          // starts never counted (code review 2026-09-27).
           identifyUser(session.user.id).catch(() => undefined);
-          trackAppOpened('root_layout_authenticated').catch(() => undefined);
+          trackAppOpened('cold_start').catch(() => undefined);
+          syncDeviceStateForUser(session.user.id);
           ensureProfileForUser({
             id: session.user.id,
             email: session.user.email,
@@ -142,20 +157,27 @@ function RootLayoutNav() {
 
       if (session?.user) {
         identifyUser(session.user.id).catch(() => undefined);
-        trackAppOpened('auth_state_change').catch(() => undefined);
-        ensureProfileForUser({
-          id: session.user.id,
-          email: session.user.email,
-        }).catch((error) =>
-          logError('root_layout.ensureProfileForUser.authChange', error, {
-            userId: session.user?.id,
-          })
-        );
+        // Only signing in to a different account is an open. TOKEN_REFRESHED arrives about hourly
+        // while the app sits open and USER_UPDATED on any account change; counting those
+        // inflated app_opened.
+        if (event === 'SIGNED_IN' && session.user.id !== previousUserId) {
+          trackAppOpened('sign_in').catch(() => undefined);
+          syncDeviceStateForUser(session.user.id);
+          ensureProfileForUser({
+            id: session.user.id,
+            email: session.user.email,
+          }).catch((error) =>
+            logError('root_layout.ensureProfileForUser.authChange', error, {
+              userId: session.user?.id,
+            })
+          );
+        }
       } else {
         resetAnalytics().catch(() => undefined);
         void cancelAllQuestNotifications();
         clearQuestDomain();
         clearMemories();
+        resetDeviceStateForSignOut();
       }
     });
 
@@ -164,6 +186,24 @@ function RootLayoutNav() {
       subscription.unsubscribe();
     };
   }, [setSession, setInitialized, clearQuestDomain, clearMemories]);
+
+  // Coming back to the app is an open too. Without this only cold starts counted, and a phone
+  // keeps an app in memory for days. The same moment retries a catalogue that failed to load
+  // (no signal when the app started) and picks up an account e-mail confirmed in the browser.
+  useEffect(() => {
+    let previous: AppStateStatus = AppState.currentState;
+    const sub = AppState.addEventListener('change', (next) => {
+      // From the background only: iOS passes through 'inactive' for a pulled-down control centre.
+      const cameBack = previous === 'background' && next === 'active';
+      previous = next;
+      if (!cameBack) return;
+      const user = useSessionStore.getState().user;
+      if (!user) return;
+      trackAppOpened('foreground').catch(() => undefined);
+      onAppForeground(user.id);
+    });
+    return () => sub.remove();
+  }, []);
 
   const navTheme = colorScheme === 'dark' ? NavDark : NavLight;
   const paperTheme = colorScheme === 'dark' ? MD3DarkTheme : MD3LightTheme;
@@ -209,14 +249,6 @@ function RootLayoutNav() {
             }}
           />
           <Stack.Screen
-            name="quest/select"
-            options={{
-              title: 'Pick quests',
-              headerBackTitle: 'Back',
-              presentation: 'card',
-            }}
-          />
-          <Stack.Screen
             name="memory/new"
             options={{
               title: 'New memory',
@@ -233,6 +265,14 @@ function RootLayoutNav() {
               title: 'Memory',
               headerBackTitle: 'Back',
               headerLeft: () => <HeaderBackButton fallback="/(tabs)/memories" />,
+            }}
+          />
+          <Stack.Screen
+            name="account/save"
+            options={{
+              title: 'Create an account',
+              headerBackTitle: 'Back',
+              headerLeft: () => <HeaderBackButton fallback="/(tabs)/profile" />,
             }}
           />
           <Stack.Screen

@@ -1,7 +1,7 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Notifications from 'expo-notifications';
 import { Platform } from 'react-native';
 
+import { readForUser, writeForUser } from '@/src/lib/deviceStorage';
 import type { NotificationIntensity } from '@/src/repositories/profilesRepository';
 
 /**
@@ -59,10 +59,17 @@ export function configureQuestNotifications(): void {
   }
 }
 
-/** The account setting, cached on the device so scheduling never waits on the network. */
-export async function cacheNotificationIntensity(value: NotificationIntensity): Promise<void> {
+/**
+ * The account setting, cached on the device so scheduling never waits on the network. Per account
+ * (src/lib/deviceStorage.ts), and refreshed from the profile at every start — it used to be cached
+ * only when the Progress tab was opened, so after a reinstall the phone assumed the default.
+ */
+export async function cacheNotificationIntensity(
+  value: NotificationIntensity,
+  userId?: string | null
+): Promise<void> {
   try {
-    await AsyncStorage.setItem(INTENSITY_KEY, value);
+    await writeForUser(INTENSITY_KEY, value, userId);
   } catch {
     // Falls back to the default next time.
   }
@@ -70,7 +77,7 @@ export async function cacheNotificationIntensity(value: NotificationIntensity): 
 
 async function readIntensity(): Promise<NotificationIntensity> {
   try {
-    const v = await AsyncStorage.getItem(INTENSITY_KEY);
+    const v = await readForUser(INTENSITY_KEY);
     if (v === 'quiet' || v === 'occasional' || v === 'chatty') return v;
   } catch {
     // ignore

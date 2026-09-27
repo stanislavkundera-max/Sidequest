@@ -10,6 +10,7 @@ const {
   newlyOpenedQuestIds,
   likedQuestsInCategory,
   preferredTimeframeFromHistory,
+  isPausedQuest,
 } = mod;
 
 // Ten quests in one category, like the real catalogue. Ordered by duration so
@@ -166,12 +167,15 @@ test('NEW: a quest returning after its completion horizon is not new', () => {
   assert.deepEqual([...ids], ['q6']);
 });
 
+// A like is one insert: started_at and saved_at are the same moment (saveQuestForLater).
+const like = (questId: string, msAgo: number) =>
+  row(questId, 'saved_for_later', { savedAt: iso(msAgo), startedAt: iso(msAgo) });
+// A pause keeps the original start and stamps saved_at later (moveActiveQuestToLater).
+const pause = (questId: string, startedAgo: number, pausedAgo: number, extra = {}) =>
+  row(questId, 'saved_for_later', { startedAt: iso(startedAgo), savedAt: iso(pausedAgo), ...extra });
+
 test('liked quests: listed in their category, newest first, not taking a slot', () => {
-  const uqs = [
-    row('q3', 'saved_for_later', { savedAt: iso(3 * DAY) }),
-    row('q1', 'saved_for_later', { savedAt: iso(DAY) }),
-    row('x1', 'saved_for_later', { savedAt: iso(DAY) }),
-  ];
+  const uqs = [like('q3', 3 * DAY), like('q1', DAY), like('x1', DAY)];
   const liked = likedQuestsInCategory({
     catalog: fullCatalog,
     userQuests: uqs,
@@ -264,4 +268,26 @@ test('unavailable: only affects the category it is in', () => {
     unavailableQuestIds: new Set(['q1']),
   }).map((q: { id: string }) => q.id);
   assert.deepEqual(social, ['x1']);
+});
+
+test('paused vs liked: a like is not a pause, a pause is not a like (round 2b)', () => {
+  assert.equal(isPausedQuest(like('q1', DAY)), false);
+  assert.equal(isPausedQuest(pause('q2', 3 * DAY, DAY)), true);
+  // Paused minutes after starting still counts.
+  assert.equal(isPausedQuest(pause('q3', 10 * 60 * 1000, 5 * 60 * 1000)), true);
+  // Not set aside at all.
+  assert.equal(isPausedQuest(row('q4', 'active')), false);
+  // No saved_at (a very old row): cannot tell, so it stays where it always was.
+  assert.equal(isPausedQuest(row('q5', 'saved_for_later', { savedAt: null })), false);
+});
+
+test('liked: a quest paused before its first step is not shown as liked (round 2b)', () => {
+  const uqs = [like('q1', DAY), pause('q2', 3 * DAY, DAY)];
+  const liked = likedQuestsInCategory({
+    catalog: fullCatalog,
+    userQuests: uqs,
+    categoryId: CAT,
+    hasProgress: () => false,
+  }).map((r: { quest: { id: string } }) => r.quest.id);
+  assert.deepEqual(liked, ['q1']);
 });

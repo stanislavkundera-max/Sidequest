@@ -1,5 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { supabase } from '@/lib/supabase';
+import { readForUser, writeForUser } from '@/src/lib/deviceStorage';
 import {
   ensureProfileForUser,
   getOnboardingStateForUser,
@@ -25,6 +26,8 @@ const DEFAULT_PREFERENCES: OnboardingPreferences = {
   isolation: DEFAULT_SCALE_ANSWER,
 };
 const KEY = '@side_quest_life/onboarding_state_v1';
+/** The last state the server gave for an account, so a start without signal still knows it. */
+const CACHE_KEY = '@side_quest_life/onboarding_state_cache_v1';
 
 const DEFAULT_STATE: OnboardingState = {
   complete: false,
@@ -60,9 +63,8 @@ function normalizeScaleAnswer(value: unknown): OnboardingScaleAnswer {
   return DEFAULT_SCALE_ANSWER;
 }
 
-async function getLocalFallbackState(): Promise<OnboardingState> {
-  const raw = await AsyncStorage.getItem(KEY);
-  if (!raw) return DEFAULT_STATE;
+function parseState(raw: string | null): OnboardingState | null {
+  if (!raw) return null;
   try {
     const parsed = JSON.parse(raw) as Partial<OnboardingState>;
     return {
@@ -80,8 +82,29 @@ async function getLocalFallbackState(): Promise<OnboardingState> {
         typeof parsed.completedAt === 'string' ? parsed.completedAt : null,
     };
   } catch {
-    return DEFAULT_STATE;
+    return null;
   }
+}
+
+async function getLocalFallbackState(): Promise<OnboardingState> {
+  return parseState(await AsyncStorage.getItem(KEY)) ?? DEFAULT_STATE;
+}
+
+/**
+ * The signed-in user as this device knows them — no network.
+ *
+ * This used `supabase.auth.getUser()`, which asks the server; without signal it answers "no
+ * user", the fallback said "onboarding not done", and people who had finished onboarding long
+ * ago were sent back through it on a start in the woods — the place the app sends them (code
+ * review 2026-09-27). It also cost a round trip on every Explore and Journey visit.
+ */
+async function sessionUser(): Promise<{ id: string; email?: string | null } | null> {
+  const { data } = await supabase.auth.getSession();
+  return data.session?.user ?? null;
+}
+
+function cacheForUser(userId: string, state: OnboardingState): void {
+  writeForUser(CACHE_KEY, JSON.stringify(state), userId).catch(() => undefined);
 }
 
 async function saveLocalFallbackState(
@@ -103,24 +126,26 @@ async function saveLocalFallbackState(
 }
 
 export async function getOnboardingState(): Promise<OnboardingState> {
+  const user = await sessionUser().catch(() => null);
+  if (!user) return getLocalFallbackState();
   try {
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-    if (!user) return getLocalFallbackState();
-    await ensureProfileForUser({ id: user.id, email: user.email });
-    return await getOnboardingStateForUser(user.id);
+    const state = await getOnboardingStateForUser(user.id);
+    cacheForUser(user.id, state);
+    return state;
   } catch {
-    return getLocalFallbackState();
+    const cached = parseState(await readForUser(CACHE_KEY, user.id).catch(() => null));
+    if (cached) return cached;
+    // Signed in, no signal, nothing cached yet. Treat it as done: sending someone through
+    // onboarding again because the network is down is the worse mistake, and the server's
+    // answer takes over at the next start with signal.
+    return { ...DEFAULT_STATE, complete: true };
   }
 }
 
 export async function saveOnboardingState(
   preferences: OnboardingPreferences
 ): Promise<OnboardingState> {
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await sessionUser().catch(() => null);
   if (!user) {
     return saveLocalFallbackState(preferences);
   }
@@ -135,8 +160,12 @@ export async function saveOnboardingState(
 
   try {
     await ensureProfileForUser({ id: user.id, email: user.email });
-    return await saveOnboardingStateForUser(user.id, normalized);
+    const saved = await saveOnboardingStateForUser(user.id, normalized);
+    cacheForUser(user.id, saved);
+    return saved;
   } catch {
-    return saveLocalFallbackState(normalized);
+    const saved = await saveLocalFallbackState(normalized);
+    cacheForUser(user.id, saved);
+    return saved;
   }
 }

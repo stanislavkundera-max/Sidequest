@@ -53,6 +53,9 @@ export function AccountCard() {
 
   const email = user?.email ?? null;
   const admin = isAdminEmail(email);
+  // Everyone starts as a guest (app/index.tsx). A guest has nothing to sign back in to.
+  const isGuest = Boolean(user?.is_anonymous);
+  const pendingEmail = isGuest ? (user?.new_email ?? null) : null;
 
   useEffect(() => {
     if (!admin) return;
@@ -109,26 +112,39 @@ export function AccountCard() {
     void setAdminPreviewAsUser(next);
   }
 
+  function performSignOut() {
+    void (async () => {
+      setBusy(true);
+      try {
+        await supabase.auth.signOut();
+        router.replace('/(auth)/sign-in');
+      } catch (e: unknown) {
+        logError('account.signOut', e);
+        alertCompat('Error', e instanceof Error ? e.message : 'Could not sign out.');
+      } finally {
+        setBusy(false);
+      }
+    })();
+  }
+
   function signOut() {
+    if (isGuest) {
+      // It said "You can sign back in anytime." to guests, who can't: there is no e-mail or
+      // password behind a guest, so signing out threw away every quest and memory for good
+      // (code review 2026-09-27). The way out that keeps everything comes first.
+      alertTwoChoice(
+        'Sign out and lose everything?',
+        "If you don't want to lose your quests and memories, create an account first — everything you have done stays in it. You are using the app as a guest, so after signing out there is nothing to sign back in to.",
+        {
+          cancel: { text: 'Create an account', onPress: () => router.push('/account/save' as never) },
+          confirm: { text: 'Sign out and lose it', onPress: performSignOut },
+        }
+      );
+      return;
+    }
     alertTwoChoice('Sign out?', 'You can sign back in anytime.', {
       cancel: { text: 'Stay signed in' },
-      confirm: {
-        text: 'Sign out',
-        onPress: () => {
-          void (async () => {
-            setBusy(true);
-            try {
-              await supabase.auth.signOut();
-              router.replace('/(auth)/sign-in');
-            } catch (e: unknown) {
-              logError('account.signOut', e);
-              alertCompat('Error', e instanceof Error ? e.message : 'Could not sign out.');
-            } finally {
-              setBusy(false);
-            }
-          })();
-        },
-      },
+      confirm: { text: 'Sign out', onPress: performSignOut },
     });
   }
 
@@ -236,9 +252,29 @@ export function AccountCard() {
       <View style={styles.row}>
         <Ionicons name="person-circle-outline" size={20} color={Theme.textMuted} />
         <Text style={styles.email} numberOfLines={1}>
-          {email ?? 'Anonymous session'}
+          {isGuest ? 'Guest — no account yet' : (email ?? 'Signed in')}
         </Text>
       </View>
+
+      {isGuest ? (
+        <View style={styles.guestBlock}>
+          <Text style={styles.guestTitle}>Keep what you have done</Text>
+          <Text style={styles.guestBody}>
+            {pendingEmail
+              ? `Almost there: confirm ${pendingEmail} from the e-mail we sent, then choose a password.`
+              : "If you don't want to lose your quests and memories — on a new phone, or if you sign out — create an account. Everything you have done stays in it."}
+          </Text>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel={pendingEmail ? 'Finish creating your account' : 'Create an account'}
+            onPress={() => router.push('/account/save' as never)}
+            style={({ pressed }) => [styles.guestBtn, pressed && styles.pressed]}>
+            <Text style={styles.guestBtnText}>
+              {pendingEmail ? 'Finish creating your account' : 'Create an account'}
+            </Text>
+          </Pressable>
+        </View>
+      ) : null}
 
       {notificationIntensity ? (
         <View style={styles.notificationBlock}>
@@ -380,6 +416,24 @@ const styles = StyleSheet.create({
   },
   row: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   email: { flex: 1, fontSize: 14, fontFamily: 'Inter_600SemiBold', fontWeight: '600', color: Theme.text },
+  guestBlock: {
+    gap: 8,
+    padding: 12,
+    borderRadius: 12,
+    backgroundColor: Theme.accentSoft,
+  },
+  guestTitle: { fontSize: 15, fontFamily: 'Inter_700Bold', fontWeight: '700', color: Theme.text },
+  guestBody: { fontSize: 14, fontFamily: 'Inter_400Regular', lineHeight: 20, color: Theme.text },
+  guestBtn: {
+    alignSelf: 'flex-start',
+    justifyContent: 'center',
+    minHeight: MIN_TOUCH_TARGET,
+    borderRadius: 999,
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    backgroundColor: Theme.accent,
+  },
+  guestBtnText: { fontSize: 14, fontFamily: 'Inter_700Bold', fontWeight: '700', color: '#ffffff' },
   notificationBlock: { gap: 8 },
   notificationLabel: { fontSize: 13, fontFamily: 'Inter_600SemiBold', fontWeight: '600', color: Theme.textMuted },
   notificationPills: { flexDirection: 'row', gap: 8 },

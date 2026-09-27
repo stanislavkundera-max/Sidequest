@@ -5,6 +5,7 @@ import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from
 import { Ionicons } from '@expo/vector-icons';
 
 import { journeyHubStyles as styles } from '@/components/journey/journeyHubStyles';
+import { CatalogLoadFailed, useCatalogLoadFailed } from '@/components/quests/CatalogLoadFailed';
 import { CatalogQuestRow } from '@/components/quests/CatalogQuestRow';
 import { HubDiscoverUserQuestRow } from '@/components/quests/HubDiscoverUserQuestRow';
 import { PathFullModal } from '@/components/quests/PathFullModal';
@@ -45,7 +46,7 @@ export function ExploreQuestPanel({ userId, categoryId, preferences }: Props) {
   const userQuests = useQuestDomainStore((s) => s.userQuests);
   const getQuestById = useQuestDomainStore((s) => s.getQuestById);
 
-  const actions = useQuestActions(userId);
+  const actions = useQuestActions(userId, 'explore');
 
   const categoryLabel = (id: string) =>
     categories.find((c) => c.id === id)?.name ?? id;
@@ -124,6 +125,8 @@ export function ExploreQuestPanel({ userId, categoryId, preferences }: Props) {
     [openFive, newlyOpened, seenQuestIds]
   );
 
+  const catalogFailed = useCatalogLoadFailed();
+
   const nothingToShow =
     categoryId != null &&
     inProgress.length === 0 &&
@@ -141,6 +144,8 @@ export function ExploreQuestPanel({ userId, categoryId, preferences }: Props) {
           <View style={[styles.heroCard, styles.heroEmptyPadded, panelStyles.emptyCard]}>
             <Text style={styles.emptyTitleSolid}>{EXPLORE_COPY.panelSelectHint}</Text>
           </View>
+        ) : catalogFailed ? (
+          <CatalogLoadFailed />
         ) : (
           <>
             {inProgress.length > 0 ? (

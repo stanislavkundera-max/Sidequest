@@ -84,7 +84,11 @@ async function writeAnalyticsState(state: AnalyticsStateMap): Promise<void> {
 }
 
 class AnalyticsService {
-  private providers: AnalyticsProvider[] = [consoleProvider, supabaseProvider];
+  // The console copy is for development only: in a release build it printed every event, user id
+  // included, into the device log (code review 2026-09-27).
+  private providers: AnalyticsProvider[] = __DEV__
+    ? [consoleProvider, supabaseProvider]
+    : [supabaseProvider];
   private userId: string | null = null;
   private lastAppOpenedAtMs: number | null = null;
 

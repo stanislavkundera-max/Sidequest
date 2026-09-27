@@ -53,10 +53,8 @@ export const QUEST_COPY = {
    */
   pausedSectionTitle: 'Pick up where you left off',
   /** Where a set-aside quest lands — depends on whether any step is already done. */
-  leaveDestination: (hasProgress: boolean): string =>
-    hasProgress
-      ? 'You will find it in Progress under "Pick up where you left off".'
-      : 'You will find it in Progress under Liked.',
+  /** Where a paused quest goes — the same place whether or not a step was done (code review 2026-09-27). */
+  leaveDestination: 'You will find it in Progress under "Pick up where you left off".',
   activePathSectionTitle: 'Quests you are doing',
   suggestedSectionTitle: 'Discover',
   chooseCategoryTitle: 'Choose a category',

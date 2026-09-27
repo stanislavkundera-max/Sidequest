@@ -32,6 +32,7 @@ import { useMemoryStore } from '@/src/features/memories/memoryStore';
 import { questDayRemindersOn, scheduleQuestDay } from '@/src/features/notifications/questNotifications';
 import {
   calendarEventStart,
+  findSavedQuestEventStart,
   isDeviceCalendarCreationAvailable,
   openQuestCalendarEditor,
   suggestedQuestStart,
@@ -41,10 +42,7 @@ import {
   wasCalendarOpened,
 } from '@/src/features/quests/questRunnerPending';
 import { formatQuestDuration, QUEST_COPY } from '@/src/features/quests/questCopy';
-import {
-  countCompletedJourneySteps,
-  getFirstIncompleteJourneyStep,
-} from '@/src/features/quests/questHelpers';
+import { getFirstIncompleteJourneyStep } from '@/src/features/quests/questHelpers';
 import { useQuestDomainStore } from '@/src/features/quests/questStore';
 import { trackEvent } from '@/src/lib/analytics';
 import { logError } from '@/src/lib/monitoring/errorLogger';
@@ -157,31 +155,16 @@ export default function QuestRunScreen() {
     return getFirstIncompleteJourneyStep(quest, activeUq);
   }, [quest, activeUq]);
 
-  const journeySummary = useMemo(() => {
-    if (!quest) return null;
-    const total = quest.actionSteps.length;
-    if (total === 0) return null;
-    const done = activeUq ? countCompletedJourneySteps(activeUq, quest) : 0;
-    const remaining = total - done;
-    return { total, done, remaining };
-  }, [quest, activeUq]);
-
   const leaveQuest = useCallback(async () => {
     if (!user || !quest || !activeUq) return;
     setActing(true);
     try {
-      const r = await deactivateQuest(user.id, activeUq.id);
+      const r = await deactivateQuest(user.id, activeUq.id, { sourceScreen: 'quest_runner' });
       if (!r.ok) {
         alertCompat('Could not update', 'Try again in a moment.');
         return;
       }
       await refreshUserQuests(user.id);
-      trackEvent('quest_deactivated', {
-        sourceScreen: 'quest_runner',
-        questId: quest.id,
-        timeframe: quest.timeframe,
-        category: quest.categoryId,
-      }).catch(() => undefined);
       // The Leave dialog promises "find it in Progress" (paused/liked live
       // there, not on the Journey catalog) — land where that's actually true.
       router.replace('/(tabs)/profile');
@@ -194,12 +177,9 @@ export default function QuestRunScreen() {
   }, [user, quest, activeUq, deactivateQuest, refreshUserQuests, router]);
 
   const confirmLeaveQuest = useCallback(() => {
-    const hasProgress = (journeySummary?.done ?? 0) > 0;
     alertTwoChoice(
       'Leave this quest?',
-      `It moves out of active motion; your progress stays saved — nothing is deleted. ${QUEST_COPY.leaveDestination(
-        hasProgress
-      )}`,
+      `It moves out of active motion; your progress stays saved — nothing is deleted. ${QUEST_COPY.leaveDestination}`,
       {
         cancel: { text: 'Keep going' },
         confirm: {
@@ -210,7 +190,7 @@ export default function QuestRunScreen() {
         },
       }
     );
-  }, [leaveQuest, journeySummary]);
+  }, [leaveQuest]);
 
   useLayoutEffect(() => {
     navigation.setOptions({
@@ -251,7 +231,7 @@ export default function QuestRunScreen() {
     if (activeUq) return;
     setActing(true);
     try {
-      const r = await assignQuestToUser(user.id, quest.id);
+      const r = await assignQuestToUser(user.id, quest.id, { sourceScreen: 'quest_runner' });
       if (!r.ok) {
         alertCompat(
           'Cannot begin',
@@ -305,19 +285,14 @@ export default function QuestRunScreen() {
           : `${draft.body}\n\nHow it felt: ${feelings}`
         : draft.body;
 
-      const r = await completeQuest(user.id, activeUq.id);
+      const r = await completeQuest(user.id, activeUq.id, undefined, {
+        sourceScreen: 'quest_runner',
+      });
       if (!r.ok) {
         alertCompat('Error', 'Could not complete quest.');
         return;
       }
       await refreshUserQuests(user.id);
-      trackEvent('quest_completed', {
-        sourceScreen: 'quest_runner',
-        questId: quest.id,
-        timeframe: quest.timeframe,
-        category: quest.categoryId,
-        difficulty: quest.difficulty,
-      }).catch(() => undefined);
 
       // The quest is complete either way — a memory-save hiccup shouldn't
       // read as a failed completion, so it gets its own try/catch.
@@ -395,12 +370,18 @@ export default function QuestRunScreen() {
     }
   }
 
+  /** The title the calendar event is prefilled with — and how Android finds it again afterwards. */
+  function calendarEventTitle(step: QuestActionStep): string {
+    const tpl = step.action?.kind === 'calendar' ? step.action.template : undefined;
+    return (tpl?.title ?? `${quest?.title ?? ''}: ${step.title}`).trim();
+  }
+
   async function addCalendarReminder(step: QuestActionStep) {
     if (!user || !quest || !activeUq) return;
     const tpl = step.action?.kind === 'calendar' ? step.action.template : undefined;
     const duration =
       tpl?.durationMinutes ?? step.estimateMinutes ?? quest.estimatedDurationMinutes ?? 30;
-    const title = (tpl?.title ?? `${quest.title}: ${step.title}`).trim();
+    const title = calendarEventTitle(step);
     const notes = [tpl?.notes, step.detail].filter(Boolean).join('\n\n').trim() || undefined;
 
     const suggestedStart = suggestedQuestStart(quest.timeframe);
@@ -434,8 +415,8 @@ export default function QuestRunScreen() {
   }
 
   /**
-   * The quest-day notification. Android never says which day you picked, so it uses the time the
-   * editor was prefilled with; iOS reads the saved event. Your calendar reminds you as well.
+   * The quest-day notification, for the day actually in the calendar: iOS hands back the saved
+   * event, Android is read back by title (findSavedQuestEventStart). Your calendar reminds you too.
    */
   function remindOnQuestDay(at: Date) {
     if (!quest || !activeUq) return;
@@ -450,7 +431,12 @@ export default function QuestRunScreen() {
   function confirmScheduled(step: QuestActionStep) {
     if (!quest) return;
     void finishStep(step.id, { kind: 'self_attest' });
-    remindOnQuestDay(suggestedQuestStart(quest.timeframe));
+    // Android: the editor never reports the day that was picked, so read it back. It used to use
+    // the prefilled day, and the reminder then said "It's tomorrow" for whatever day that was.
+    const title = calendarEventTitle(step);
+    void findSavedQuestEventStart(title).then((start) => {
+      if (start) remindOnQuestDay(start);
+    });
   }
 
   function askIfScheduled(step: QuestActionStep, message?: string, openAgain?: () => void) {

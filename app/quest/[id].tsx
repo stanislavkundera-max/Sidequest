@@ -21,11 +21,7 @@ import {
   QUEST_COPY,
   TIMEFRAME_LABEL,
 } from '@/src/features/quests/questCopy';
-import {
-  canUserBeginQuest,
-  countCompletedJourneySteps,
-  incompleteJourneyStepsCount,
-} from '@/src/features/quests/questHelpers';
+import { canUserBeginQuest, incompleteJourneyStepsCount } from '@/src/features/quests/questHelpers';
 import { useQuestDomainStore } from '@/src/features/quests/questStore';
 import { markQuestSeen } from '@/src/features/quests/seenQuests';
 import { currentlyDismissedQuestIds } from '@/src/features/quests/suggestedQuests';
@@ -174,7 +170,7 @@ export default function QuestDetailScreen() {
     setAssignFeedback(`Adding "${quest.title}" to your active quests...`);
     setActing(true);
     try {
-      const r = await assignQuestToUser(user.id, quest.id);
+      const r = await assignQuestToUser(user.id, quest.id, { sourceScreen: 'quest_detail' });
       if (!r.ok) {
         const reasonMessage =
           r.reason === 'active_path_full'
@@ -183,24 +179,10 @@ export default function QuestDetailScreen() {
               ? 'You are already doing this quest.'
               : 'Quest not found.';
         setAssignFeedback(reasonMessage);
-        if (r.reason === 'active_path_full') {
-          trackEvent('quest_activation_failed_limit_reached', {
-            sourceScreen: 'quest_detail',
-            questId: quest.id,
-            timeframe: quest.timeframe,
-          }).catch(() => undefined);
-        }
         alertCompat('Cannot add', reasonMessage);
         return false;
       }
       setAssignFeedback('Added. Getting your quests…');
-      trackEvent('quest_activated', {
-        sourceScreen: 'quest_detail',
-        questId: quest.id,
-        timeframe: quest.timeframe,
-        category: quest.categoryId,
-        difficulty: quest.difficulty,
-      }).catch(() => undefined);
       await refreshUserQuests(user.id);
       setAssignFeedback('You are doing this quest now. Open it when you are ready for the first step.');
       return true;
@@ -231,12 +213,9 @@ export default function QuestDetailScreen() {
       alertCompat('Configuration', SUPABASE_CONFIGURE_HELP);
       return;
     }
-    // Capture before deactivating — it decides which Journey section the quest
-    // lands in, and so which one we point the user at.
-    const hadProgress = countCompletedJourneySteps(activeUq, quest) > 0;
     setActing(true);
     try {
-      const r = await deactivateQuest(user.id, activeUq.id);
+      const r = await deactivateQuest(user.id, activeUq.id, { sourceScreen: 'quest_detail' });
       if (!r.ok) {
         alertCompat(
           'Could not update',
@@ -246,19 +225,11 @@ export default function QuestDetailScreen() {
         );
         return;
       }
-      trackEvent('quest_deactivated', {
-        sourceScreen: 'quest_detail',
-        questId: quest.id,
-        timeframe: quest.timeframe,
-        category: quest.categoryId,
-      }).catch(() => undefined);
       await refreshUserQuests(user.id);
       setAssignFeedback(null);
       alertCompat(
         'Set aside for now',
-        `It is paused for now. Your steps stay as you left them. ${QUEST_COPY.leaveDestination(
-          hadProgress
-        )}`
+        `It is paused for now. Your steps stay as you left them. ${QUEST_COPY.leaveDestination}`
       );
     } catch (e: unknown) {
       logError('quest.detail.onDeactivate', e, {
@@ -273,12 +244,9 @@ export default function QuestDetailScreen() {
 
   function requestDeactivate() {
     if (!activeUq || !quest || !user) return;
-    const hasProgress = countCompletedJourneySteps(activeUq, quest) > 0;
     alertTwoChoice(
       'Let this quest wait?',
-      `It moves out of active motion; your progress stays saved — nothing is deleted. ${QUEST_COPY.leaveDestination(
-        hasProgress
-      )}`,
+      `It moves out of active motion; your progress stays saved — nothing is deleted. ${QUEST_COPY.leaveDestination}`,
       {
         cancel: { text: 'Keep it on the path' },
         confirm: {
@@ -322,16 +290,11 @@ export default function QuestDetailScreen() {
           category: quest.categoryId,
         }).catch(() => undefined);
       } else {
-        const r = await dismissSuggestedQuest(user.id, quest.id);
+        const r = await dismissSuggestedQuest(user.id, quest.id, { sourceScreen: 'quest_detail' });
         if (!r.ok) {
           alertCompat('Could not update', 'Try again in a moment.');
           return;
         }
-        trackEvent('quest_dismissed', {
-          sourceScreen: 'quest_detail',
-          questId: quest.id,
-          category: quest.categoryId,
-        }).catch(() => undefined);
       }
       if (router.canGoBack()) router.back();
       else router.replace('/(tabs)/journey');

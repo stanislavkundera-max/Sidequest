@@ -1,6 +1,7 @@
 import * as Calendar from 'expo-calendar';
 import { Platform } from 'react-native';
 
+import { earliestUpcomingStart } from '@/src/features/quests/calendarMatch';
 import type { QuestTimeframe } from '@/src/types/quest';
 
 /**
@@ -83,6 +84,42 @@ export async function openQuestCalendarEditor(params: {
   if (result.action === 'saved' && result.id) return { outcome: 'saved', eventId: result.id };
   if (result.action === 'canceled' || result.action === 'deleted') return { outcome: 'canceled' };
   return { outcome: 'unknown' };
+}
+
+const DAY_MS = 24 * 60 * 60 * 1000;
+
+/**
+ * When the quest's event is, read back from the person's own calendar — for Android.
+ *
+ * Android's editor never says whether the event was saved, or for when: expo-calendar returns
+ * the same empty result for every outcome. The reminder used to be scheduled from the time the
+ * editor was *prefilled* with, and since build 11 its text names that time ("It's tomorrow") —
+ * wrong for anyone who picked another day, which is the whole point of the editor (R2-02; code
+ * review 2026-09-27). So once they say it's in, look for the event we prefilled, by its title,
+ * and take its start.
+ *
+ * Asks for calendar access at that moment, not before. Without access, or if the title was
+ * changed in the editor, there is no date — and no reminder is better than a wrong one; their
+ * calendar still reminds them.
+ */
+export async function findSavedQuestEventStart(
+  title: string,
+  now: Date = new Date()
+): Promise<Date | null> {
+  try {
+    const permission = await Calendar.requestCalendarPermissionsAsync();
+    if (permission.status !== 'granted') return null;
+    const calendars = await Calendar.getCalendarsAsync(Calendar.EntityTypes.EVENT);
+    if (calendars.length === 0) return null;
+    const events = await Calendar.getEventsAsync(
+      calendars.map((c) => c.id),
+      now,
+      new Date(now.getTime() + 400 * DAY_MS)
+    );
+    return earliestUpcomingStart(events, title, now);
+  } catch {
+    return null;
+  }
 }
 
 /** When a saved event starts — iOS only, where the editor hands back the event id. */

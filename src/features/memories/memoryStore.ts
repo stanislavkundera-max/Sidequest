@@ -8,13 +8,22 @@ import {
   updateMemoryEntry,
 } from '@/src/repositories/memoriesRepository';
 import { logError } from '@/src/lib/monitoring/errorLogger';
-import { uploadPhotoForUser } from '@/src/repositories/photoRepository';
+import {
+  deleteAllPhotosForUser,
+  removePhotoByRef,
+  uploadPhotoForUser,
+} from '@/src/repositories/photoRepository';
 import { findLatestCompletedUserQuestForQuest } from '@/src/repositories/userQuestsRepository';
 import type { MemoryEntry } from '@/src/types/memory';
 
 type MemoryDomainState = {
   memories: MemoryEntry[];
   initializedForUserId: string | null;
+  /**
+   * When the timeline was last fetched. Photo links are signed for a few days at load time, so a
+   * phone that keeps the app in memory for long refetches when it comes back (appLifecycle).
+   */
+  loadedAt: number | null;
   loading: boolean;
   saving: boolean;
   error: string | null;
@@ -55,6 +64,7 @@ type MemoryDomainState = {
 export const useMemoryStore = create<MemoryDomainState>((set, get) => ({
   memories: [],
   initializedForUserId: null,
+  loadedAt: null,
   loading: false,
   saving: false,
   error: null,
@@ -70,7 +80,7 @@ export const useMemoryStore = create<MemoryDomainState>((set, get) => ({
     set({ loading: true, error: null });
     try {
       const memories = await fetchMemoryTimeline(userId);
-      set({ memories, initializedForUserId: userId, loading: false });
+      set({ memories, initializedForUserId: userId, loading: false, loadedAt: Date.now() });
     } catch (e: unknown) {
       logError('memoryStore.bootstrap', e, { userId });
       set({
@@ -84,7 +94,7 @@ export const useMemoryStore = create<MemoryDomainState>((set, get) => ({
     set({ loading: true, error: null });
     try {
       const memories = await fetchMemoryTimeline(userId);
-      set({ memories, initializedForUserId: userId, loading: false });
+      set({ memories, initializedForUserId: userId, loading: false, loadedAt: Date.now() });
     } catch (e: unknown) {
       logError('memoryStore.refresh', e, { userId });
       set({
@@ -108,11 +118,11 @@ export const useMemoryStore = create<MemoryDomainState>((set, get) => ({
       // often out of signal, which is exactly when it was worth writing down
       // (round 2, R2-04). Now the memory is saved without the photo and the
       // caller is told, so it can say so.
-      let photoUrl: string | null = null;
+      let photoRef: string | null = null;
       let photoFailed = false;
       if (input.photoUri) {
         try {
-          photoUrl = await uploadPhotoForUser({ userId, localUri: input.photoUri });
+          photoRef = await uploadPhotoForUser({ userId, localUri: input.photoUri });
         } catch (uploadError: unknown) {
           logError('memoryStore.createMemoryForQuest.photoUpload', uploadError, {
             userId,
@@ -128,7 +138,7 @@ export const useMemoryStore = create<MemoryDomainState>((set, get) => ({
         questId: input.questId,
         title: input.title,
         body: input.body,
-        photoUrl,
+        photoUrl: photoRef,
         categoryId: input.questId ? null : (input.categoryId ?? null),
       });
       set((s) => ({
@@ -155,13 +165,16 @@ export const useMemoryStore = create<MemoryDomainState>((set, get) => ({
     set({ saving: true, error: null });
     try {
       const current = get().memories.find((m) => m.id === id);
-      let photoUrl: string | null;
+      // The screen hands back what it showed; the database keeps where the photo is.
+      let photoRef: string | null;
       if (input.photoUri === null) {
-        photoUrl = null;
-      } else if (input.photoUri === current?.photoUri) {
-        photoUrl = input.photoUri;
+        photoRef = null;
+      } else if (current && (input.photoUri === current.photoUri || /^https?:/i.test(input.photoUri))) {
+        // Unchanged. A web link here is always the stored photo, shown — a newly picked one is a
+        // local file — even if the timeline re-signed its link while the memory was being edited.
+        photoRef = current.photoRef;
       } else {
-        photoUrl = await uploadPhotoForUser({ userId, localUri: input.photoUri });
+        photoRef = await uploadPhotoForUser({ userId, localUri: input.photoUri });
       }
 
       const entry = await updateMemoryEntry({
@@ -169,12 +182,16 @@ export const useMemoryStore = create<MemoryDomainState>((set, get) => ({
         id,
         title: input.title,
         body: input.body,
-        photoUrl,
+        photoUrl: photoRef,
         categoryId: input.categoryId,
       });
       set((s) => ({
         memories: s.memories.map((m) => (m.id === id ? entry : m)),
       }));
+      // Replaced or removed: the old file belongs to nothing any more.
+      if (current?.photoRef && current.photoRef !== photoRef) {
+        void removePhotoByRef(userId, current.photoRef);
+      }
       return entry;
     } catch (e: unknown) {
       logError('memoryStore.updateMemory', e, { userId, id });
@@ -188,8 +205,10 @@ export const useMemoryStore = create<MemoryDomainState>((set, get) => ({
   deleteMemory: async (userId, id) => {
     set({ saving: true, error: null });
     try {
+      const photoRef = get().memories.find((m) => m.id === id)?.photoRef ?? null;
       await deleteMemoryEntry({ userId, id });
       set((s) => ({ memories: s.memories.filter((m) => m.id !== id) }));
+      void removePhotoByRef(userId, photoRef);
     } catch (e: unknown) {
       logError('memoryStore.deleteMemory', e, { userId, id });
       set({ error: e instanceof Error ? e.message : 'Failed to delete memory.' });
@@ -204,6 +223,10 @@ export const useMemoryStore = create<MemoryDomainState>((set, get) => ({
     try {
       await deleteAllMemoriesForUser(userId);
       set({ memories: [] });
+      // Every memory is gone, so every memory photo is too.
+      await deleteAllPhotosForUser(userId).catch((e: unknown) =>
+        logError('memoryStore.deleteAllMemories.photos', e, { userId })
+      );
     } catch (e: unknown) {
       logError('memoryStore.deleteAllMemories', e, { userId });
       set({ error: e instanceof Error ? e.message : 'Could not delete memories.' });
@@ -217,6 +240,7 @@ export const useMemoryStore = create<MemoryDomainState>((set, get) => ({
     set({
       memories: [],
       initializedForUserId: null,
+      loadedAt: null,
       loading: false,
       saving: false,
       error: null,

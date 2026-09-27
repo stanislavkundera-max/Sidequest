@@ -1,4 +1,4 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { readForUser, writeForUser } from '@/src/lib/deviceStorage';
 
 const KEY = 'quests:seen';
 
@@ -13,11 +13,12 @@ const KEY = 'quests:seen';
  * Device-local on purpose, and modelled on `exploreMapReveal.ts`, which already
  * does exactly this for map categories. A reinstall forgets what you have seen,
  * which is the right trade: the alternative is a per-user table and a migration
- * to make a badge slightly more accurate.
+ * to make a badge slightly more accurate. Kept per account on the device — see
+ * `src/lib/deviceStorage.ts`.
  */
 export async function loadSeenQuestIds(): Promise<Set<string>> {
   try {
-    const raw = await AsyncStorage.getItem(KEY);
+    const raw = await readForUser(KEY);
     if (!raw) return new Set();
     const parsed = JSON.parse(raw) as unknown;
     if (!Array.isArray(parsed)) return new Set();
@@ -32,7 +33,7 @@ export async function markQuestSeen(questId: string): Promise<Set<string>> {
   if (current.has(questId)) return current;
   current.add(questId);
   try {
-    await AsyncStorage.setItem(KEY, JSON.stringify([...current]));
+    await writeForUser(KEY, JSON.stringify([...current]));
   } catch {
     // Storage being unavailable costs a badge, not a feature. Nothing to do.
   }

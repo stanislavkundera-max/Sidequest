@@ -17,6 +17,8 @@
 --   2561e940-881e-447b-a04d-546e2be52937   2026-09-21
 --   8758e108-…                              2026-09-23   (full id: read it from step 1)
 --   72f82818-7259-4ef6-8fac-8ea2bcfccd76   2026-09-26
+--   52d168bc-4059-4c81-9115-2cea9f147075   2026-09-27   (code review; signed out to test the guest warning)
+--   c3d2930b-f8f6-4d7d-b6f8-5a3af5d9fe7e   2026-09-27   (code review; one memory, its test photo already removed)
 --
 -- Their analytics events are removed too, not just anonymised. They were never
 -- real usage, and left in they would count as "activated a quest" in the numbers
@@ -47,6 +49,8 @@ select u.id,
 -- delete from public.analytics_events
 --  where user_id in (
 --    'a3747ca8-de80-46a1-9f83-6ace71464087',
+--    '52d168bc-4059-4c81-9115-2cea9f147075',
+--    'c3d2930b-f8f6-4d7d-b6f8-5a3af5d9fe7e',
 --    '2561e940-881e-447b-a04d-546e2be52937',
 --    '72f82818-7259-4ef6-8fac-8ea2bcfccd76'
 --    -- , '8758e108-…'   <- full id from step 1
@@ -55,6 +59,8 @@ select u.id,
 -- delete from auth.users
 --  where id in (
 --    'a3747ca8-de80-46a1-9f83-6ace71464087',
+--    '52d168bc-4059-4c81-9115-2cea9f147075',
+--    'c3d2930b-f8f6-4d7d-b6f8-5a3af5d9fe7e',
 --    '2561e940-881e-447b-a04d-546e2be52937',
 --    '72f82818-7259-4ef6-8fac-8ea2bcfccd76'
 --    -- , '8758e108-…'

@@ -205,13 +205,14 @@ drop policy if exists "analytics_events_insert_own" on public.analytics_events;
 create policy "analytics_events_insert_own"
   on public.analytics_events for insert
   to authenticated
-  with check (user_id is null or auth.uid() = user_id);
+  -- Own rows only; see analytics_rls_own_only.sql (code review 2026-09-27).
+  with check (auth.uid() = user_id);
 
 drop policy if exists "analytics_events_select_own" on public.analytics_events;
 create policy "analytics_events_select_own"
   on public.analytics_events for select
   to authenticated
-  using (user_id is null or auth.uid() = user_id);
+  using (auth.uid() = user_id);
 
 create or replace function public.handle_new_user_profile()
 returns trigger

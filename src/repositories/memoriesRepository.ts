@@ -1,4 +1,5 @@
 import { supabase } from '@/lib/supabase';
+import { photoPathFromRef, signedPhotoUrls } from '@/src/repositories/photoRepository';
 import type { MemoryEntry } from '@/src/types/memory';
 
 type MemoryRowWithJoin = {
@@ -22,10 +23,36 @@ function mapMemoryRow(row: MemoryRowWithJoin): MemoryEntry {
     userQuestId: row.user_quest_id,
     title: row.title,
     body: row.body,
-    photoUri: row.photo_url,
+    photoUri: null,
+    photoRef: row.photo_url ?? null,
     categoryId: row.category_id ?? null,
     createdAt: row.created_at,
   };
+}
+
+/**
+ * Gives each memory a fresh, short-lived link to its photo — the database holds only where the
+ * photo is (see `uploadPhotoForUser`). One request for the whole timeline.
+ *
+ * If signing fails (no signal), the memories still load: an old stored link is shown while it
+ * lasts, a bare path shows no photo until the next load.
+ */
+async function withDisplayPhotos(entries: MemoryEntry[]): Promise<MemoryEntry[]> {
+  const paths = entries
+    .map((e) => photoPathFromRef(e.photoRef))
+    .filter((p): p is string => Boolean(p));
+  let signed = new Map<string, string>();
+  try {
+    signed = await signedPhotoUrls(paths);
+  } catch {
+    // Fall through to the stored values below.
+  }
+  return entries.map((e) => {
+    const path = photoPathFromRef(e.photoRef);
+    const fresh = path ? signed.get(path) : undefined;
+    const storedLink = e.photoRef && /^https?:/i.test(e.photoRef) ? e.photoRef : null;
+    return { ...e, photoUri: fresh ?? storedLink };
+  });
 }
 
 /**
@@ -91,7 +118,7 @@ export async function fetchMemoryTimeline(userId: string): Promise<MemoryEntry[]
       .eq('user_id', userId)
       .order('created_at', { ascending: false })
   );
-  return ((data ?? []) as unknown as MemoryRowWithJoin[]).map(mapMemoryRow);
+  return withDisplayPhotos(((data ?? []) as unknown as MemoryRowWithJoin[]).map(mapMemoryRow));
 }
 
 export async function createMemoryEntry(params: {
@@ -120,19 +147,23 @@ export async function createMemoryEntry(params: {
   );
   const row = data as unknown as MemoryRowWithJoin;
 
-  return {
-    id: row.id,
-    userQuestId: row.user_quest_id ?? null,
-    questId: params.questId,
-    title: row.title,
-    body: row.body,
-    photoUri: row.photo_url ?? null,
-    categoryId: row.category_id ?? null,
-    createdAt: row.created_at,
-  };
+  const [entry] = await withDisplayPhotos([
+    {
+      id: row.id,
+      userQuestId: row.user_quest_id ?? null,
+      questId: params.questId,
+      title: row.title,
+      body: row.body,
+      photoUri: null,
+      photoRef: row.photo_url ?? null,
+      categoryId: row.category_id ?? null,
+      createdAt: row.created_at,
+    },
+  ]);
+  return entry;
 }
 
-/** Admin tool: wipes every memory entry for a user (row data only; storage photos are left orphaned). */
+/** Admin tool: wipes every memory entry for a user. The store removes the photos (see memoryStore). */
 export async function deleteAllMemoriesForUser(userId: string): Promise<void> {
   const { error } = await supabase.from('memory_entries').delete().eq('user_id', userId);
   if (error) throw error;
@@ -163,10 +194,11 @@ export async function updateMemoryEntry(params: {
       .select(columns(true))
       .single()
   );
-  return mapMemoryRow(data as unknown as MemoryRowWithJoin);
+  const [entry] = await withDisplayPhotos([mapMemoryRow(data as unknown as MemoryRowWithJoin)]);
+  return entry;
 }
 
-/** Row data only — the photo in storage (if any) is left orphaned, same as bulk delete. */
+/** Row data only — the store removes the photo afterwards (removePhotoByRef). */
 export async function deleteMemoryEntry(params: { userId: string; id: string }): Promise<void> {
   const { error } = await supabase
     .from('memory_entries')

@@ -10,6 +10,7 @@ import { categoryAccentForCategoryId } from '@/lib/categoryAccent';
 import { QUEST_COPY } from '@/src/features/quests/questCopy';
 import { countCompletedJourneySteps } from '@/src/features/quests/questHelpers';
 import { useQuestDomainStore } from '@/src/features/quests/questStore';
+import { isPausedQuest } from '@/src/features/quests/suggestedQuests';
 import type { Quest, UserQuest } from '@/src/types/quest';
 
 type Props = {
@@ -54,21 +55,26 @@ export function PausedAndLikedSections({ actions }: Props) {
     [userQuests]
   );
 
-  const questHasProgress = useCallback(
+  // Paused = started and set aside, with or without a finished step. Only a quest that was never
+  // started is a like (isPausedQuest; code review 2026-09-27).
+  const wasStarted = useCallback(
     (uq: UserQuest) => {
       const q = getQuestById(uq.questId);
-      return Boolean(q && q.actionSteps.length > 0 && countCompletedJourneySteps(uq, q) > 0);
+      const hasProgress = Boolean(
+        q && q.actionSteps.length > 0 && countCompletedJourneySteps(uq, q) > 0
+      );
+      return hasProgress || isPausedQuest(uq);
     },
     [getQuestById]
   );
 
   const pausedRows = useMemo(
-    () => setAsideList.filter(questHasProgress),
-    [setAsideList, questHasProgress]
+    () => setAsideList.filter(wasStarted),
+    [setAsideList, wasStarted]
   );
   const likedRows = useMemo(
-    () => setAsideList.filter((uq) => !questHasProgress(uq)),
-    [setAsideList, questHasProgress]
+    () => setAsideList.filter((uq) => !wasStarted(uq)),
+    [setAsideList, wasStarted]
   );
 
   const renderRow = useCallback(
@@ -77,7 +83,7 @@ export function PausedAndLikedSections({ actions }: Props) {
       const accent = categoryAccentForCategoryId(rowCategoryId(uq, q));
       const stepTotal = q?.actionSteps.length ?? 0;
       const stepDone = q && stepTotal > 0 ? countCompletedJourneySteps(uq, q) : 0;
-      const hasProgress = stepDone > 0;
+      const started = wasStarted(uq);
       return (
         <Pressable
           key={uq.id}
@@ -92,7 +98,7 @@ export function PausedAndLikedSections({ actions }: Props) {
           <View style={hub.likedCompactBody}>
             <Text style={hub.questRowMeta}>
               {categoryLabel(rowCategoryId(uq, q))}
-              {hasProgress ? ` · ${stepDone}/${stepTotal} steps done` : ''}
+              {started && stepTotal > 0 ? ` · ${stepDone}/${stepTotal} steps done` : ''}
             </Text>
             <Text style={hub.questRowTitle} numberOfLines={2}>
               {rowTitle(uq, q)}
@@ -110,10 +116,10 @@ export function PausedAndLikedSections({ actions }: Props) {
                   actions.primaryBusy && hub.disabled,
                 ]}>
                 <Text style={hub.btnSubtleSolidText}>
-                  {hasProgress ? QUEST_COPY.resumeQuest : QUEST_COPY.startNow}
+                  {started ? QUEST_COPY.resumeQuest : QUEST_COPY.startNow}
                 </Text>
               </Pressable>
-              {!hasProgress ? (
+              {!started ? (
                 <Pressable
                   disabled={actions.primaryBusy}
                   onPress={() => void actions.onUnlike(uq.id)}
@@ -133,7 +139,7 @@ export function PausedAndLikedSections({ actions }: Props) {
         </Pressable>
       );
     },
-    [actions, categoryLabel, getQuestById, router]
+    [actions, categoryLabel, getQuestById, router, wasStarted]
   );
 
   if (pausedRows.length === 0 && likedRows.length === 0) return null;

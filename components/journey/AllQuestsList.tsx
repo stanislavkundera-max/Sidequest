@@ -4,6 +4,7 @@ import { useFocusEffect } from '@react-navigation/native';
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import { journeyHubStyles as hub } from '@/components/journey/journeyHubStyles';
+import { CatalogLoadFailed, useCatalogLoadFailed } from '@/components/quests/CatalogLoadFailed';
 import { CatalogQuestRow } from '@/components/quests/CatalogQuestRow';
 import type { useQuestActions } from '@/components/quests/useQuestActions';
 import { Theme } from '@/constants/Theme';
@@ -40,6 +41,7 @@ export function AllQuestsList({ initialCategoryId, preferences, actions }: Props
   const quests = useQuestDomainStore((s) => s.quests);
   const categories = useQuestDomainStore((s) => s.categories);
   const userQuests = useQuestDomainStore((s) => s.userQuests);
+  const catalogFailed = useCatalogLoadFailed();
 
   const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(
     initialCategoryId ?? null
@@ -138,6 +140,14 @@ export function AllQuestsList({ initialCategoryId, preferences, actions }: Props
     () => newlyOpenedFirst(openFive, newlyOpened, seenQuestIds),
     [openFive, newlyOpened, seenQuestIds]
   );
+
+  if (catalogFailed) {
+    return (
+      <View style={styles.failedWrap}>
+        <CatalogLoadFailed />
+      </View>
+    );
+  }
 
   if (quests.length === 0) {
     return (
@@ -251,6 +261,7 @@ export function AllQuestsList({ initialCategoryId, preferences, actions }: Props
 
 const styles = StyleSheet.create({
   loadingWrap: { paddingVertical: 48, alignItems: 'center', gap: 12 },
+  failedWrap: { paddingVertical: 24, paddingHorizontal: 16 },
   loadingText: { color: Theme.textMuted, fontSize: 14, fontFamily: 'Inter_400Regular' },
   countLine: {
     fontSize: 13,

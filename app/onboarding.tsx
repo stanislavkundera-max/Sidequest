@@ -279,7 +279,7 @@ export default function OnboardingScreen() {
       if (user && questsToStart.length > 0) {
         for (const q of questsToStart) {
           try {
-            const r = await assignQuestToUser(user.id, q.id);
+            const r = await assignQuestToUser(user.id, q.id, { sourceScreen: 'onboarding' });
             if (r.ok && !startedQuestId) startedQuestId = q.id;
           } catch {
             // Best-effort — see comment above.
