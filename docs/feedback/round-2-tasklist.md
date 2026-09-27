@@ -772,7 +772,7 @@ events) with a throwaway anonymous account; 23 unit tests pass.
 | 2b-3 | Turn everything down → empty category | ✅ Rule loosened: turned-down quests return as soon as nothing un-rejected is left to *offer* (in motion, liked, recently finished all count as taken). Was: only once everything else was *completed*, so three quests in motion blocked it. Unit tests updated + two new |
 | 2b-4 | Memories "Pick a quest" goes somewhere other than Journey | ✅ It went to the old `/quest/select` picker. It and the three "Browse quests" fallbacks now lead to Journey |
 | 2b-5 | "Let it wait" does nothing and throws an error | ✅ It worked, slowly: four round trips with no feedback, while the paused row vanished from the still-open modal — so people tapped again and paused a second quest or hit "Could not update". Now one tap at a time, the row says "Pausing…", the list holds still, and a network failure says so instead of failing silently |
-| 2b-6 | Does Explore add anything beyond Journey? | **DECIDE** — see below |
+| 2b-6 | Does Explore add anything beyond Journey? | **Parked 2026-09-27** — decided together with the redesign (R2-14), see below |
 
 **Found on the way, not fixed — for Standa:**
 - **A paused quest with no finished step shows as "Liked".** Pausing and liking both write
