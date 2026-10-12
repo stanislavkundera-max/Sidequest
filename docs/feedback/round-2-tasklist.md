@@ -775,6 +775,8 @@ it ships via OTA, SQL, the web deploy, or is not code at all.
 
 **OTA 2026-10-03:** account screen — a plain message when e-mails can't be sent yet (no SMTP) — published to build 11. Android update group `26e74f16`, runtime `bb7b76b1…`, commit `3068887`. Not yet checked on a phone.
 
+**OTA 2026-10-12:** round 2c fixes (tasks 39, 40, 47, 50, 51) published to build 11 — Android update group `87f5d7c6`, runtime `bb7b76b1…` (matches build 11), from `ad199be`. Not yet checked on a phone.
+
 OTA caveat: with `runtimeVersion: fingerprint`, an update reaches build 11 only if nothing native
 changed. If any "No — OTA" item ends up touching native code, it needs a build.
 
