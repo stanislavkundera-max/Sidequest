@@ -135,6 +135,25 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
         microphonePermission: false,
       },
     ],
+    [
+      'expo-build-properties',
+      {
+        android: {
+          // R8 in release builds (Play Console, 2026-10-12: "DEX optimisation
+          // below our limit — obfuscation 1 %", fix by February 2027; under 25 %
+          // can cost visibility). Expo leaves it off by default, so build 11
+          // shipped unshrunk. R8 can strip classes a library loads by
+          // reflection, which crashes only in a release build — smoke-test
+          // sign-in, a memory photo, notifications and the calendar on the
+          // first build with this. Play then asks for the build's mapping.txt
+          // to read native crashes; JS errors are unaffected.
+          //
+          // Not `enableShrinkResourcesInReleaseBuilds`: Play did not ask for
+          // it, and it can drop resources looked up by name at runtime.
+          enableMinifyInReleaseBuilds: true,
+        },
+      },
+    ],
   ],
   experiments: {
     typedRoutes: true,
