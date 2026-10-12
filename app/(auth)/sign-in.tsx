@@ -1,3 +1,4 @@
+import { isAuthError } from '@supabase/supabase-js';
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
 import {
@@ -35,6 +36,13 @@ export default function SignInScreen() {
   const [formInfo, setFormInfo] = useState<string | null>(null);
 
   const [guestLoading, setGuestLoading] = useState(false);
+
+  // A new account is confirmed with the code from the e-mail, typed here (task 39). The e-mail's
+  // link went through the browser to the project's Site URL, which was never set — Supabase's
+  // default `http://localhost:3000` — so every sign-up ended on an error page on the phone,
+  // although the address was already confirmed by then. Set while that code is awaited.
+  const [verifyEmail, setVerifyEmail] = useState<string | null>(null);
+  const [code, setCode] = useState('');
 
   const configured = isSupabaseConfigured();
 
@@ -102,12 +110,12 @@ export default function SignInScreen() {
         // would look identical to a working signup that quietly does nothing.
         if (data.user && data.user.identities?.length === 0) {
           setFormInfo(
-            'This email is already registered. If you already confirmed it, sign in instead. If not, check your inbox (including spam) for the original confirmation link.'
+            'This email is already registered. If you already confirmed it, sign in instead. If not, look in your inbox (including spam) for the e-mail we sent when you signed up.'
           );
         } else {
-          setFormInfo(
-            'Account created. We sent you an email: open the link in it to confirm your address, then sign in here. If it does not arrive within a few minutes, check your spam folder.'
-          );
+          setCode('');
+          setVerifyEmail(email.trim());
+          setFormInfo(codeSentMessage(email.trim()));
         }
       } else {
         const { data, error } = await supabase.auth.signInWithPassword({
@@ -128,6 +136,132 @@ export default function SignInScreen() {
     } finally {
       setLoading(false);
     }
+  }
+
+  async function confirmCode() {
+    setFormError(null);
+    setFormInfo(null);
+    if (!verifyEmail) return;
+    if (!code.trim()) {
+      setFormError('Enter the code from the e-mail.');
+      return;
+    }
+    setLoading(true);
+    try {
+      const { data, error } = await supabase.auth.verifyOtp({
+        email: verifyEmail,
+        token: code.trim(),
+        type: 'signup',
+      });
+      if (error) throw error;
+      if (!data.session) {
+        throw new Error('That code did not work. Send a new one and try again.');
+      }
+      setSession(data.session);
+      router.replace('/');
+    } catch (e: unknown) {
+      logError('auth.signup.verify', e);
+      setFormError(describeCodeError(e));
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function resendCode() {
+    setFormError(null);
+    setFormInfo(null);
+    if (!verifyEmail) return;
+    setLoading(true);
+    try {
+      const { error } = await supabase.auth.resend({ type: 'signup', email: verifyEmail });
+      if (error) throw error;
+      // A new code replaces the old one.
+      setCode('');
+      setFormInfo(`A new code is on its way to ${verifyEmail}. Check spam if it does not arrive.`);
+    } catch (e: unknown) {
+      logError('auth.signup.resend', e);
+      setFormError(describeCodeError(e));
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  /** Back to the sign-up form — the typo case, where the code went to the wrong address. */
+  function useDifferentEmail() {
+    setVerifyEmail(null);
+    setCode('');
+    setFormError(null);
+    setFormInfo(null);
+  }
+
+  /**
+   * For an e-mail that still carries only the link (the Supabase template without the code): the
+   * link confirms the address even though the page it lands on fails, so signing in then works.
+   */
+  function signInAfterLink() {
+    setVerifyEmail(null);
+    setCode('');
+    setFormError(null);
+    setFormInfo('Once you have tapped the link in the e-mail, sign in here with your password.');
+    setMode('signin');
+  }
+
+  if (verifyEmail) {
+    return (
+      <SafeAreaView style={styles.safe} edges={['top', 'bottom']}>
+        <KeyboardAvoidingView
+          style={styles.flex}
+          behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+          <View style={styles.inner}>
+            <Text style={styles.title}>Confirm your e-mail</Text>
+            <Text style={styles.sub}>One last step: type the code we sent you.</Text>
+
+            {formError ? <Text style={styles.bannerError}>{formError}</Text> : null}
+            {formInfo ? <Text style={styles.bannerInfo}>{formInfo}</Text> : null}
+
+            <Text style={styles.label}>Code from the e-mail</Text>
+            <TextInput
+              style={styles.input}
+              keyboardType="number-pad"
+              autoComplete="one-time-code"
+              textContentType="oneTimeCode"
+              maxLength={10}
+              value={code}
+              onChangeText={setCode}
+              placeholder="123456"
+              placeholderTextColor={Theme.textMuted}
+            />
+
+            <PrimaryButton label="Confirm" loading={loading} onPress={() => void confirmCode()} />
+
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel="Send a new code"
+              onPress={() => void resendCode()}
+              disabled={loading}
+              style={styles.linkWrap}>
+              <Text style={styles.switch}>No e-mail? Send a new code</Text>
+            </Pressable>
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel="Use a different e-mail address"
+              onPress={useDifferentEmail}
+              disabled={loading}
+              style={styles.linkWrap}>
+              <Text style={styles.switch}>Use a different e-mail</Text>
+            </Pressable>
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel="The e-mail has a link instead of a code"
+              onPress={signInAfterLink}
+              disabled={loading}
+              style={styles.linkWrap}>
+              <Text style={styles.guest}>The e-mail has a link, no code?</Text>
+            </Pressable>
+          </View>
+        </KeyboardAvoidingView>
+      </SafeAreaView>
+    );
   }
 
   return (
@@ -238,6 +372,23 @@ export default function SignInScreen() {
   );
 }
 
+function codeSentMessage(address: string): string {
+  return `Account created. We sent a code to ${address} — type it below to finish. Check spam if it does not arrive within a few minutes.`;
+}
+
+/** What went wrong with a sign-up code, in words someone can act on. */
+function describeCodeError(e: unknown): string {
+  const code = isAuthError(e) ? e.code : undefined;
+  const message = e instanceof Error ? e.message : '';
+  if (code === 'otp_expired' || /expired or is invalid/i.test(message)) {
+    return 'That code did not work. Check it, or send a new one.';
+  }
+  if (code === 'over_email_send_rate_limit' || /rate limit/i.test(message)) {
+    return 'Too many e-mails in a short time. Wait a few minutes, then try again.';
+  }
+  return formatAuthErrorForUi(e);
+}
+
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: Theme.bg },
   flex: { flex: 1 },
@@ -316,6 +467,12 @@ const styles = StyleSheet.create({
   },
   forgot: { color: Theme.accent, fontSize: 14, fontFamily: 'Inter_400Regular' },
   switchWrap: { marginTop: 20, alignItems: 'center' },
+  linkWrap: {
+    marginTop: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
+    minHeight: MIN_TOUCH_TARGET,
+  },
   switch: { color: Theme.accent, fontSize: 15, fontFamily: 'Inter_400Regular' },
   guestWrap: {
     marginTop: 12,
