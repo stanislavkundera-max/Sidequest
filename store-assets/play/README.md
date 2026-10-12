@@ -1,6 +1,8 @@
 # Play Store listing assets
 
-Generated 2026-08-29. Regenerate any time with the web server running:
+Generated 2026-08-29, screenshots re-captured 2026-10-12 (current UI). Still not final: 02, 05
+and 06 are not listing material — see `docs/feedback/round-2-tasklist.md` item 44. Regenerate any
+time with the web server running:
 
 ```
 node scripts/capture-store-screenshots.cjs
@@ -13,7 +15,7 @@ Six phone screenshots at **1080×1920** (9:16), captured from the web build:
 | File | Screen |
 |---|---|
 | `01-welcome.png` | Welcome / first launch |
-| `02-onboarding-categories.png` | Onboarding: picking quest categories |
+| `02-after-onboarding.png` | Onboarding: picking quest categories |
 | `03-explore.png` | Explore map — **the strongest image the app has; use it first** |
 | `04-journey.png` | Journey catalog |
 | `05-memories.png` | Memories timeline |
