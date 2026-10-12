@@ -17,6 +17,7 @@ import { useEffect } from 'react';
 import { AppState, Platform, StyleSheet, View, type AppStateStatus } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 
+import { AppDialogHost } from '@/components/ui/AppDialogHost';
 import { HeaderBackButton } from '@/components/ui/HeaderBackButton';
 import 'react-native-reanimated';
 import { MD3DarkTheme, MD3LightTheme, PaperProvider } from 'react-native-paper';
@@ -297,6 +298,8 @@ function RootLayoutNav() {
             }}
           />
         </Stack>
+        {/* The app's own message dialogs — alertCompat / alertTwoChoice (task 50). */}
+        <AppDialogHost />
       </NavigationThemeProvider>
     </PaperProvider>
   );

@@ -179,7 +179,7 @@ export default function QuestDetailScreen() {
               ? 'You are already doing this quest.'
               : 'Quest not found.';
         setAssignFeedback(reasonMessage);
-        alertCompat('Cannot add', reasonMessage);
+        alertCompat('Not open right now', reasonMessage);
         return false;
       }
       setAssignFeedback('Added. Getting your quests…');
@@ -190,7 +190,7 @@ export default function QuestDetailScreen() {
       logError('quest.detail.onAssign', e, { questId: quest.id });
       const message = e instanceof Error ? e.message : 'Try again.';
       setAssignFeedback(message);
-      alertCompat('Cannot add', message);
+      alertCompat('Not open right now', message);
       return false;
     } finally {
       setActing(false);
@@ -218,7 +218,7 @@ export default function QuestDetailScreen() {
       const r = await deactivateQuest(user.id, activeUq.id, { sourceScreen: 'quest_detail' });
       if (!r.ok) {
         alertCompat(
-          'Could not update',
+          "That didn't go through",
           r.reason === 'not_active'
             ? 'You are no longer doing this quest.'
             : 'Quest not found.'
@@ -236,7 +236,7 @@ export default function QuestDetailScreen() {
         questId: quest.id,
         userQuestId: activeUq.id,
       });
-      alertCompat('Error', e instanceof Error ? e.message : 'Could not remove quest.');
+      alertCompat("That didn't go through", e instanceof Error ? e.message : 'Could not remove quest.');
     } finally {
       setActing(false);
     }
@@ -292,7 +292,7 @@ export default function QuestDetailScreen() {
       } else {
         const r = await dismissSuggestedQuest(user.id, quest.id, { sourceScreen: 'quest_detail' });
         if (!r.ok) {
-          alertCompat('Could not update', 'Try again in a moment.');
+          alertCompat("That didn't go through", 'Nothing changed. Try again in a moment.');
           return;
         }
       }

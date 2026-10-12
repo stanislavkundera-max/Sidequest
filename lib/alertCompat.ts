@@ -1,17 +1,15 @@
-import { Alert, Platform } from 'react-native';
+import { useDialogStore } from '@/stores/dialog';
 
-/** Simple alert that works on web (`window.alert`) and native (`Alert.alert`). */
+/** One-button message in the app's own dialog (see `stores/dialog.ts`), native and web alike. */
 export function alertCompat(title: string, message: string): void {
-  if (Platform.OS === 'web' && typeof window !== 'undefined') {
-    window.alert(`${title}\n\n${message}`);
-    return;
-  }
-  Alert.alert(title, message);
+  useDialogStore.getState().show({
+    title,
+    message,
+    buttons: [{ text: 'OK', kind: 'primary' }],
+  });
 }
 
-/**
- * Two-option dialog. On web uses `confirm` (OK/Cancel only); button labels are not customizable in the browser dialog.
- */
+/** Two-option dialog: `cancel` is the quiet way out (also Android back), `confirm` the filled button. */
 export function alertTwoChoice(
   title: string,
   message: string,
@@ -20,13 +18,12 @@ export function alertTwoChoice(
     confirm: { text: string; onPress: () => void };
   }
 ): void {
-  if (Platform.OS === 'web' && typeof window !== 'undefined') {
-    const ok = window.confirm(`${title}\n\n${message}`);
-    if (ok) choices.confirm.onPress();
-    return;
-  }
-  Alert.alert(title, message, [
-    { text: choices.cancel.text, style: 'cancel', onPress: choices.cancel.onPress },
-    { text: choices.confirm.text, onPress: choices.confirm.onPress },
-  ]);
+  useDialogStore.getState().show({
+    title,
+    message,
+    buttons: [
+      { text: choices.cancel.text, onPress: choices.cancel.onPress, kind: 'secondary' },
+      { text: choices.confirm.text, onPress: choices.confirm.onPress, kind: 'primary' },
+    ],
+  });
 }

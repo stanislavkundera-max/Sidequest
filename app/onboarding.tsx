@@ -2,9 +2,7 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   ActivityIndicator,
-  Alert,
   ImageBackground,
-  Platform,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -16,6 +14,7 @@ import FontAwesome from '@expo/vector-icons/FontAwesome';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { Theme } from '@/constants/Theme';
+import { alertCompat } from '@/lib/alertCompat';
 import { categoryAccentForCategoryId } from '@/lib/categoryAccent';
 import { categoryIconNameForCategoryId } from '@/lib/categoryIcons';
 import { getOnboardingComplete } from '@/lib/onboarding';
@@ -147,14 +146,6 @@ export default function OnboardingScreen() {
       return next;
     });
   }, []);
-
-  function alertCompat(title: string, message: string) {
-    if (Platform.OS === 'web' && typeof window !== 'undefined') {
-      window.alert(`${title}\n\n${message}`);
-      return;
-    }
-    Alert.alert(title, message);
-  }
 
   useEffect(() => {
     let mounted = true;

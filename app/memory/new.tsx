@@ -157,7 +157,7 @@ export default function NewMemoryScreen() {
         hasPhoto: Boolean(localUri),
       }).catch(() => undefined);
       logError('memory.new.save', e, { questId: qid, hasPhoto: Boolean(localUri) });
-      alertCompat('Error', e instanceof Error ? e.message : 'Save failed');
+      alertCompat("That didn't go through", e instanceof Error ? e.message : 'Save failed');
     } finally {
       setSaving(false);
     }

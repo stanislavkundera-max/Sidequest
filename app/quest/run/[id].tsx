@@ -161,7 +161,7 @@ export default function QuestRunScreen() {
     try {
       const r = await deactivateQuest(user.id, activeUq.id, { sourceScreen: 'quest_runner' });
       if (!r.ok) {
-        alertCompat('Could not update', 'Try again in a moment.');
+        alertCompat("That didn't go through", 'Nothing changed. Try again in a moment.');
         return;
       }
       await refreshUserQuests(user.id);
@@ -170,7 +170,7 @@ export default function QuestRunScreen() {
       router.replace('/(tabs)/profile');
     } catch (e: unknown) {
       logError('quest.runner.leaveQuest', e, { questId: quest.id, userQuestId: activeUq.id });
-      alertCompat('Error', e instanceof Error ? e.message : 'Could not leave this quest.');
+      alertCompat("That didn't go through", e instanceof Error ? e.message : 'Could not leave this quest.');
     } finally {
       setActing(false);
     }
@@ -289,7 +289,7 @@ export default function QuestRunScreen() {
         sourceScreen: 'quest_runner',
       });
       if (!r.ok) {
-        alertCompat('Error', 'Could not complete quest.');
+        alertCompat("That didn't go through", 'Could not complete quest.');
         return;
       }
       await refreshUserQuests(user.id);
@@ -364,7 +364,7 @@ export default function QuestRunScreen() {
       }
     } catch (e: unknown) {
       logError('quest.runner.wrapUpQuest', e, { questId: quest.id, userQuestId: activeUq.id });
-      alertCompat('Error', e instanceof Error ? e.message : 'Could not complete quest.');
+      alertCompat("That didn't go through", e instanceof Error ? e.message : 'Could not complete quest.');
     } finally {
       setActing(false);
     }

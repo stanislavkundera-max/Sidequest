@@ -50,6 +50,9 @@ export function AccountCard() {
   const [notificationIntensity, setNotificationIntensity] =
     useState<NotificationIntensity | null>(null);
   const [notificationBusy, setNotificationBusy] = useState(false);
+  // Settings start folded away: they sat at the top of Progress, above everything you have done,
+  // and got in the way (Standa, round 2c, task 51).
+  const [settingsOpen, setSettingsOpen] = useState(false);
 
   const email = user?.email ?? null;
   const admin = isAdminEmail(email);
@@ -276,128 +279,147 @@ export function AccountCard() {
         </View>
       ) : null}
 
-      {notificationIntensity ? (
-        <View style={styles.notificationBlock}>
-          <Text style={styles.notificationLabel}>Notifications</Text>
-          <View style={styles.notificationPills}>
-            {NOTIFICATION_OPTIONS.map((opt) => {
-              const selected = opt.value === notificationIntensity;
-              return (
-                <Pressable
-                  key={opt.value}
-                  disabled={notificationBusy}
-                  accessibilityRole="button"
-                  accessibilityLabel={`Notifications: ${opt.label}`}
-                  accessibilityState={{ selected }}
-                  onPress={() => changeNotificationIntensity(opt.value)}
-                  style={({ pressed }) => [
-                    styles.notificationPill,
-                    selected && styles.notificationPillSelected,
-                    pressed && !notificationBusy && styles.pressed,
-                    notificationBusy && styles.notificationPillDisabled,
-                  ]}>
-                  <Text
-                    style={[
-                      styles.notificationPillText,
-                      selected && styles.notificationPillTextSelected,
-                    ]}>
-                    {opt.label}
-                  </Text>
-                </Pressable>
-              );
-            })}
-          </View>
-        </View>
-      ) : null}
+      <Pressable
+        accessibilityRole="button"
+        accessibilityLabel="Settings"
+        accessibilityState={{ expanded: settingsOpen }}
+        onPress={() => setSettingsOpen((open) => !open)}
+        style={({ pressed }) => [styles.settingsRow, pressed && styles.pressed]}>
+        <Ionicons name="settings-outline" size={16} color={Theme.textMuted} />
+        <Text style={styles.settingsRowText}>Settings</Text>
+        <Ionicons
+          name={settingsOpen ? 'chevron-up' : 'chevron-down'}
+          size={16}
+          color={Theme.textMuted}
+        />
+      </Pressable>
 
-      {busy ? (
-        <View style={styles.busyRow}>
-          <ActivityIndicator color={Theme.accent} />
-        </View>
-      ) : (
-        <View style={styles.actionsRow}>
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel="Edit preferences"
-            onPress={() => router.push('/onboarding?edit=1')}
-            style={({ pressed }) => [styles.editBtn, pressed && styles.pressed]}>
-            <Ionicons name="options-outline" size={14} color={Theme.text} />
-            <Text style={styles.editBtnText}>Edit preferences</Text>
-          </Pressable>
-          {showAdminTools ? (
-            <>
-              <Pressable
-                accessibilityRole="button"
-                accessibilityLabel="Preview as a regular user"
-                onPress={() => togglePreview(true)}
-                style={({ pressed }) => [styles.adminBtn, pressed && styles.pressed]}>
-                <Ionicons name="eye-outline" size={14} color={Theme.accent} />
-                <Text style={styles.adminBtnText}>Preview as user</Text>
-              </Pressable>
-              <Pressable
-                accessibilityRole="button"
-                accessibilityLabel="Redo onboarding"
-                onPress={redoOnboarding}
-                style={({ pressed }) => [styles.adminBtn, pressed && styles.pressed]}>
-                <Ionicons name="refresh-outline" size={14} color={Theme.accent} />
-                <Text style={styles.adminBtnText}>Redo onboarding</Text>
-              </Pressable>
-              <Pressable
-                accessibilityRole="button"
-                accessibilityLabel="Delete all progress"
-                onPress={deleteAllProgress}
-                style={({ pressed }) => [styles.dangerBtn, pressed && styles.pressed]}>
-                <Ionicons name="trash-outline" size={14} color={Theme.danger} />
-                <Text style={styles.dangerBtnText}>Delete all progress</Text>
-              </Pressable>
-            </>
+      {settingsOpen ? (
+        <View style={styles.settingsBody}>
+          {notificationIntensity ? (
+            <View style={styles.notificationBlock}>
+              <Text style={styles.notificationLabel}>Notifications</Text>
+              <View style={styles.notificationPills}>
+                {NOTIFICATION_OPTIONS.map((opt) => {
+                  const selected = opt.value === notificationIntensity;
+                  return (
+                    <Pressable
+                      key={opt.value}
+                      disabled={notificationBusy}
+                      accessibilityRole="button"
+                      accessibilityLabel={`Notifications: ${opt.label}`}
+                      accessibilityState={{ selected }}
+                      onPress={() => changeNotificationIntensity(opt.value)}
+                      style={({ pressed }) => [
+                        styles.notificationPill,
+                        selected && styles.notificationPillSelected,
+                        pressed && !notificationBusy && styles.pressed,
+                        notificationBusy && styles.notificationPillDisabled,
+                      ]}>
+                      <Text
+                        style={[
+                          styles.notificationPillText,
+                          selected && styles.notificationPillTextSelected,
+                        ]}>
+                        {opt.label}
+                      </Text>
+                    </Pressable>
+                  );
+                })}
+              </View>
+            </View>
           ) : null}
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel="Sign out"
-            onPress={signOut}
-            style={({ pressed }) => [styles.signOutBtn, pressed && styles.pressed]}>
-            <Text style={styles.signOutBtnText}>Sign out</Text>
-          </Pressable>
+
+          {busy ? (
+            <View style={styles.busyRow}>
+              <ActivityIndicator color={Theme.accent} />
+            </View>
+          ) : (
+            <View style={styles.actionsRow}>
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel="Edit preferences"
+                onPress={() => router.push('/onboarding?edit=1')}
+                style={({ pressed }) => [styles.editBtn, pressed && styles.pressed]}>
+                <Ionicons name="options-outline" size={14} color={Theme.text} />
+                <Text style={styles.editBtnText}>Edit preferences</Text>
+              </Pressable>
+              {showAdminTools ? (
+                <>
+                  <Pressable
+                    accessibilityRole="button"
+                    accessibilityLabel="Preview as a regular user"
+                    onPress={() => togglePreview(true)}
+                    style={({ pressed }) => [styles.adminBtn, pressed && styles.pressed]}>
+                    <Ionicons name="eye-outline" size={14} color={Theme.accent} />
+                    <Text style={styles.adminBtnText}>Preview as user</Text>
+                  </Pressable>
+                  <Pressable
+                    accessibilityRole="button"
+                    accessibilityLabel="Redo onboarding"
+                    onPress={redoOnboarding}
+                    style={({ pressed }) => [styles.adminBtn, pressed && styles.pressed]}>
+                    <Ionicons name="refresh-outline" size={14} color={Theme.accent} />
+                    <Text style={styles.adminBtnText}>Redo onboarding</Text>
+                  </Pressable>
+                  <Pressable
+                    accessibilityRole="button"
+                    accessibilityLabel="Delete all progress"
+                    onPress={deleteAllProgress}
+                    style={({ pressed }) => [styles.dangerBtn, pressed && styles.pressed]}>
+                    <Ionicons name="trash-outline" size={14} color={Theme.danger} />
+                    <Text style={styles.dangerBtnText}>Delete all progress</Text>
+                  </Pressable>
+                </>
+              ) : null}
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel="Sign out"
+                onPress={signOut}
+                style={({ pressed }) => [styles.signOutBtn, pressed && styles.pressed]}>
+                <Text style={styles.signOutBtnText}>Sign out</Text>
+              </Pressable>
+            </View>
+          )}
+
+          {admin && previewAsUser ? (
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel="Exit admin preview"
+              onPress={() => togglePreview(false)}
+              style={({ pressed }) => [styles.exitPreviewLink, pressed && styles.pressed]}>
+              <Text style={styles.exitPreviewLinkText}>Admin preview mode · Exit</Text>
+            </Pressable>
+          ) : null}
+
+          <View style={styles.legalRow}>
+            <Pressable
+              accessibilityRole="link"
+              accessibilityLabel="Privacy Policy"
+              style={styles.legalLink}
+              onPress={() => router.push('/legal/privacy')}>
+              <Text style={styles.legalLinkText}>Privacy Policy</Text>
+            </Pressable>
+            <Text style={styles.legalDivider}>·</Text>
+            <Pressable
+              accessibilityRole="link"
+              accessibilityLabel="Terms of Service"
+              style={styles.legalLink}
+              onPress={() => router.push('/legal/terms')}>
+              <Text style={styles.legalLinkText}>Terms of Service</Text>
+            </Pressable>
+          </View>
+
+          {!busy ? (
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel="Delete your account permanently"
+              onPress={deleteAccount}
+              style={({ pressed }) => [styles.deleteAccountLink, pressed && styles.pressed]}>
+              <Text style={styles.deleteAccountLinkText}>Delete account</Text>
+            </Pressable>
+          ) : null}
         </View>
-      )}
-
-      {admin && previewAsUser ? (
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel="Exit admin preview"
-          onPress={() => togglePreview(false)}
-          style={({ pressed }) => [styles.exitPreviewLink, pressed && styles.pressed]}>
-          <Text style={styles.exitPreviewLinkText}>Admin preview mode · Exit</Text>
-        </Pressable>
-      ) : null}
-
-      <View style={styles.legalRow}>
-        <Pressable
-          accessibilityRole="link"
-          accessibilityLabel="Privacy Policy"
-          style={styles.legalLink}
-          onPress={() => router.push('/legal/privacy')}>
-          <Text style={styles.legalLinkText}>Privacy Policy</Text>
-        </Pressable>
-        <Text style={styles.legalDivider}>·</Text>
-        <Pressable
-          accessibilityRole="link"
-          accessibilityLabel="Terms of Service"
-          style={styles.legalLink}
-          onPress={() => router.push('/legal/terms')}>
-          <Text style={styles.legalLinkText}>Terms of Service</Text>
-        </Pressable>
-      </View>
-
-      {!busy ? (
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel="Delete your account permanently"
-          onPress={deleteAccount}
-          style={({ pressed }) => [styles.deleteAccountLink, pressed && styles.pressed]}>
-          <Text style={styles.deleteAccountLinkText}>Delete account</Text>
-        </Pressable>
       ) : null}
     </View>
   );
@@ -415,6 +437,23 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   row: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  settingsRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    minHeight: MIN_TOUCH_TARGET,
+    borderTopWidth: 1,
+    borderTopColor: Theme.border,
+    paddingTop: 10,
+  },
+  settingsRowText: {
+    flex: 1,
+    fontSize: 14,
+    fontFamily: 'Inter_600SemiBold',
+    fontWeight: '600',
+    color: Theme.textMuted,
+  },
+  settingsBody: { gap: 12 },
   email: { flex: 1, fontSize: 14, fontFamily: 'Inter_600SemiBold', fontWeight: '600', color: Theme.text },
   guestBlock: {
     gap: 8,

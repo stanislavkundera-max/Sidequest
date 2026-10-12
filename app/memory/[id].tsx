@@ -161,7 +161,7 @@ export default function MemoryDetailScreen() {
       });
       setEditing(false);
     } catch (e: unknown) {
-      alertCompat('Error', e instanceof Error ? e.message : 'Could not save changes.');
+      alertCompat("That didn't go through", e instanceof Error ? e.message : 'Could not save changes.');
     }
   }
 
@@ -182,7 +182,7 @@ export default function MemoryDetailScreen() {
                 router.replace('/(tabs)/memories');
               } catch (e: unknown) {
                 logError('memory.detail.delete', e, { memoryId: memory.id });
-                alertCompat('Error', e instanceof Error ? e.message : 'Could not delete memory.');
+                alertCompat("That didn't go through", e instanceof Error ? e.message : 'Could not delete memory.');
               } finally {
                 setDeleting(false);
               }

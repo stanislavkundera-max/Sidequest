@@ -65,7 +65,7 @@ export function useQuestActions(userId: string, sourceScreen: string) {
           alertCompat('Already started', 'You are already doing this one.');
           return;
         }
-        alertCompat('Cannot add', 'This quest is not available right now.');
+        alertCompat('Not open right now', "This quest can't be started at the moment.");
       } finally {
         setBusy(false);
       }
@@ -93,7 +93,7 @@ export function useQuestActions(userId: string, sourceScreen: string) {
       try {
         const r = await saveQuestForLater(userId, questId);
         if (!r.ok) {
-          alertCompat('Could not save', r.reason);
+          alertCompat("Couldn't save that", 'Check your connection and try again.');
           return;
         }
         await refreshUserQuests(userId);
@@ -119,7 +119,7 @@ export function useQuestActions(userId: string, sourceScreen: string) {
       try {
         const r = await unlikeQuest(userId, userQuestId);
         if (!r.ok) {
-          alertCompat('Could not remove', 'Try again in a moment.');
+          alertCompat("Couldn't remove that", 'Try again in a moment.');
           return;
         }
         await refreshUserQuests(userId);
@@ -149,18 +149,21 @@ export function useQuestActions(userId: string, sourceScreen: string) {
       try {
         const r = await deactivateQuest(userId, userQuestId, { sourceScreen });
         if (!r.ok) {
-          alertCompat('Could not update', 'Try again in a moment.');
+          alertCompat("That didn't go through", 'Nothing changed. Try again in a moment.');
           return;
         }
         await refreshUserQuests(userId);
         const nextPending = pendingActivationRef.current;
         if (nextPending) {
-          await runActivate(nextPending);
+          // Open the quest that was waiting, as "Start now" does. Without the destination the
+          // dialog just closed and the new quest left the list it was started from, so people
+          // went looking for it among the paused ones (round 2c, task 47).
+          await runActivate(nextPending, `/quest/run/${nextPending}`);
         } else {
           setPathFullOpen(false);
         }
       } catch {
-        alertCompat('Could not update', 'Check your connection and try again.');
+        alertCompat("That didn't go through", 'Check your connection and try again.');
       } finally {
         letWaitInFlight.current = false;
         frozenModalList.current = null;

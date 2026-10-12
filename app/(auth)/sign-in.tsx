@@ -106,7 +106,7 @@ export default function SignInScreen() {
           );
         } else {
           setFormInfo(
-            'Account created. Confirm your email via the link Supabase sent you, then sign in. (In Supabase: disable "Confirm email" for immediate access after sign-up.)'
+            'Account created. We sent you an email: open the link in it to confirm your address, then sign in here. If it does not arrive within a few minutes, check your spam folder.'
           );
         }
       } else {
