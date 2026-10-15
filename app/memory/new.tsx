@@ -18,6 +18,7 @@ import { ErrorState } from '@/components/ui/ErrorState';
 import { PrimaryButton } from '@/components/ui/PrimaryButton';
 import { Theme } from '@/constants/Theme';
 import { alertCompat } from '@/lib/alertCompat';
+import { plainErrorMessage } from '@/lib/userFacingError';
 import { memoryTitleFromBody } from '@/src/features/memories/memoryTitle';
 import { useMemoryStore } from '@/src/features/memories/memoryStore';
 import { useQuestDomainStore } from '@/src/features/quests/questStore';
@@ -103,8 +104,8 @@ export default function NewMemoryScreen() {
     } catch (e: unknown) {
       logError('memory.new.pickImage', e);
       alertCompat(
-        'Could not open gallery',
-        e instanceof Error ? e.message : 'Please try again.'
+        "Your photos didn't open",
+        plainErrorMessage(e, "Try again in a moment.")
       );
     }
   }
@@ -157,7 +158,7 @@ export default function NewMemoryScreen() {
         hasPhoto: Boolean(localUri),
       }).catch(() => undefined);
       logError('memory.new.save', e, { questId: qid, hasPhoto: Boolean(localUri) });
-      alertCompat("That didn't go through", e instanceof Error ? e.message : 'Save failed');
+      alertCompat("That didn't go through", plainErrorMessage(e, "Your memory didn't save. Try again in a moment."));
     } finally {
       setSaving(false);
     }

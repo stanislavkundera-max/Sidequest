@@ -1,4 +1,5 @@
 import { supabase } from '@/lib/supabase';
+import { UserFacingError } from '@/lib/userFacingError';
 import {
   getOnboardingState,
   saveOnboardingState,
@@ -33,7 +34,7 @@ export async function resetOnboardingComplete(): Promise<void> {
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  if (!user) throw new Error('Sign in with your admin account to redo onboarding.');
+  if (!user) throw new UserFacingError('Sign in with your admin account to redo onboarding.');
   await ensureProfileForUser({ id: user.id, email: user.email });
   await resetOnboardingForUser(user.id);
 }

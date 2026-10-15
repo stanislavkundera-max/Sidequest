@@ -30,8 +30,10 @@ import { logError } from '@/src/lib/monitoring/errorLogger';
 import type { Category } from '@/src/types/category';
 import type { Quest } from '@/src/types/quest';
 import type { UserQuest, UserQuestStepEvidence } from '@/src/types/quest';
+import { plainErrorMessage } from '@/lib/userFacingError';
 
-function formatUnknownError(e: unknown, fallback: string): string {
+/** The technical text — for recognising setup errors, never for showing. */
+function rawErrorText(e: unknown, fallback: string): string {
   if (e instanceof Error) return e.message;
   if (typeof e === 'object' && e !== null) {
     const candidate = e as { message?: unknown; details?: unknown; hint?: unknown };
@@ -42,6 +44,11 @@ function formatUnknownError(e: unknown, fallback: string): string {
     if (merged) return merged;
   }
   return fallback;
+}
+
+/** What the screen shows for a failed action — plain words (task 50), or nothing for a setup gap. */
+function storeErrorFor(e: unknown, fallback: string): string | null {
+  return isSupabaseQuestProgressSetupError(rawErrorText(e, '')) ? null : plainErrorMessage(e, fallback);
 }
 
 function isSupabaseQuestProgressSetupError(message: string): boolean {
@@ -194,7 +201,7 @@ export const useQuestDomainStore = create<QuestDomainState>((set, get) => ({
       set({
         loading: false,
         catalogFailed: true,
-        error: formatUnknownError(e, 'Failed to load quests.'),
+        error: plainErrorMessage(e, "We couldn't load your quests. Try again in a moment."),
       });
     }
   },
@@ -205,7 +212,7 @@ export const useQuestDomainStore = create<QuestDomainState>((set, get) => ({
       set({ userQuests });
     } catch (e: unknown) {
       logError('questStore.refreshUserQuests', e, { userId });
-      set({ error: formatUnknownError(e, 'Failed to refresh quests.') });
+      set({ error: plainErrorMessage(e, "We couldn't load your quests. Try again in a moment.") });
     }
   },
 
@@ -267,8 +274,7 @@ export const useQuestDomainStore = create<QuestDomainState>((set, get) => ({
           u.id === userQuestId ? prev : u
         ),
         error: (() => {
-          const message = formatUnknownError(e, 'Could not save step.');
-          return isSupabaseQuestProgressSetupError(message) ? null : message;
+          return storeErrorFor(e, "That step didn't save. Try again in a moment.");
         })(),
       }));
       throw e;
@@ -308,8 +314,7 @@ export const useQuestDomainStore = create<QuestDomainState>((set, get) => ({
       set((s) => ({
         userQuests: s.userQuests.map((u) => (u.id === userQuestId ? prev : u)),
         error: (() => {
-          const message = formatUnknownError(e, 'Could not step back.');
-          return isSupabaseQuestProgressSetupError(message) ? null : message;
+          return storeErrorFor(e, "Couldn't go back a step. Try again in a moment.");
         })(),
       }));
       throw e;
@@ -348,8 +353,7 @@ export const useQuestDomainStore = create<QuestDomainState>((set, get) => ({
       return result;
     } catch (e: unknown) {
       logError('questStore.assignQuestToUser', e, { userId, questId });
-      const message = formatUnknownError(e, 'Could not activate quest.');
-      set({ error: isSupabaseQuestProgressSetupError(message) ? null : message });
+      set({ error: storeErrorFor(e, "Couldn't start this quest. Try again in a moment.") });
       throw e;
     } finally {
       set({ pending: false });
@@ -378,8 +382,7 @@ export const useQuestDomainStore = create<QuestDomainState>((set, get) => ({
       return result;
     } catch (e: unknown) {
       logError('questStore.completeQuest', e, { userId, userQuestId });
-      const message = formatUnknownError(e, 'Could not complete quest.');
-      set({ error: isSupabaseQuestProgressSetupError(message) ? null : message });
+      set({ error: storeErrorFor(e, "Couldn't finish this quest. Try again in a moment.") });
       throw e;
     } finally {
       set({ pending: false });
@@ -401,8 +404,7 @@ export const useQuestDomainStore = create<QuestDomainState>((set, get) => ({
       return result.ok ? { ok: true as const } : { ok: false as const, reason: result.reason };
     } catch (e: unknown) {
       logError('questStore.deactivateQuest', e, { userId, userQuestId });
-      const message = formatUnknownError(e, 'Could not move this quest.');
-      set({ error: isSupabaseQuestProgressSetupError(message) ? null : message });
+      set({ error: storeErrorFor(e, "Couldn't pause this quest. Try again in a moment.") });
       throw e;
     } finally {
       set({ pending: false });
@@ -428,8 +430,7 @@ export const useQuestDomainStore = create<QuestDomainState>((set, get) => ({
       return result.ok ? { ok: true as const } : { ok: false as const, reason: result.reason };
     } catch (e: unknown) {
       logError('questStore.saveQuestForLater', e, { userId, questId });
-      const message = formatUnknownError(e, 'Could not save quest.');
-      set({ error: isSupabaseQuestProgressSetupError(message) ? null : message });
+      set({ error: storeErrorFor(e, "Couldn't save this quest. Try again in a moment.") });
       throw e;
     } finally {
       set({ pending: false });
@@ -446,8 +447,7 @@ export const useQuestDomainStore = create<QuestDomainState>((set, get) => ({
       return result;
     } catch (e: unknown) {
       logError('questStore.unlikeQuest', e, { userId, userQuestId });
-      const message = formatUnknownError(e, 'Could not remove this quest.');
-      set({ error: isSupabaseQuestProgressSetupError(message) ? null : message });
+      set({ error: storeErrorFor(e, "Couldn't remove this quest. Try again in a moment.") });
       throw e;
     } finally {
       set({ pending: false });
@@ -470,8 +470,7 @@ export const useQuestDomainStore = create<QuestDomainState>((set, get) => ({
       return result.ok ? { ok: true as const } : { ok: false as const, reason: result.reason };
     } catch (e: unknown) {
       logError('questStore.dismissSuggestedQuest', e, { userId, questId });
-      const message = formatUnknownError(e, 'Could not dismiss suggestion.');
-      set({ error: isSupabaseQuestProgressSetupError(message) ? null : message });
+      set({ error: storeErrorFor(e, "Couldn't set this quest aside. Try again in a moment.") });
       throw e;
     } finally {
       set({ pending: false });
@@ -486,7 +485,7 @@ export const useQuestDomainStore = create<QuestDomainState>((set, get) => ({
       void cancelAllQuestNotifications();
     } catch (e: unknown) {
       logError('questStore.deleteAllProgress', e, { userId });
-      set({ error: formatUnknownError(e, 'Could not delete progress.') });
+      set({ error: plainErrorMessage(e, "Couldn't delete your progress. Try again in a moment.") });
       throw e;
     } finally {
       set({ pending: false });

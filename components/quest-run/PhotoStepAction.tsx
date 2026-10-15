@@ -4,6 +4,7 @@ import { Image, Platform, Pressable, Text, View } from 'react-native';
 
 import { PrimaryButton } from '@/components/ui/PrimaryButton';
 import { alertCompat } from '@/lib/alertCompat';
+import { plainErrorMessage } from '@/lib/userFacingError';
 import { stepInteractionStyles as styles } from '@/components/quest-run/stepInteractionStyles';
 import { logError } from '@/src/lib/monitoring/errorLogger';
 import type { UserQuestStepEvidence } from '@/src/types/quest';
@@ -31,14 +32,14 @@ export function PhotoStepAction({ prompt, busy, onComplete }: Props) {
     try {
       const perm = await ImagePicker.requestCameraPermissionsAsync();
       if (!perm.granted) {
-        alertCompat('Permission', 'Camera access is needed to capture this step.');
+        alertCompat('Camera access is off', 'Allow camera access in your phone settings to take the photo here.');
         return;
       }
       const result = await ImagePicker.launchCameraAsync({ quality: 0.85 });
       if (!result.canceled && result.assets[0]) setPhotoUri(result.assets[0].uri);
     } catch (e: unknown) {
       logError('questRun.photoStep.camera', e);
-      alertCompat('Camera', e instanceof Error ? e.message : 'Could not open the camera.');
+      alertCompat("The camera didn't open", plainErrorMessage(e, "Try again, or pick a photo from your gallery."));
     }
   }
 
@@ -46,7 +47,7 @@ export function PhotoStepAction({ prompt, busy, onComplete }: Props) {
     try {
       const perm = await ImagePicker.requestMediaLibraryPermissionsAsync();
       if (!perm.granted) {
-        alertCompat('Permission', 'Photo access is needed to attach an image.');
+        alertCompat('Photo access is off', 'Allow photo access in your phone settings to attach a picture.');
         return;
       }
       const result = await ImagePicker.launchImageLibraryAsync({
@@ -56,7 +57,7 @@ export function PhotoStepAction({ prompt, busy, onComplete }: Props) {
       if (!result.canceled && result.assets[0]) setPhotoUri(result.assets[0].uri);
     } catch (e: unknown) {
       logError('questRun.photoStep.pick', e);
-      alertCompat('Gallery', e instanceof Error ? e.message : 'Could not open the gallery.');
+      alertCompat("Your photos didn't open", plainErrorMessage(e, "Try again in a moment."));
     }
   }
 

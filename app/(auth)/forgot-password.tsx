@@ -21,6 +21,7 @@ import {
   supabase,
   SUPABASE_CONFIGURE_HELP,
 } from '@/lib/supabase';
+import { UserFacingError } from '@/lib/userFacingError';
 import { logError } from '@/src/lib/monitoring/errorLogger';
 import { useSessionStore } from '@/stores/session';
 
@@ -151,7 +152,7 @@ export default function ForgotPasswordScreen() {
         });
         if (error) throw error;
         if (!data.session) {
-          throw new Error('That code did not work. Request a new one and try again.');
+          throw new UserFacingError('That code did not work. Request a new one and try again.');
         }
         verifiedRef.current = true;
         setSession(data.session);

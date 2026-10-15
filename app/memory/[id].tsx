@@ -19,6 +19,7 @@ import { LoadingState } from '@/components/ui/LoadingState';
 import { PrimaryButton } from '@/components/ui/PrimaryButton';
 import { Theme } from '@/constants/Theme';
 import { alertCompat, alertTwoChoice } from '@/lib/alertCompat';
+import { plainErrorMessage } from '@/lib/userFacingError';
 import { categoryAccentForCategoryId } from '@/lib/categoryAccent';
 import { NO_EVIDENCE_NOTE } from '@/src/features/memories/memoryDraft';
 import { memoryTitleFromBody } from '@/src/features/memories/memoryTitle';
@@ -140,7 +141,7 @@ export default function MemoryDetailScreen() {
       }
     } catch (e: unknown) {
       logError('memory.detail.pickImage', e);
-      alertCompat('Could not open gallery', e instanceof Error ? e.message : 'Please try again.');
+      alertCompat("Your photos didn't open", plainErrorMessage(e, "Try again in a moment."));
     }
   }
 
@@ -161,7 +162,7 @@ export default function MemoryDetailScreen() {
       });
       setEditing(false);
     } catch (e: unknown) {
-      alertCompat("That didn't go through", e instanceof Error ? e.message : 'Could not save changes.');
+      alertCompat("That didn't go through", plainErrorMessage(e, "Your changes didn't save. Try again in a moment."));
     }
   }
 
@@ -182,7 +183,7 @@ export default function MemoryDetailScreen() {
                 router.replace('/(tabs)/memories');
               } catch (e: unknown) {
                 logError('memory.detail.delete', e, { memoryId: memory.id });
-                alertCompat("That didn't go through", e instanceof Error ? e.message : 'Could not delete memory.');
+                alertCompat("That didn't go through", plainErrorMessage(e, "Couldn't delete this memory. Try again in a moment."));
               } finally {
                 setDeleting(false);
               }

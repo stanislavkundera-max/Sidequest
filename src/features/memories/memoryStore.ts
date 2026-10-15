@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 
+import { plainErrorMessage, UserFacingError } from '@/lib/userFacingError';
 import {
   createMemoryEntry,
   deleteAllMemoriesForUser,
@@ -85,7 +86,7 @@ export const useMemoryStore = create<MemoryDomainState>((set, get) => ({
       logError('memoryStore.bootstrap', e, { userId });
       set({
         loading: false,
-        error: e instanceof Error ? e.message : 'Failed to load memories.',
+        error: plainErrorMessage(e, "We couldn't load your memories. Try again in a moment."),
       });
     }
   },
@@ -99,7 +100,7 @@ export const useMemoryStore = create<MemoryDomainState>((set, get) => ({
       logError('memoryStore.refresh', e, { userId });
       set({
         loading: false,
-        error: e instanceof Error ? e.message : 'Failed to refresh memories.',
+        error: plainErrorMessage(e, "We couldn't load your memories. Try again in a moment."),
       });
     }
   },
@@ -111,7 +112,7 @@ export const useMemoryStore = create<MemoryDomainState>((set, get) => ({
         ? await findLatestCompletedUserQuestForQuest(userId, input.questId)
         : null;
       if (input.questId && !completedUserQuest) {
-        throw new Error('Complete the quest first or create a standalone memory.');
+        throw new UserFacingError('Complete the quest first or create a standalone memory.');
       }
       // The words are the memory; the photo is an extra. A failed upload used to
       // throw here and take the whole memory with it — at the end of a quest,
@@ -151,7 +152,7 @@ export const useMemoryStore = create<MemoryDomainState>((set, get) => ({
         questId: input.questId,
         hasPhoto: Boolean(input.photoUri),
       });
-      set({ error: e instanceof Error ? e.message : 'Failed to save memory.' });
+      set({ error: plainErrorMessage(e, "Your memory didn't save. Try again in a moment.") });
       throw e;
     } finally {
       set({ saving: false });
@@ -195,7 +196,7 @@ export const useMemoryStore = create<MemoryDomainState>((set, get) => ({
       return entry;
     } catch (e: unknown) {
       logError('memoryStore.updateMemory', e, { userId, id });
-      set({ error: e instanceof Error ? e.message : 'Failed to update memory.' });
+      set({ error: plainErrorMessage(e, "Your changes didn't save. Try again in a moment.") });
       throw e;
     } finally {
       set({ saving: false });
@@ -211,7 +212,7 @@ export const useMemoryStore = create<MemoryDomainState>((set, get) => ({
       void removePhotoByRef(userId, photoRef);
     } catch (e: unknown) {
       logError('memoryStore.deleteMemory', e, { userId, id });
-      set({ error: e instanceof Error ? e.message : 'Failed to delete memory.' });
+      set({ error: plainErrorMessage(e, "Couldn't delete this memory. Try again in a moment.") });
       throw e;
     } finally {
       set({ saving: false });
@@ -229,7 +230,7 @@ export const useMemoryStore = create<MemoryDomainState>((set, get) => ({
       );
     } catch (e: unknown) {
       logError('memoryStore.deleteAllMemories', e, { userId });
-      set({ error: e instanceof Error ? e.message : 'Could not delete memories.' });
+      set({ error: plainErrorMessage(e, "Couldn't delete your memories. Try again in a moment.") });
       throw e;
     } finally {
       set({ saving: false });

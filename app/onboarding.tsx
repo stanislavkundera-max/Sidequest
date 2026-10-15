@@ -15,6 +15,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { Theme } from '@/constants/Theme';
 import { alertCompat } from '@/lib/alertCompat';
+import { plainErrorMessage } from '@/lib/userFacingError';
 import { categoryAccentForCategoryId } from '@/lib/categoryAccent';
 import { categoryIconNameForCategoryId } from '@/lib/categoryIcons';
 import { getOnboardingComplete } from '@/lib/onboarding';
@@ -286,12 +287,12 @@ export default function OnboardingScreen() {
         router.replace('/(tabs)/explore');
       }
     } catch (e: unknown) {
-      const message = e instanceof Error ? e.message : 'Try again.';
+      const message = plainErrorMessage(e, "Your answers didn't save. Try again in a moment.");
       logError('onboarding.finishOnboarding', e, {
         categoryCount: selectedCategories.length,
       });
       setSubmitError(message);
-      alertCompat('Could not save onboarding', message);
+      alertCompat("That didn't go through", message);
     } finally {
       setSaving(false);
     }

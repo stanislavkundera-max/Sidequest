@@ -1,6 +1,7 @@
 import { isAuthError } from '@supabase/supabase-js';
 
 import { supabase } from '@/lib/supabase';
+import { UserFacingError } from '@/lib/userFacingError';
 import { deleteAllPhotosForUser } from '@/src/repositories/photoRepository';
 
 /**
@@ -85,7 +86,9 @@ export function describeAccountSaveError(e: unknown): string {
   if (e instanceof TypeError || /network|fetch/i.test(message)) {
     return 'No connection. Try again when you have signal.';
   }
-  return message || 'Something went wrong. Try again in a moment.';
+  if (e instanceof UserFacingError) return e.message;
+  // Anything else is technical text; it is in the error log already (task 50).
+  return 'Something went wrong. Try again in a moment.';
 }
 
 /**
@@ -100,7 +103,7 @@ export async function deleteOwnAccount(): Promise<void> {
   const { data: auth, error: authError } = await supabase.auth.getUser();
   if (authError) throw authError;
   const userId = auth.user?.id;
-  if (!userId) throw new Error('Not signed in.');
+  if (!userId) throw new UserFacingError("You're not signed in.");
 
   await deleteAllPhotosForUser(userId);
 

@@ -22,6 +22,7 @@ import {
   supabase,
   SUPABASE_CONFIGURE_HELP,
 } from '@/lib/supabase';
+import { UserFacingError } from '@/lib/userFacingError';
 import { logError } from '@/src/lib/monitoring/errorLogger';
 import { useSessionStore } from '@/stores/session';
 
@@ -70,7 +71,7 @@ export default function SignInScreen() {
       const message = formatAuthErrorForUi(e);
       logError('auth.continueAsGuest', e);
       setFormError(message);
-      alertCompat('Could not continue', message);
+      alertCompat("Couldn't continue", message);
     } finally {
       setGuestLoading(false);
     }
@@ -87,7 +88,7 @@ export default function SignInScreen() {
     if (!email.trim() || !password) {
       const msg = 'Enter email and password.';
       setFormError(msg);
-      alertCompat('Missing fields', msg);
+      alertCompat('Almost there', msg);
       return;
     }
     setLoading(true);
@@ -132,7 +133,7 @@ export default function SignInScreen() {
       const message = formatAuthErrorForUi(e);
       logError('auth.submit', e, { mode, emailProvided: Boolean(email.trim()) });
       setFormError(message);
-      alertCompat('Auth error', message);
+      alertCompat(mode === 'signin' ? "Couldn't sign in" : "Couldn't create the account", message);
     } finally {
       setLoading(false);
     }
@@ -155,7 +156,7 @@ export default function SignInScreen() {
       });
       if (error) throw error;
       if (!data.session) {
-        throw new Error('That code did not work. Send a new one and try again.');
+        throw new UserFacingError('That code did not work. Send a new one and try again.');
       }
       setSession(data.session);
       router.replace('/');

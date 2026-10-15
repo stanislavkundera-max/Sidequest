@@ -13,6 +13,7 @@ import { Theme } from '@/constants/Theme';
 import { alertCompat, alertTwoChoice } from '@/lib/alertCompat';
 import { categoryAccentForCategoryId } from '@/lib/categoryAccent';
 import { isSupabaseConfigured, SUPABASE_CONFIGURE_HELP } from '@/lib/supabase';
+import { plainErrorMessage } from '@/lib/userFacingError';
 import { QuestFeedbackCard } from '@/src/features/feedback/QuestFeedbackCard';
 import { useMemoryStore } from '@/src/features/memories/memoryStore';
 import {
@@ -188,9 +189,9 @@ export default function QuestDetailScreen() {
       return true;
     } catch (e: unknown) {
       logError('quest.detail.onAssign', e, { questId: quest.id });
-      const message = e instanceof Error ? e.message : 'Try again.';
+      const message = plainErrorMessage(e, "Couldn't start this quest. Try again in a moment.");
       setAssignFeedback(message);
-      alertCompat('Not open right now', message);
+      alertCompat("That didn't go through", message);
       return false;
     } finally {
       setActing(false);
@@ -236,7 +237,7 @@ export default function QuestDetailScreen() {
         questId: quest.id,
         userQuestId: activeUq.id,
       });
-      alertCompat("That didn't go through", e instanceof Error ? e.message : 'Could not remove quest.');
+      alertCompat("That didn't go through", plainErrorMessage(e, "Couldn't remove this quest. Try again in a moment."));
     } finally {
       setActing(false);
     }

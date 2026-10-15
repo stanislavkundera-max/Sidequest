@@ -27,6 +27,7 @@ import { Theme } from '@/constants/Theme';
 import { alertCompat, alertTwoChoice } from '@/lib/alertCompat';
 import { categoryAccentForCategoryId } from '@/lib/categoryAccent';
 import { isSupabaseConfigured, SUPABASE_CONFIGURE_HELP } from '@/lib/supabase';
+import { plainErrorMessage } from '@/lib/userFacingError';
 import { composeMemoryDraftFromRun, NO_EVIDENCE_NOTE } from '@/src/features/memories/memoryDraft';
 import { useMemoryStore } from '@/src/features/memories/memoryStore';
 import {
@@ -176,7 +177,7 @@ export default function QuestRunScreen() {
       router.replace('/(tabs)/profile');
     } catch (e: unknown) {
       logError('quest.runner.leaveQuest', e, { questId: quest.id, userQuestId: activeUq.id });
-      alertCompat("That didn't go through", e instanceof Error ? e.message : 'Could not leave this quest.');
+      alertCompat("That didn't go through", plainErrorMessage(e, "Couldn't pause this quest. Try again in a moment."));
     } finally {
       setActing(false);
     }
@@ -370,7 +371,7 @@ export default function QuestRunScreen() {
       }
     } catch (e: unknown) {
       logError('quest.runner.wrapUpQuest', e, { questId: quest.id, userQuestId: activeUq.id });
-      alertCompat("That didn't go through", e instanceof Error ? e.message : 'Could not complete quest.');
+      alertCompat("That didn't go through", plainErrorMessage(e, "Couldn't finish this quest. Try again in a moment."));
     } finally {
       setActing(false);
     }

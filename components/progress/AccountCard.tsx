@@ -7,6 +7,7 @@ import { MIN_TOUCH_TARGET } from '@/constants/touchTargets';
 import { Theme } from '@/constants/Theme';
 import { alertCompat, alertTwoChoice } from '@/lib/alertCompat';
 import { resetOnboardingComplete } from '@/lib/onboarding';
+import { plainErrorMessage } from '@/lib/userFacingError';
 import { supabase } from '@/lib/supabase';
 import { deleteOwnAccount } from '@/src/repositories/accountRepository';
 import { getAdminPreviewAsUser, setAdminPreviewAsUser } from '@/src/features/admin/adminPreview';
@@ -103,8 +104,8 @@ export function AccountCard() {
         if (previous) void cacheNotificationIntensity(previous);
         logError('account.updateNotificationIntensity', e, { userId: user.id });
         alertCompat(
-          'Could not save',
-          e instanceof Error ? e.message : 'Try again in a moment.'
+          "Couldn't save that",
+          plainErrorMessage(e, "Your notification setting did not change. Try again in a moment.")
         );
       })
       .finally(() => setNotificationBusy(false));
@@ -123,7 +124,7 @@ export function AccountCard() {
         router.replace('/(auth)/sign-in');
       } catch (e: unknown) {
         logError('account.signOut', e);
-        alertCompat('Error', e instanceof Error ? e.message : 'Could not sign out.');
+        alertCompat("That didn't go through", plainErrorMessage(e, "Couldn't sign you out. Try again in a moment."));
       } finally {
         setBusy(false);
       }
@@ -168,8 +169,8 @@ export function AccountCard() {
               } catch (e: unknown) {
                 logError('account.redoOnboarding', e);
                 alertCompat(
-                  'Error',
-                  e instanceof Error ? e.message : 'Could not restart onboarding.'
+                  "That didn't go through",
+                  plainErrorMessage(e, "Couldn't restart onboarding. Try again in a moment.")
                 );
               } finally {
                 setBusy(false);
@@ -203,8 +204,8 @@ export function AccountCard() {
               } catch (e: unknown) {
                 logError('account.deleteAllProgress', e, { userId: user.id });
                 alertCompat(
-                  'Error',
-                  e instanceof Error ? e.message : 'Could not delete all progress.'
+                  "That didn't go through",
+                  plainErrorMessage(e, "Couldn't delete your progress. Try again in a moment.")
                 );
               } finally {
                 setBusy(false);
@@ -235,8 +236,8 @@ export function AccountCard() {
               } catch (e: unknown) {
                 logError('account.deleteAccount', e, { userId: user.id });
                 alertCompat(
-                  'Error',
-                  e instanceof Error ? e.message : 'Could not delete your account.'
+                  "That didn't go through",
+                  plainErrorMessage(e, "Couldn't delete your account. Nothing was deleted. Try again in a moment.")
                 );
               } finally {
                 setBusy(false);
