@@ -429,7 +429,12 @@ export const useQuestDomainStore = create<QuestDomainState>((set, get) => ({
       // Nothing done yet: back to the offer rather than into Paused (task 49).
       const released = isUntouchedPause(result.userQuest, get().getQuestById(questId));
       if (released) {
-        await removeSavedForLaterQuest({ userId, userQuestId });
+        // The pause itself has gone through. If the delete does not (no signal), the row is a
+        // 0-step pause and the next load releases it (`releaseUntouchedPauses`) — so it leaves
+        // the list now either way, and this does not report a failure for a pause that worked.
+        await removeSavedForLaterQuest({ userId, userQuestId }).catch((e: unknown) =>
+          logError('questStore.deactivateQuest.release', e, { userId, userQuestId })
+        );
         set((s) => ({ userQuests: s.userQuests.filter((u) => u.id !== userQuestId) }));
       } else {
         set((s) => ({

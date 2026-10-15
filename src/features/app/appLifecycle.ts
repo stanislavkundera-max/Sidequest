@@ -31,7 +31,7 @@ const PHOTO_LINKS_REFRESH_MS = 24 * 60 * 60 * 1000;
  */
 export function syncDeviceStateForUser(userId: string): void {
   void useUnavailableQuestStore.getState().load();
-  resolveCalendarLookupsWhenReady(userId);
+  afterQuestsLoaded(userId);
   getProfile(userId)
     .then((profile) => {
       if (!profile) return;
@@ -68,7 +68,7 @@ export function onAppForeground(userId: string): void {
   if (!memories.loading && (memories.error || staleLinks)) {
     void memories.refresh(userId);
   }
-  resolveCalendarLookupsWhenReady(userId);
+  afterQuestsLoaded(userId);
   const user = useSessionStore.getState().user;
   if (user?.is_anonymous && user.new_email) {
     supabase.auth
@@ -77,14 +77,14 @@ export function onAppForeground(userId: string): void {
   }
 }
 
+let waitingForQuests: (() => void) | null = null;
+
 /**
  * Once this account's quests are loaded: reads back the days of calendar events saved from a quest
  * step (see `resolvePendingCalendarLookups`), then moves the weekly nudge a week on from now (see
  * `scheduleWeeklyNudges`) — every open does, so only a week away from the app brings one.
  */
-let waitingForQuests: (() => void) | null = null;
-
-function resolveCalendarLookupsWhenReady(userId: string): void {
+function afterQuestsLoaded(userId: string): void {
   // One wait at a time: a load that keeps failing must not stack up a listener per foreground.
   waitingForQuests?.();
   waitingForQuests = null;

@@ -311,21 +311,33 @@ const PAUSE_GAP_MS = 2000;
  * quest resets `started_at` and clears `saved_at`, so a like that was started and then paused
  * reads as paused, as it should. No migration: rows already paused read correctly too.
  */
-/**
- * Paused before a single step was done. There is nothing to pick up, so the quest goes back to
- * its category's offer instead of filling "Pick up where you left off" (Standa, 2026-10-15, task
- * 49: eleven paused quests, most at 0 steps, while only three can be in motion).
- */
-export function isUntouchedPause(uq: UserQuest, quest: Quest | undefined): boolean {
-  return isPausedQuest(uq) && (!quest || countCompletedJourneySteps(uq, quest) === 0);
-}
-
 export function isPausedQuest(uq: UserQuest): boolean {
   if (uq.status !== 'saved_for_later' || !uq.savedAt) return false;
   const started = Date.parse(uq.startedAt);
   const saved = Date.parse(uq.savedAt);
   if (!Number.isFinite(started) || !Number.isFinite(saved)) return false;
   return saved - started > PAUSE_GAP_MS;
+}
+
+/**
+ * Paused before a single step was done. There is nothing to pick up, so the quest goes back to
+ * its category's offer instead of filling "Pick up where you left off" (Standa, 2026-10-15, task
+ * 49: eleven paused quests, most at 0 steps, while only three can be in motion).
+ *
+ * Releasing deletes the row, so this errs towards keeping it. The quest must still be in the
+ * catalogue (it is loaded active-only — a retired quest's pause is left alone), and the row must
+ * hold no step progress at all, read off the row itself: counting against the quest's current
+ * steps would call a pause "untouched" after a step was renamed in the content, and delete its
+ * evidence. A note or a photo on the row keeps it too.
+ */
+export function isUntouchedPause(uq: UserQuest, quest: Quest | undefined): boolean {
+  return (
+    isPausedQuest(uq) &&
+    quest != null &&
+    Object.keys(uq.stepProgress ?? {}).length === 0 &&
+    !uq.note &&
+    !uq.photoUri
+  );
 }
 
 /**

@@ -204,6 +204,17 @@ test('pause: before any step it goes back to the offer, after a step it stays pa
   assert.equal(isUntouchedPause(like('q1', DAY), stepped), false, 'a like is not a pause');
 });
 
+test('pause: never released when its quest is gone, or when progress is on the row', () => {
+  const paused = row('q1', 'saved_for_later', { savedAt: iso(DAY) });
+  assert.equal(isUntouchedPause(paused, undefined), false, 'quest retired from the catalogue');
+  const renamed = { ...catalog[0], actionSteps: [{ id: 'new-step' }] };
+  assert.equal(
+    isUntouchedPause({ ...paused, stepProgress: { 'old-step': { kind: 'self_attest' } } }, renamed),
+    false,
+    'progress under a step id the content no longer has'
+  );
+});
+
 test('liked: a quest paused mid-way is not shown as liked', () => {
   const uqs = [row('q1', 'saved_for_later', { savedAt: iso(DAY) })];
   const liked = likedQuestsInCategory({
