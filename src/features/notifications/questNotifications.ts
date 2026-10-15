@@ -109,6 +109,19 @@ async function schedule(data: QuestNotificationData): Promise<void> {
 }
 
 /** Whether quest-day reminders are on ("Timers and quest days"), for copy that promises one. */
+/**
+ * Asks for notification access now, where the quest-day reminder is being set up, so the reminder
+ * scheduled later — when the app opens and reads the calendar back — never prompts out of nowhere.
+ */
+export async function askNotificationAccess(): Promise<boolean> {
+  if (!supported) return false;
+  try {
+    return await ensurePermission();
+  } catch {
+    return false;
+  }
+}
+
 export async function questDayRemindersOn(): Promise<boolean> {
   return supported && (await readIntensity()) !== 'quiet';
 }

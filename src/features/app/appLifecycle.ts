@@ -1,6 +1,11 @@
 import { supabase } from '@/lib/supabase';
 import { useMemoryStore } from '@/src/features/memories/memoryStore';
-import { cacheNotificationIntensity } from '@/src/features/notifications/questNotifications';
+import {
+  cacheNotificationIntensity,
+  scheduleQuestDay,
+} from '@/src/features/notifications/questNotifications';
+import { findSavedQuestEventStart } from '@/src/features/quests/questCalendar';
+import { resolvePendingCalendarLookups } from '@/src/features/quests/questRunnerPending';
 import { useQuestDomainStore } from '@/src/features/quests/questStore';
 import { useUnavailableQuestStore } from '@/src/features/quests/unavailableQuests';
 import { logError } from '@/src/lib/monitoring/errorLogger';
@@ -24,6 +29,7 @@ const PHOTO_LINKS_REFRESH_MS = 24 * 60 * 60 * 1000;
  */
 export function syncDeviceStateForUser(userId: string): void {
   void useUnavailableQuestStore.getState().load();
+  resolveCalendarLookupsWhenReady(userId);
   getProfile(userId)
     .then((profile) => {
       if (!profile) return;
@@ -60,10 +66,57 @@ export function onAppForeground(userId: string): void {
   if (!memories.loading && (memories.error || staleLinks)) {
     void memories.refresh(userId);
   }
+  resolveCalendarLookupsWhenReady(userId);
   const user = useSessionStore.getState().user;
   if (user?.is_anonymous && user.new_email) {
     supabase.auth
       .refreshSession()
       .catch((e: unknown) => logError('appLifecycle.refreshPendingAccount', e, { userId }));
   }
+}
+
+/**
+ * Reads back the days of calendar events saved from a quest step, once this account's quests are
+ * loaded — they decide whether each quest is still in motion (see `resolvePendingCalendarLookups`).
+ */
+let waitingForQuests: (() => void) | null = null;
+
+function resolveCalendarLookupsWhenReady(userId: string): void {
+  // One wait at a time: a load that keeps failing must not stack up a listener per foreground.
+  waitingForQuests?.();
+  waitingForQuests = null;
+
+  const run = () =>
+    resolvePendingCalendarLookups({
+      isQuestActive: (userQuestId) => {
+        const state = useQuestDomainStore.getState();
+        if (state.initializedForUserId !== userId || state.loading) return undefined;
+        return state.userQuests.some((uq) => uq.id === userQuestId && uq.status === 'active');
+      },
+      findEventStart: (title) => findSavedQuestEventStart(title),
+      scheduleQuestDay,
+    }).catch((e: unknown) => logError('appLifecycle.calendarLookups', e, { userId }));
+
+  const ready = () => {
+    const state = useQuestDomainStore.getState();
+    return state.initializedForUserId === userId && !state.loading;
+  };
+  if (ready()) {
+    void run();
+    return;
+  }
+  const unsubscribe = useQuestDomainStore.subscribe(() => {
+    if (useSessionStore.getState().user?.id !== userId) {
+      stop();
+      return;
+    }
+    if (!ready()) return;
+    stop();
+    void run();
+  });
+  const stop = () => {
+    unsubscribe();
+    if (waitingForQuests === stop) waitingForQuests = null;
+  };
+  waitingForQuests = stop;
 }

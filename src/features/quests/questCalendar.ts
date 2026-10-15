@@ -67,26 +67,41 @@ export async function openQuestCalendarEditor(params: {
   const startDate = params.suggestedStart;
   const endDate = new Date(startDate.getTime() + duration * 60_000);
 
-  // Android: open the editor inside our task, not as a new one (the library default). As a new task
-  // the promise resolved the moment the calendar opened, and saving left you in the calendar app with
-  // no way back into the step (Standa, 2026-09-26). In our task, saving or backing out closes the
-  // editor and lands you back on the step, and only then do we ask whether it was saved.
-  const result = await Calendar.createEventInCalendarAsync(
-    {
-      title: params.title.trim(),
-      notes: params.notes?.trim(),
-      startDate,
-      endDate,
-      allDay: false,
-    },
-    { startNewActivityTask: false }
-  );
+  // Android: the calendar opens as its own app (the library default), and the step is done the
+  // moment it opens — the runner does not wait for you to come back (task 5, Standa 2026-10-15:
+  // "maybe there is no need to return to the app at all"). Opened inside our task instead, as
+  // from 2026-09-26 to 2026-10-15, saving left the calendar sitting on top of the app until you
+  // pressed back, and then a dialog asked whether you had saved. The day you picked is read back
+  // the next time the app opens (`resolvePendingCalendarLookups`).
+  const result = await Calendar.createEventInCalendarAsync({
+    title: params.title.trim(),
+    notes: params.notes?.trim(),
+    startDate,
+    endDate,
+    allDay: false,
+  });
   if (result.action === 'saved' && result.id) return { outcome: 'saved', eventId: result.id };
   if (result.action === 'canceled' || result.action === 'deleted') return { outcome: 'canceled' };
   return { outcome: 'unknown' };
 }
 
 const DAY_MS = 24 * 60 * 60 * 1000;
+
+/**
+ * Asks once for calendar access, which reading the saved day back needs (Android). Opening the
+ * editor itself needs none. Asked right before the calendar opens, where the step's note has just
+ * said why; after a refusal Android does not show the prompt again and this simply says no.
+ */
+export async function askCalendarReadAccess(): Promise<boolean> {
+  try {
+    const existing = await Calendar.getCalendarPermissionsAsync();
+    if (existing.status === 'granted') return true;
+    if (!existing.canAskAgain) return false;
+    return (await Calendar.requestCalendarPermissionsAsync()).status === 'granted';
+  } catch {
+    return false;
+  }
+}
 
 /**
  * When the quest's event is, read back from the person's own calendar — for Android.
@@ -98,16 +113,17 @@ const DAY_MS = 24 * 60 * 60 * 1000;
  * review 2026-09-27). So once they say it's in, look for the event we prefilled, by its title,
  * and take its start.
  *
- * Asks for calendar access at that moment, not before. Without access, or if the title was
- * changed in the editor, there is no date — and no reminder is better than a wrong one; their
- * calendar still reminds them.
+ * Never asks for access — it runs when the app opens, where a permission prompt would come out of
+ * nowhere (see `askCalendarReadAccess`). Without access, or if the title was changed in the
+ * editor, there is no date — and no reminder is better than a wrong one; their calendar still
+ * reminds them.
  */
 export async function findSavedQuestEventStart(
   title: string,
   now: Date = new Date()
 ): Promise<Date | null> {
   try {
-    const permission = await Calendar.requestCalendarPermissionsAsync();
+    const permission = await Calendar.getCalendarPermissionsAsync();
     if (permission.status !== 'granted') return null;
     const calendars = await Calendar.getCalendarsAsync(Calendar.EntityTypes.EVENT);
     if (calendars.length === 0) return null;

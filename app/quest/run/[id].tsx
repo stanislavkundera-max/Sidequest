@@ -29,8 +29,13 @@ import { categoryAccentForCategoryId } from '@/lib/categoryAccent';
 import { isSupabaseConfigured, SUPABASE_CONFIGURE_HELP } from '@/lib/supabase';
 import { composeMemoryDraftFromRun, NO_EVIDENCE_NOTE } from '@/src/features/memories/memoryDraft';
 import { useMemoryStore } from '@/src/features/memories/memoryStore';
-import { questDayRemindersOn, scheduleQuestDay } from '@/src/features/notifications/questNotifications';
 import {
+  askNotificationAccess,
+  questDayRemindersOn,
+  scheduleQuestDay,
+} from '@/src/features/notifications/questNotifications';
+import {
+  askCalendarReadAccess,
   calendarEventStart,
   findSavedQuestEventStart,
   isDeviceCalendarCreationAvailable,
@@ -38,6 +43,7 @@ import {
   suggestedQuestStart,
 } from '@/src/features/quests/questCalendar';
 import {
+  addPendingCalendarLookup,
   markCalendarOpened,
   wasCalendarOpened,
 } from '@/src/features/quests/questRunnerPending';
@@ -387,6 +393,13 @@ export default function QuestRunScreen() {
     const suggestedStart = suggestedQuestStart(quest.timeframe);
     setActing(true);
     try {
+      // Android reads the saved day back later, which needs calendar access — asked here, once,
+      // where the note under the button has just said why. Not asked when no reminder is sent.
+      const readBackLater =
+        Platform.OS === 'android' &&
+        questDayReminders &&
+        (await askCalendarReadAccess()) &&
+        (await askNotificationAccess());
       await markCalendarOpened(activeUq.id, step.id);
       const result = await openQuestCalendarEditor({
         title,
@@ -399,9 +412,19 @@ export default function QuestRunScreen() {
         await finishStep(step.id, { kind: 'calendar', eventId: result.eventId });
         remindOnQuestDay((await calendarEventStart(result.eventId)) ?? suggestedStart);
       } else if (result.outcome === 'unknown') {
-        // Android closes the editor without saying whether you saved — so ask,
-        // rather than guess either way.
-        askIfScheduled(step);
+        // Android: the calendar is open as its own app and says nothing back. Opening it is the
+        // step — pick a day and save, no need to come back (task 5). The day is read back the
+        // next time the app opens, and the reminder scheduled then.
+        if (readBackLater) {
+          await addPendingCalendarLookup({
+            userQuestId: activeUq.id,
+            questId: quest.id,
+            questTitle: quest.title,
+            eventTitle: title,
+            openedAt: Date.now(),
+          });
+        }
+        await finishStep(step.id, { kind: 'self_attest' });
       }
       // 'canceled': they backed out; leave the step as it was.
     } catch (e: unknown) {
@@ -570,8 +593,10 @@ export default function QuestRunScreen() {
           {calendarDeviceOk ? (
             <Text style={styles.calendarNote}>
               {[
-                questDayReminders ? "Don't worry about remembering it — we'll remind you the day before." : null,
-                Platform.OS === 'android' ? 'After saving, tap back to return here.' : null,
+                Platform.OS === 'android'
+                  ? 'Your calendar opens with the quest filled in. Pick a day and save it — that finishes this step, no need to come back here.'
+                  : null,
+                questDayReminders ? "We'll remind you the day before." : null,
               ]
                 .filter(Boolean)
                 .join(' ')}
