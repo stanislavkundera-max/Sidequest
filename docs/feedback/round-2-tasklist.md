@@ -779,7 +779,9 @@ it ships via OTA, SQL, the web deploy, or is not code at all.
 
 **OTA 2026-10-15:** everything since — tasks 5, 8, 46, 48, 49, 50 (second pass), 52, 53 — published to build 11. Android update group `4f2c6ddb`, runtime `bb7b76b1…` (matches build 11), from `94d4ce3`. Not yet checked on a phone.
 
-**Code review 2026-10-15 — 🔴 needs an OTA now:** OTA `4f2c6ddb` releases 0-step pauses on every load, and treated a pause whose quest was retired from the catalogue (e.g. `q-m-04`) as untouched — deleting it with its step progress; a renamed step id did the same. Fixed in `8f58ad3` (quest must be known, the row must hold no progress, note or photo; unit tests added). Not yet published — publish before testers open the app again.
+**Code review 2026-10-15 — 🔴 needs an OTA now:** OTA `4f2c6ddb` releases 0-step pauses on every load, and treated a pause whose quest was retired from the catalogue (e.g. `q-m-04`) as untouched — deleting it with its step progress; a renamed step id did the same. Fixed in `8f58ad3` (quest must be known, the row must hold no progress, note or photo; unit tests added). ✅ Published 2026-10-15: Android update group `474b4acf`, runtime `bb7b76b1…`.
+
+**Phone test of everything since 2026-10-12:** [`phone-test-2026-10-15.md`](phone-test-2026-10-15.md) — not done yet.
 
 OTA caveat: with `runtimeVersion: fingerprint`, an update reaches build 11 only if nothing native
 changed. If any "No — OTA" item ends up touching native code, it needs a build.
