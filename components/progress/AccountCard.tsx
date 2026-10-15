@@ -24,13 +24,14 @@ import {
   cacheNotificationIntensity,
   cancelQuestDayNotifications,
 } from '@/src/features/notifications/questNotifications';
+import { cancelWeeklyNudges } from '@/src/features/notifications/weeklyNudge';
 import { useSessionStore } from '@/stores/session';
 
-// Named by what arrives, not by a volume. Only two kinds of notification exist (R2-13), so
-// 'chatty' is not offered; a stored 'chatty' behaves like 'occasional'.
+// Named by what arrives, not by a volume; 'chatty' is not offered and behaves like 'occasional'.
+// "Everything" is the default and includes the weekly nudge (task 53) — spelled out below the pills.
 const NOTIFICATION_OPTIONS: { value: NotificationIntensity; label: string }[] = [
   { value: 'quiet', label: 'Timers only' },
-  { value: 'occasional', label: 'Timers and quest days' },
+  { value: 'occasional', label: 'Everything' },
 ];
 
 
@@ -96,7 +97,10 @@ export function AccountCard() {
     const previous = notificationIntensity;
     setNotificationIntensity(value);
     void cacheNotificationIntensity(value);
-    if (value === 'quiet') void cancelQuestDayNotifications();
+    if (value === 'quiet') {
+      void cancelQuestDayNotifications();
+      void cancelWeeklyNudges();
+    }
     setNotificationBusy(true);
     void updateNotificationIntensity(user.id, value)
       .catch((e: unknown) => {
@@ -328,6 +332,11 @@ export function AccountCard() {
                   );
                 })}
               </View>
+              <Text style={styles.notificationHint}>
+                {notificationIntensity === 'quiet'
+                  ? 'Only when a step timer ends.'
+                  : "When a step timer ends, the day before a quest you planned, and an idea for a quest if you haven't opened the app for a week."}
+              </Text>
             </View>
           ) : null}
 
@@ -493,6 +502,12 @@ const styles = StyleSheet.create({
     backgroundColor: Theme.accentSoft,
   },
   notificationPillDisabled: { opacity: 0.6 },
+  notificationHint: {
+    fontSize: 12,
+    fontFamily: 'Inter_400Regular',
+    lineHeight: 17,
+    color: Theme.textMuted,
+  },
   notificationPillText: { fontSize: 13, fontFamily: 'Inter_700Bold', fontWeight: '700', color: Theme.textMuted },
   notificationPillTextSelected: { color: Theme.accent },
   actionsRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },

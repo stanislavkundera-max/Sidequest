@@ -19,6 +19,7 @@ import { plainErrorMessage } from '@/lib/userFacingError';
 import { categoryAccentForCategoryId } from '@/lib/categoryAccent';
 import { categoryIconNameForCategoryId } from '@/lib/categoryIcons';
 import { getOnboardingComplete } from '@/lib/onboarding';
+import { askNotificationAccess } from '@/src/features/notifications/questNotifications';
 import { getOnboardingState, saveOnboardingState } from '@/src/features/onboarding';
 import { recommendQuestsForPreferences } from '@/src/features/quests/suggestedQuests';
 import { useQuestDomainStore } from '@/src/features/quests/questStore';
@@ -254,6 +255,8 @@ export default function OnboardingScreen() {
         natureConnection,
         isolation,
       });
+      // The weekly nudge is on by default (task 53); this is the moment the screen has just said so.
+      if (!isEditMode) await askNotificationAccess();
       trackEvent('onboarding_completed', {
         sourceScreen: isEditMode ? 'onboarding_edit' : 'onboarding',
         categoryCount: selectedCategories.length,
@@ -472,6 +475,9 @@ export default function OnboardingScreen() {
                 ? 'Tap any you want to begin right away — totally optional.'
                 : ''}{' '}
               You can always explore the rest of the map.
+              {isEditMode
+                ? ''
+                : " Now and then I'll send you an idea for a quest — change that any time in Progress → Settings."}
             </Text>
             <View style={styles.choiceWrap}>
               {recommended.length > 0 ? (

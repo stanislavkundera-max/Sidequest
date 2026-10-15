@@ -5,6 +5,8 @@ import {
   scheduleQuestDay,
 } from '@/src/features/notifications/questNotifications';
 import { findSavedQuestEventStart } from '@/src/features/quests/questCalendar';
+import { scheduleWeeklyNudges } from '@/src/features/notifications/weeklyNudge';
+import { getOnboardingState } from '@/src/features/onboarding';
 import { resolvePendingCalendarLookups } from '@/src/features/quests/questRunnerPending';
 import { useQuestDomainStore } from '@/src/features/quests/questStore';
 import { useUnavailableQuestStore } from '@/src/features/quests/unavailableQuests';
@@ -76,8 +78,9 @@ export function onAppForeground(userId: string): void {
 }
 
 /**
- * Reads back the days of calendar events saved from a quest step, once this account's quests are
- * loaded — they decide whether each quest is still in motion (see `resolvePendingCalendarLookups`).
+ * Once this account's quests are loaded: reads back the days of calendar events saved from a quest
+ * step (see `resolvePendingCalendarLookups`), then moves the weekly nudge a week on from now (see
+ * `scheduleWeeklyNudges`) — every open does, so only a week away from the app brings one.
  */
 let waitingForQuests: (() => void) | null = null;
 
@@ -86,8 +89,8 @@ function resolveCalendarLookupsWhenReady(userId: string): void {
   waitingForQuests?.();
   waitingForQuests = null;
 
-  const run = () =>
-    resolvePendingCalendarLookups({
+  const run = async () => {
+    await resolvePendingCalendarLookups({
       isQuestActive: (userQuestId) => {
         const state = useQuestDomainStore.getState();
         if (state.initializedForUserId !== userId || state.loading) return undefined;
@@ -96,6 +99,15 @@ function resolveCalendarLookupsWhenReady(userId: string): void {
       findEventStart: (title) => findSavedQuestEventStart(title),
       scheduleQuestDay,
     }).catch((e: unknown) => logError('appLifecycle.calendarLookups', e, { userId }));
+    // After the lookups, so a quest day they just scheduled keeps that week free of a nudge.
+    const { quests, userQuests } = useQuestDomainStore.getState();
+    const onboarding = await getOnboardingState().catch(() => null);
+    await scheduleWeeklyNudges({
+      catalog: quests,
+      userQuests,
+      preferences: onboarding?.preferences ?? null,
+    });
+  };
 
   const ready = () => {
     const state = useQuestDomainStore.getState();

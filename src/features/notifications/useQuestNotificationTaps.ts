@@ -29,7 +29,10 @@ export function useQuestNotificationTaps(sessionReady: boolean): void {
       // Otherwise the same tap is handed back on the next ordinary launch and opens the quest again.
       void Notifications.clearLastNotificationResponseAsync().catch(() => undefined);
       const url = (response.notification.request.content.data as { url?: unknown } | undefined)?.url;
-      if (typeof url === 'string' && url.startsWith('/quest/run/')) router.push(url as never);
+      // Quest notifications open the runner; the weekly nudge (task 53) opens a quest or Journey.
+      if (typeof url === 'string' && (url.startsWith('/quest/') || url.startsWith('/journey'))) {
+        router.push(url as never);
+      }
     };
 
     void Notifications.getLastNotificationResponseAsync().then(open);
