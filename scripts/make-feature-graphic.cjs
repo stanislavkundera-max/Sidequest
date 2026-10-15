@@ -7,7 +7,9 @@
  * keeps its content inside a centred safe area.
  *
  * Brand from BRANDING.md: forest green ground, amber cairn, beige wordmark,
- * Fraunces for the wordmark. No transparency, which Play rejects.
+ * Inter Bold for the wordmark — the app has been Inter only since R2-20, and the
+ * banner was the last thing still in Fraunces (task 45, 2026-10-15). No
+ * transparency, which Play rejects.
  *
  * Usage: node scripts/make-feature-graphic.cjs
  */
@@ -38,16 +40,15 @@ function cairn(size, stones = [BEIGE, BEIGE, BEIGE, AMBER]) {
 }
 
 const FONTS = `<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:SOFT,WONK,opsz,wght@0..100,0..1,9..144,100..900&family=Inter:wght@400..600&display=swap">`;
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400..700&display=swap">`;
 
 const BASE = `
   *{box-sizing:border-box;margin:0;padding:0}
   html,body{width:${W}px;height:${H}px;overflow:hidden}
   .fg{width:${W}px;height:${H}px;position:relative;overflow:hidden;
       font-family:Inter,system-ui,sans-serif}
-  .wordmark{font-family:Fraunces,Georgia,serif;
-     font-variation-settings:"SOFT" 40,"WONK" 1,"opsz" 120;
-     font-weight:600;letter-spacing:-.01em;line-height:1}
+  .wordmark{font-family:Inter,system-ui,sans-serif;
+     font-weight:700;letter-spacing:-.02em;line-height:1}
   .tag{font-size:23px;line-height:1.45;opacity:.85}
 `;
 
