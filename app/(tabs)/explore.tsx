@@ -23,6 +23,7 @@ import {
 } from '@/src/features/explore/exploreMapReveal';
 import type { OnboardingPreferences } from '@/src/features/onboarding/types';
 import { useQuestDomainStore } from '@/src/features/quests/questStore';
+import { questsInMotionInCategory } from '@/src/features/quests/suggestedQuests';
 import { useSessionStore } from '@/stores/session';
 
 const VALID_CATEGORY_IDS = new Set(EXPLORE_MAP_MARKERS.map((m) => m.categoryId));
@@ -33,6 +34,7 @@ export default function ExploreScreen() {
   const user = useSessionStore((s) => s.user);
   const quests = useQuestDomainStore((s) => s.quests);
   const categories = useQuestDomainStore((s) => s.categories);
+  const userQuests = useQuestDomainStore((s) => s.userQuests);
 
   const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(null);
   const [revealedCategoryIds, setRevealedCategoryIds] = useState<Set<string>>(new Set());
@@ -107,10 +109,15 @@ export default function ExploreScreen() {
     [closeSheet, sheetDrag]
   );
 
-  const selectedQuestCount = useMemo(
+  // What you have going on in the place — the panel's content (task 46). It used to count the
+  // whole category in the catalogue ("10 quests") while at most five were ever on offer.
+  const selectedInMotionCount = useMemo(
     () =>
-      selectedCategoryId ? quests.filter((q) => q.categoryId === selectedCategoryId).length : 0,
-    [quests, selectedCategoryId]
+      selectedCategoryId
+        ? questsInMotionInCategory({ catalog: quests, userQuests, categoryId: selectedCategoryId })
+            .length
+        : 0,
+    [quests, userQuests, selectedCategoryId]
   );
 
   if (!user) {
@@ -154,7 +161,9 @@ export default function ExploreScreen() {
                   {selectedCategoryName}
                 </Text>
                 <Text style={styles.sheetSubtitle}>
-                  {selectedQuestCount === 1 ? '1 quest' : `${selectedQuestCount} quests`}
+                  {selectedInMotionCount === 0
+                    ? 'Nothing in progress yet'
+                    : `${selectedInMotionCount} in progress`}
                 </Text>
               </View>
               <Pressable

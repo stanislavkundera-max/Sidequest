@@ -1,9 +1,11 @@
 import { create } from 'zustand';
 
+import { plainErrorMessage } from '@/lib/userFacingError';
 import {
   getActiveUserQuests as getActiveUserQuestsPure,
   getAvailableQuests as getAvailableQuestsPure,
 } from '@/src/features/quests/questHelpers';
+import { isUntouchedPause } from '@/src/features/quests/suggestedQuests';
 import {
   fetchCategories,
   fetchQuestCatalog,
@@ -30,7 +32,6 @@ import { logError } from '@/src/lib/monitoring/errorLogger';
 import type { Category } from '@/src/types/category';
 import type { Quest } from '@/src/types/quest';
 import type { UserQuest, UserQuestStepEvidence } from '@/src/types/quest';
-import { plainErrorMessage } from '@/lib/userFacingError';
 
 /** The technical text — for recognising setup errors, never for showing. */
 function rawErrorText(e: unknown, fallback: string): string {
@@ -44,6 +45,30 @@ function rawErrorText(e: unknown, fallback: string): string {
     if (merged) return merged;
   }
   return fallback;
+}
+
+/**
+ * Quests paused before any step was done go back to the offer (task 49) — on every load, so the
+ * pauses made before this rule (Standa had eleven) are released too. The rows hold nothing but
+ * the moment the quest was started; they are deleted in the background, and a failed delete is
+ * simply tried again on the next load.
+ */
+function releaseUntouchedPauses(
+  userId: string,
+  userQuests: UserQuest[],
+  catalog: Quest[]
+): UserQuest[] {
+  if (catalog.length === 0) return userQuests;
+  const byId = new Map(catalog.map((q) => [q.id, q]));
+  const untouched = userQuests.filter((uq) => isUntouchedPause(uq, byId.get(uq.questId)));
+  if (untouched.length === 0) return userQuests;
+  for (const uq of untouched) {
+    removeSavedForLaterQuest({ userId, userQuestId: uq.id }).catch((e: unknown) =>
+      logError('questStore.releaseUntouchedPause', e, { userId, userQuestId: uq.id })
+    );
+  }
+  const released = new Set(untouched.map((uq) => uq.id));
+  return userQuests.filter((uq) => !released.has(uq.id));
 }
 
 /** What the screen shows for a failed action — plain words (task 50), or nothing for a setup gap. */
@@ -146,7 +171,10 @@ type QuestDomainState = {
     userId: string,
     userQuestId: string,
     analytics?: QuestEventSource
-  ) => Promise<{ ok: true } | { ok: false; reason: 'not_found' | 'not_active' }>;
+  ) => Promise<
+    /** `released`: no step was done, so the quest went back to the offer, not to Paused. */
+    { ok: true; released: boolean } | { ok: false; reason: 'not_found' | 'not_active' }
+  >;
   saveQuestForLater: (
     userId: string,
     questId: string
@@ -184,11 +212,12 @@ export const useQuestDomainStore = create<QuestDomainState>((set, get) => ({
     if (get().initializedForUserId === userId && get().quests.length > 0) return;
     set({ loading: true, error: null, catalogFailed: false });
     try {
-      const [categories, quests, userQuests] = await Promise.all([
+      const [categories, quests, fetched] = await Promise.all([
         fetchCategories(),
         fetchQuestCatalog(),
         fetchUserQuests(userId),
       ]);
+      const userQuests = releaseUntouchedPauses(userId, fetched, quests);
       set({
         categories,
         quests,
@@ -208,7 +237,7 @@ export const useQuestDomainStore = create<QuestDomainState>((set, get) => ({
 
   refreshUserQuests: async (userId) => {
     try {
-      const userQuests = await fetchUserQuests(userId);
+      const userQuests = releaseUntouchedPauses(userId, await fetchUserQuests(userId), get().quests);
       set({ userQuests });
     } catch (e: unknown) {
       logError('questStore.refreshUserQuests', e, { userId });
@@ -393,15 +422,21 @@ export const useQuestDomainStore = create<QuestDomainState>((set, get) => ({
     set({ pending: true, error: null });
     try {
       const result = await moveActiveQuestToLater({ userId, userQuestId });
-      if (result.ok) {
+      if (!result.ok) return { ok: false as const, reason: result.reason };
+      void cancelQuestNotifications(userQuestId);
+      const questId = result.userQuest.questId;
+      trackQuestEvent('quest_deactivated', get().getQuestById(questId), questId, analytics);
+      // Nothing done yet: back to the offer rather than into Paused (task 49).
+      const released = isUntouchedPause(result.userQuest, get().getQuestById(questId));
+      if (released) {
+        await removeSavedForLaterQuest({ userId, userQuestId });
+        set((s) => ({ userQuests: s.userQuests.filter((u) => u.id !== userQuestId) }));
+      } else {
         set((s) => ({
           userQuests: s.userQuests.map((u) => (u.id === userQuestId ? result.userQuest : u)),
         }));
-        void cancelQuestNotifications(userQuestId);
-        const questId = result.userQuest.questId;
-        trackQuestEvent('quest_deactivated', get().getQuestById(questId), questId, analytics);
       }
-      return result.ok ? { ok: true as const } : { ok: false as const, reason: result.reason };
+      return { ok: true as const, released };
     } catch (e: unknown) {
       logError('questStore.deactivateQuest', e, { userId, userQuestId });
       set({ error: storeErrorFor(e, "Couldn't pause this quest. Try again in a moment.") });

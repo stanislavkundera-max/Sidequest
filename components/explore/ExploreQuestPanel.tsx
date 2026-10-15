@@ -1,12 +1,10 @@
 import { useRouter } from 'expo-router';
-import { useCallback, useMemo, useState } from 'react';
-import { useFocusEffect } from '@react-navigation/native';
+import { useMemo } from 'react';
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
 import { journeyHubStyles as styles } from '@/components/journey/journeyHubStyles';
 import { CatalogLoadFailed, useCatalogLoadFailed } from '@/components/quests/CatalogLoadFailed';
-import { CatalogQuestRow } from '@/components/quests/CatalogQuestRow';
 import { HubDiscoverUserQuestRow } from '@/components/quests/HubDiscoverUserQuestRow';
 import { PathFullModal } from '@/components/quests/PathFullModal';
 import { useQuestActions } from '@/components/quests/useQuestActions';
@@ -20,26 +18,25 @@ import {
   getNextActionableStepLabel,
 } from '@/src/features/quests/questHelpers';
 import { useQuestDomainStore } from '@/src/features/quests/questStore';
-import { loadSeenQuestIds } from '@/src/features/quests/seenQuests';
-import {
-  isRecentlyAdded,
-  likedQuestsInCategory,
-  newlyOpenedFirst,
-  newlyOpenedQuestIds,
-  openQuestsInCategory,
-} from '@/src/features/quests/suggestedQuests';
-import { useUnavailableQuestIds } from '@/src/features/quests/unavailableQuests';
-import type { Quest, UserQuest } from '@/src/types/quest';
+import { questsInMotionInCategory } from '@/src/features/quests/suggestedQuests';
 
 type Props = {
   userId: string;
   categoryId: string | null;
+  /** Kept for API compatibility; the panel no longer recommends quests. */
   preferences: OnboardingPreferences | null;
   /** Kept for API compatibility; the surrounding sheet renders the header. */
   hideHeader?: boolean;
 };
 
-export function ExploreQuestPanel({ userId, categoryId, preferences }: Props) {
+/**
+ * A place on the map shows what you have going on there — quests in motion, then quests paused
+ * part-way — and nothing else (Standa, 2026-10-15, task 46). It used to repeat Journey's offer
+ * (three picks, liked quests, "Discover more") with the quests in motion squeezed in above, and
+ * people did not know where to find what they had started. Choosing something new is Journey's
+ * job; the button below leads there, to this category.
+ */
+export function ExploreQuestPanel({ userId, categoryId }: Props) {
   const router = useRouter();
   const quests = useQuestDomainStore((s) => s.quests);
   const categories = useQuestDomainStore((s) => s.categories);
@@ -48,90 +45,18 @@ export function ExploreQuestPanel({ userId, categoryId, preferences }: Props) {
 
   const actions = useQuestActions(userId, 'explore');
 
-  const categoryLabel = (id: string) =>
-    categories.find((c) => c.id === id)?.name ?? id;
+  const categoryLabel = (id: string) => categories.find((c) => c.id === id)?.name ?? id;
 
-  const questCategoryId = (uq: UserQuest): string =>
-    uq.snapshotCategoryId || getQuestById(uq.questId)?.categoryId || '';
-
-  const inProgress = useMemo(() => {
-    if (!categoryId) return [];
-    return userQuests
-      .filter((uq) => uq.status === 'active' && questCategoryId(uq) === categoryId)
-      .sort((a, b) => a.startedAt.localeCompare(b.startedAt));
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [categoryId, userQuests]);
-
-  // A pool of picks, not one forced choice — testers (all 4) wanted to choose
-  // from a few options instead of a single slot that vanishes once taken.
-  //
-  // Drawn from the same five the Journey tab offers, top three. It used to have
-  // its own ranking and its own exclusion rule, which meant the map could
-  // surface a quest the Journey tab was still holding back — five plus three
-  // reachable per category instead of five. "Discover more" leads to the rest
-  // of the same five.
-  const unavailableQuestIds = useUnavailableQuestIds();
-  const openFive = useMemo(() => {
-    if (!categoryId) return [] as Quest[];
-    return openQuestsInCategory({
-      catalog: quests,
-      userQuests,
-      categoryId,
-      preferences,
-      unavailableQuestIds,
-    });
-  }, [categoryId, quests, userQuests, preferences, unavailableQuestIds]);
-
-  // Liking a pick keeps it here, pinned above the recommendations (R2-05) —
-  // it used to vanish from the map panel and reappear only on Progress.
-  const likedHere = useMemo(() => {
-    if (!categoryId) return [];
-    return likedQuestsInCategory({
-      catalog: quests,
-      userQuests,
-      categoryId,
-      hasProgress: (uq) => {
-        const q = getQuestById(uq.questId);
-        return Boolean(q && countCompletedJourneySteps(uq, q) > 0);
-      },
-    });
-  }, [categoryId, quests, userQuests, getQuestById]);
-
-  // Same "new to you" rule as the Journey tab (R2-08).
-  const newlyOpened = useMemo(() => {
-    if (!categoryId) return new Set<string>();
-    return newlyOpenedQuestIds({
-      catalog: quests,
-      userQuests,
-      categoryId,
-      preferences,
-      unavailableQuestIds,
-    });
-  }, [categoryId, quests, userQuests, preferences, unavailableQuestIds]);
-
-  const [seenQuestIds, setSeenQuestIds] = useState<Set<string>>(new Set());
-  useFocusEffect(
-    useCallback(() => {
-      let alive = true;
-      loadSeenQuestIds().then((v) => { if (alive) setSeenQuestIds(v); });
-      return () => { alive = false; };
-    }, [])
-  );
-
-  // Top three of the five, with what just opened first (round 2b) — otherwise the quest that
-  // replaced one you turned down lands in slot five and never shows on the map at all.
-  const recommended = useMemo(
-    () => newlyOpenedFirst(openFive, newlyOpened, seenQuestIds).slice(0, 3),
-    [openFive, newlyOpened, seenQuestIds]
+  const inMotion = useMemo(
+    () =>
+      categoryId ? questsInMotionInCategory({ catalog: quests, userQuests, categoryId }) : [],
+    [categoryId, quests, userQuests]
   );
 
   const catalogFailed = useCatalogLoadFailed();
 
-  const nothingToShow =
-    categoryId != null &&
-    inProgress.length === 0 &&
-    likedHere.length === 0 &&
-    recommended.length === 0;
+  const openJourney = () =>
+    router.push({ pathname: '/(tabs)/journey', params: { category: categoryId } } as never);
 
   return (
     <View style={panelStyles.root}>
@@ -148,107 +73,56 @@ export function ExploreQuestPanel({ userId, categoryId, preferences }: Props) {
           <CatalogLoadFailed />
         ) : (
           <>
-            {inProgress.length > 0 ? (
-              <>
-                <View style={styles.sectionHead}>
-                  <Ionicons name="walk-outline" size={16} color={Theme.accent} />
-                  <Text style={styles.sectionHeadText}>In progress</Text>
-                </View>
-                <View style={panelStyles.list}>
-                  {inProgress.map((uq) => {
-                    const q = getQuestById(uq.questId);
-                    const cid = questCategoryId(uq) || categoryId;
-                    const accent = categoryAccentForCategoryId(cid);
-                    const title = uq.snapshotTitle?.trim() || q?.title || 'Side quest';
-                    const stepTotal = q?.actionSteps.length ?? 0;
-                    const stepDone = q && stepTotal > 0 ? countCompletedJourneySteps(uq, q) : 0;
-                    const nextLabel =
-                      q && stepTotal > 0
-                        ? getNextActionableStepLabel(uq, q)
-                        : uq.snapshotShort?.trim() || q?.shortDescription || 'Continue when ready';
-                    const metaSteps = stepTotal > 0 ? `${stepDone}/${stepTotal} steps` : 'In motion';
-                    return (
-                      <HubDiscoverUserQuestRow
-                        key={uq.id}
-                        accentColor={accent}
-                        categoryMeta={`${categoryLabel(cid)} · ${metaSteps}`}
-                        title={title}
-                        subtitle={nextLabel}
-                        onRowPress={() => actions.onContinue(uq)}
-                        primaryAction={{
-                          label: QUEST_COPY.continueQuest,
-                          onPress: () => actions.onContinue(uq),
-                          disabled: actions.primaryBusy,
-                        }}
-                      />
-                    );
-                  })}
-                </View>
-              </>
-            ) : null}
-
-            <View style={styles.sectionHead}>
-              <Ionicons name="sparkles-outline" size={16} color={Theme.accent} />
-              <Text style={styles.sectionHeadText}>Recommended for you</Text>
-            </View>
-            {!nothingToShow ? (
-              <Text style={panelStyles.recommendedCaption}>
-                Based on your answers — every quest is still yours to try.
-              </Text>
-            ) : null}
-            {nothingToShow ? (
+            {inMotion.length === 0 ? (
               <View style={[styles.heroCard, styles.heroEmptyPadded, panelStyles.emptyCard]}>
                 <Text style={styles.emptyTitleSolid}>{EXPLORE_COPY.panelEmptyTitle}</Text>
                 <Text style={styles.emptyBodySolid}>{EXPLORE_COPY.panelEmptyBody}</Text>
               </View>
             ) : (
               <View style={panelStyles.list}>
-                {likedHere.map(({ quest: q, userQuest }) => (
-                  <CatalogQuestRow
-                    key={`liked-${userQuest.id}`}
-                    quest={q}
-                    categoryLabel={categoryLabel(q.categoryId)}
-                    liked
-                    busy={actions.primaryBusy}
-                    onOpen={actions.openQuest}
-                    onStart={(id) => void actions.onStartNow(id)}
-                    onUnlike={() => void actions.onUnlike(userQuest.id)}
-                  />
-                ))}
-                {recommended.map((q) => (
-                  <CatalogQuestRow
-                    key={q.id}
-                    quest={q}
-                    categoryLabel={categoryLabel(q.categoryId)}
-                    isNew={(isRecentlyAdded(q) || newlyOpened.has(q.id)) && !seenQuestIds.has(q.id)}
-                    busy={actions.primaryBusy}
-                    onOpen={actions.openQuest}
-                    onStart={(id) => void actions.onStartNow(id)}
-                    onLike={(id) => void actions.onLike(id)}
-                  />
-                ))}
-                {recommended.length === 0 ? (
-                  <View style={[styles.heroCard, styles.heroEmptyPadded, panelStyles.emptyCard]}>
-                    <Text style={styles.emptyBodySolid}>
-                      You have picked up everything here. Nice pace — check the Journey tab for more.
-                    </Text>
-                  </View>
-                ) : null}
+                {inMotion.map((uq) => {
+                  const q = getQuestById(uq.questId);
+                  const cid = uq.snapshotCategoryId || q?.categoryId || categoryId;
+                  const title = uq.snapshotTitle?.trim() || q?.title || 'Side quest';
+                  const stepTotal = q?.actionSteps.length ?? 0;
+                  const stepDone = q && stepTotal > 0 ? countCompletedJourneySteps(uq, q) : 0;
+                  const paused = uq.status !== 'active';
+                  const nextLabel =
+                    q && stepTotal > 0
+                      ? getNextActionableStepLabel(uq, q)
+                      : uq.snapshotShort?.trim() || q?.shortDescription || 'Continue when ready';
+                  const progress = stepTotal > 0 ? `${stepDone}/${stepTotal} steps` : 'In motion';
+                  return (
+                    <HubDiscoverUserQuestRow
+                      key={uq.id}
+                      accentColor={categoryAccentForCategoryId(cid)}
+                      categoryMeta={`${paused ? 'Paused' : categoryLabel(cid)} · ${progress}`}
+                      title={title}
+                      subtitle={nextLabel}
+                      onRowPress={() =>
+                        paused ? router.push(`/quest/${uq.questId}` as never) : actions.onContinue(uq)
+                      }
+                      primaryAction={{
+                        label: paused ? QUEST_COPY.resumeQuest : QUEST_COPY.continueQuest,
+                        onPress: () =>
+                          paused ? void actions.onStartNow(uq.questId) : actions.onContinue(uq),
+                        disabled: actions.primaryBusy,
+                      }}
+                    />
+                  );
+                })}
               </View>
             )}
 
             <Pressable
               accessibilityRole="button"
-              accessibilityLabel={`Discover more ${categoryLabel(categoryId)} quests in Journey`}
-              onPress={() =>
-                router.push({
-                  pathname: '/(tabs)/journey',
-                  params: { category: categoryId },
-                } as never)
-              }
+              accessibilityLabel={`Find ${categoryLabel(categoryId)} quests in Journey`}
+              onPress={openJourney}
               style={({ pressed }) => [panelStyles.discoverMore, pressed && panelStyles.pressed]}>
               <Ionicons name="map-outline" size={16} color={Theme.accent} />
-              <Text style={panelStyles.discoverMoreText}>Discover more</Text>
+              <Text style={panelStyles.discoverMoreText}>
+                {inMotion.length === 0 ? EXPLORE_COPY.panelFindFirst : EXPLORE_COPY.panelFindMore}
+              </Text>
               <Ionicons name="chevron-forward" size={14} color={Theme.accent} />
             </Pressable>
           </>
@@ -278,14 +152,6 @@ const panelStyles = StyleSheet.create({
   scroll: { flex: 1 },
   scrollContent: { paddingBottom: 24, paddingTop: 4 },
   list: { gap: 10, paddingHorizontal: 16, paddingBottom: 4 },
-  recommendedCaption: {
-    fontSize: 12,
-    fontFamily: 'Inter_400Regular',
-    color: Theme.textMuted,
-    paddingHorizontal: 16,
-    marginTop: -6,
-    marginBottom: 10,
-  },
   emptyCard: { minHeight: 120, marginHorizontal: 16 },
   discoverMore: {
     flexDirection: 'row',

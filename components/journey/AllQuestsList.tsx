@@ -86,13 +86,8 @@ export function AllQuestsList({ initialCategoryId, preferences, actions }: Props
   // A "show more" control lived here for a day. It was removed because it
   // handed over the whole shelf: the rest of the catalogue is meant to be
   // earned by finishing something, so there is deliberately no way to reach it.
-  const openFive = useMemo(
-    () => categoryQuests.slice(0, QUESTS_OPEN_PER_CATEGORY),
-    [categoryQuests]
-  );
-  const lockedCount = Math.max(0, categoryQuests.length - openFive.length);
-
-  // Liked quests stay in their category, above the open five (R2-05).
+  // Liked quests stay in their category, at the top (R2-05) — and since 2026-10-15 they take
+  // places among the five (task 48), so the list never shows more than five.
   const getQuestById = useQuestDomainStore((s) => s.getQuestById);
   const likedHere = useMemo(() => {
     if (!activeCategoryId) return [];
@@ -106,6 +101,12 @@ export function AllQuestsList({ initialCategoryId, preferences, actions }: Props
       },
     });
   }, [quests, userQuests, activeCategoryId, getQuestById]);
+
+  const openFive = useMemo(
+    () => categoryQuests.slice(0, Math.max(0, QUESTS_OPEN_PER_CATEGORY - likedHere.length)),
+    [categoryQuests, likedHere.length]
+  );
+  const lockedCount = Math.max(0, categoryQuests.length - openFive.length);
 
   // Quests that reached the five because of something you did (R2-08).
   const newlyOpened = useMemo(() => {
@@ -194,11 +195,11 @@ export function AllQuestsList({ initialCategoryId, preferences, actions }: Props
         </ScrollView>
       </View>
 
-      {activeCategoryId && visibleQuests.length > 0 ? (
+      {activeCategoryId && likedHere.length + visibleQuests.length > 0 ? (
         <Text style={styles.countLine}>
-          {visibleQuests.length === 1
+          {likedHere.length + visibleQuests.length === 1
             ? '1 quest open to you here'
-            : `${visibleQuests.length} quests open to you here`}
+            : `${likedHere.length + visibleQuests.length} quests open to you here`}
         </Text>
       ) : null}
 

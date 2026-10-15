@@ -55,6 +55,9 @@ export const QUEST_COPY = {
   /** Where a set-aside quest lands — depends on whether any step is already done. */
   /** Where a paused quest goes — the same place whether or not a step was done (code review 2026-09-27). */
   leaveDestination: 'You will find it in Progress under "Pick up where you left off".',
+  /** Paused before any step: it goes back to the offer, not to Paused (task 49). */
+  releaseDestination:
+    'Nothing is done on it yet, so it goes back to the list in Journey — start it again whenever you like.',
   activePathSectionTitle: 'Quests you are doing',
   suggestedSectionTitle: 'Discover',
   chooseCategoryTitle: 'Choose a category',

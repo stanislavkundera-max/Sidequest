@@ -57,8 +57,11 @@ export const EXPLORE_MAP_MARKERS: ExploreMapMarkerDef[] = [
 
 export const EXPLORE_COPY = {
   title: 'Explore your map',
-  subtitle: 'Tap a place to see picks for you and quests in progress',
-  panelEmptyTitle: 'Nothing here yet',
-  panelEmptyBody: 'Browse every quest in the Journey tab.',
+  subtitle: 'Tap a place to see the quests you have going there',
+  // The panel shows only what you have started (task 46); picking is Journey's job.
+  panelEmptyTitle: 'Nothing going on here yet',
+  panelEmptyBody: 'Pick a quest in Journey — whatever you start shows up here on the map.',
+  panelFindFirst: 'Find a quest',
+  panelFindMore: 'Find another quest',
   panelSelectHint: 'Choose a place on the map to see quests',
 } as const;

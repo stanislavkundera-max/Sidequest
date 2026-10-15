@@ -49,7 +49,10 @@ import {
   wasCalendarOpened,
 } from '@/src/features/quests/questRunnerPending';
 import { formatQuestDuration, QUEST_COPY } from '@/src/features/quests/questCopy';
-import { getFirstIncompleteJourneyStep } from '@/src/features/quests/questHelpers';
+import {
+  countCompletedJourneySteps,
+  getFirstIncompleteJourneyStep,
+} from '@/src/features/quests/questHelpers';
 import { useQuestDomainStore } from '@/src/features/quests/questStore';
 import { trackEvent } from '@/src/lib/analytics';
 import { logError } from '@/src/lib/monitoring/errorLogger';
@@ -172,9 +175,9 @@ export default function QuestRunScreen() {
         return;
       }
       await refreshUserQuests(user.id);
-      // The Leave dialog promises "find it in Progress" (paused/liked live
-      // there, not on the Journey catalog) — land where that's actually true.
-      router.replace('/(tabs)/profile');
+      // Land where the Leave dialog said it would be: back in Journey's list when no step was
+      // done (task 49), otherwise in Progress under "Pick up where you left off".
+      router.replace(r.released ? '/(tabs)/journey' : '/(tabs)/profile');
     } catch (e: unknown) {
       logError('quest.runner.leaveQuest', e, { questId: quest.id, userQuestId: activeUq.id });
       alertCompat("That didn't go through", plainErrorMessage(e, "Couldn't pause this quest. Try again in a moment."));
@@ -184,9 +187,12 @@ export default function QuestRunScreen() {
   }, [user, quest, activeUq, deactivateQuest, refreshUserQuests, router]);
 
   const confirmLeaveQuest = useCallback(() => {
+    const started = Boolean(quest && activeUq && countCompletedJourneySteps(activeUq, quest) > 0);
     alertTwoChoice(
       'Leave this quest?',
-      `It moves out of active motion; your progress stays saved — nothing is deleted. ${QUEST_COPY.leaveDestination}`,
+      started
+        ? `It moves out of active motion; your progress stays saved — nothing is deleted. ${QUEST_COPY.leaveDestination}`
+        : QUEST_COPY.releaseDestination,
       {
         cancel: { text: 'Keep going' },
         confirm: {
@@ -197,7 +203,7 @@ export default function QuestRunScreen() {
         },
       }
     );
-  }, [leaveQuest]);
+  }, [leaveQuest, quest, activeUq]);
 
   useLayoutEffect(() => {
     navigation.setOptions({

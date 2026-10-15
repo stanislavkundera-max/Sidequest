@@ -22,7 +22,11 @@ import {
   QUEST_COPY,
   TIMEFRAME_LABEL,
 } from '@/src/features/quests/questCopy';
-import { canUserBeginQuest, incompleteJourneyStepsCount } from '@/src/features/quests/questHelpers';
+import {
+  canUserBeginQuest,
+  countCompletedJourneySteps,
+  incompleteJourneyStepsCount,
+} from '@/src/features/quests/questHelpers';
 import { useQuestDomainStore } from '@/src/features/quests/questStore';
 import { markQuestSeen } from '@/src/features/quests/seenQuests';
 import { currentlyDismissedQuestIds } from '@/src/features/quests/suggestedQuests';
@@ -230,7 +234,9 @@ export default function QuestDetailScreen() {
       setAssignFeedback(null);
       alertCompat(
         'Set aside for now',
-        `It is paused for now. Your steps stay as you left them. ${QUEST_COPY.leaveDestination}`
+        r.released
+          ? QUEST_COPY.releaseDestination
+          : `It is paused for now. Your steps stay as you left them. ${QUEST_COPY.leaveDestination}`
       );
     } catch (e: unknown) {
       logError('quest.detail.onDeactivate', e, {
@@ -245,9 +251,12 @@ export default function QuestDetailScreen() {
 
   function requestDeactivate() {
     if (!activeUq || !quest || !user) return;
+    const started = countCompletedJourneySteps(activeUq, quest) > 0;
     alertTwoChoice(
       'Let this quest wait?',
-      `It moves out of active motion; your progress stays saved — nothing is deleted. ${QUEST_COPY.leaveDestination}`,
+      started
+        ? `It moves out of active motion; your progress stays saved — nothing is deleted. ${QUEST_COPY.leaveDestination}`
+        : QUEST_COPY.releaseDestination,
       {
         cancel: { text: 'Keep it on the path' },
         confirm: {

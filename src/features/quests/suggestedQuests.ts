@@ -123,6 +123,10 @@ export function recommendQuestsForPreferences(params: {
  * It therefore has to hold everywhere a category can be browsed, or the rule
  * is only as strong as the loosest screen. Use `openQuestsInCategory` rather
  * than slicing an ordered list yourself.
+ *
+ * Liked quests count toward the five (Standa, 2026-10-15, task 48). They used to
+ * sit above it, so a category could show six cards or more under "2 quests open to
+ * you here", and every like opened one more quest — a way round the rule.
  */
 export const QUESTS_OPEN_PER_CATEGORY = 5;
 
@@ -140,11 +144,41 @@ export function openQuestsInCategory(params: {
   /** Quests this person said they can't do where they live — never offered, never counted. */
   unavailableQuestIds?: ReadonlySet<string>;
   now?: number;
-  /** Show fewer than the cap (Explore's panel takes the top three). Never more. */
+  /** Show fewer than the cap. Never more. */
   limit?: number;
 }): Quest[] {
-  const limit = Math.min(params.limit ?? QUESTS_OPEN_PER_CATEGORY, QUESTS_OPEN_PER_CATEGORY);
+  const slots = Math.max(
+    0,
+    QUESTS_OPEN_PER_CATEGORY -
+      likedCountInCategory(params.catalog, params.userQuests, params.categoryId)
+  );
+  const limit = Math.min(params.limit ?? slots, slots);
   return orderCategoryQuests(params).slice(0, limit);
+}
+
+/**
+ * Steps done on a quest — the same count as `countCompletedJourneySteps` in questHelpers, kept
+ * here because this module stays free of runtime imports (the unit tests run it in plain Node).
+ */
+function countCompletedJourneySteps(uq: UserQuest, quest: Quest): number {
+  return quest.actionSteps.filter((step) => uq.stepProgress[step.id]).length;
+}
+
+/** How many liked quests a category holds — each takes one of its five (task 48). */
+export function likedCountInCategory(
+  catalog: Quest[],
+  userQuests: UserQuest[],
+  categoryId: string
+): number {
+  return likedQuestsInCategory({
+    catalog,
+    userQuests,
+    categoryId,
+    hasProgress: (uq) => {
+      const quest = catalog.find((q) => q.id === uq.questId);
+      return Boolean(quest && countCompletedJourneySteps(uq, quest) > 0);
+    },
+  }).length;
 }
 
 /**
@@ -277,6 +311,15 @@ const PAUSE_GAP_MS = 2000;
  * quest resets `started_at` and clears `saved_at`, so a like that was started and then paused
  * reads as paused, as it should. No migration: rows already paused read correctly too.
  */
+/**
+ * Paused before a single step was done. There is nothing to pick up, so the quest goes back to
+ * its category's offer instead of filling "Pick up where you left off" (Standa, 2026-10-15, task
+ * 49: eleven paused quests, most at 0 steps, while only three can be in motion).
+ */
+export function isUntouchedPause(uq: UserQuest, quest: Quest | undefined): boolean {
+  return isPausedQuest(uq) && (!quest || countCompletedJourneySteps(uq, quest) === 0);
+}
+
 export function isPausedQuest(uq: UserQuest): boolean {
   if (uq.status !== 'saved_for_later' || !uq.savedAt) return false;
   const started = Date.parse(uq.startedAt);
@@ -286,13 +329,40 @@ export function isPausedQuest(uq: UserQuest): boolean {
 }
 
 /**
+ * What someone has taken on in a category: quests going now, then quests paused part-way — the
+ * Explore panel's whole content since 2026-10-15 (Standa, task 46: people did not know where to
+ * find their active quests; picking new ones belongs to Journey). Liked quests are not in it.
+ */
+export function questsInMotionInCategory(params: {
+  catalog: Quest[];
+  userQuests: UserQuest[];
+  categoryId: string;
+}): UserQuest[] {
+  const byId = new Map(params.catalog.map((q) => [q.id, q]));
+  const inMotion = params.userQuests.filter((uq) => {
+    const quest = byId.get(uq.questId);
+    if ((uq.snapshotCategoryId || quest?.categoryId) !== params.categoryId) return false;
+    if (uq.status === 'active') return true;
+    return (
+      uq.status === 'saved_for_later' &&
+      (isPausedQuest(uq) || Boolean(quest && countCompletedJourneySteps(uq, quest) > 0))
+    );
+  });
+  return inMotion.sort(
+    (a, b) =>
+      Number(b.status === 'active') - Number(a.status === 'active') ||
+      a.startedAt.localeCompare(b.startedAt)
+  );
+}
+
+/**
  * Liked quests in a category — hearted and not yet started.
  *
  * They stay in their category, pinned above the open five, instead of leaving
  * the list (round 2, R2-05). Liking used to make the card vanish, let another
  * quest take its place, and park the liked one on a different tab without a
  * word — so it looked deleted ("Likenutej příspěvek nejde nahoru ale zmizí").
- * A liked quest still does not occupy one of the five slots.
+ * Since 2026-10-15 a liked quest takes one of the five (task 48).
  *
  * `saved_for_later` also covers quests set aside after starting; those belong to "Paused" and
  * are excluded here — by step progress, and by `isPausedQuest` for a pause before the first step.

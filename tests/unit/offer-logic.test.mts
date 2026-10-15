@@ -11,6 +11,7 @@ const {
   likedQuestsInCategory,
   preferredTimeframeFromHistory,
   isPausedQuest,
+  isUntouchedPause,
 } = mod;
 
 // Ten quests in one category, like the real catalogue. Ordered by duration so
@@ -174,7 +175,7 @@ const like = (questId: string, msAgo: number) =>
 const pause = (questId: string, startedAgo: number, pausedAgo: number, extra = {}) =>
   row(questId, 'saved_for_later', { startedAt: iso(startedAgo), savedAt: iso(pausedAgo), ...extra });
 
-test('liked quests: listed in their category, newest first, not taking a slot', () => {
+test('liked quests: listed in their category, newest first, each taking one of the five', () => {
   const uqs = [like('q3', 3 * DAY), like('q1', DAY), like('x1', DAY)];
   const liked = likedQuestsInCategory({
     catalog: fullCatalog,
@@ -183,7 +184,24 @@ test('liked quests: listed in their category, newest first, not taking a slot', 
     hasProgress: () => false,
   }).map((r: { quest: { id: string } }) => r.quest.id);
   assert.deepEqual(liked, ['q1', 'q3']);
-  assert.deepEqual(open(uqs), ['q2', 'q4', 'q5', 'q6', 'q7'], 'five open slots remain');
+  // Task 48 (2026-10-15): two liked here leave three open — five cards in all, never more.
+  assert.deepEqual(open(uqs), ['q2', 'q4', 'q5'], 'liked quests count toward the five');
+});
+
+test('liked: a like in another category takes no slot here', () => {
+  assert.deepEqual(open([like('x1', DAY)]), ['q1', 'q2', 'q3', 'q4', 'q5']);
+});
+
+test('pause: before any step it goes back to the offer, after a step it stays paused', () => {
+  const stepped = { ...catalog[0], actionSteps: [{ id: 's1' }, { id: 's2' }] };
+  const paused = row('q1', 'saved_for_later', { savedAt: iso(DAY) });
+  assert.equal(isUntouchedPause(paused, stepped), true, 'no step done');
+  assert.equal(
+    isUntouchedPause({ ...paused, stepProgress: { s1: { kind: 'self_attest' } } }, stepped),
+    false,
+    'a step done'
+  );
+  assert.equal(isUntouchedPause(like('q1', DAY), stepped), false, 'a like is not a pause');
 });
 
 test('liked: a quest paused mid-way is not shown as liked', () => {
