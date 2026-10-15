@@ -522,7 +522,8 @@ The app had **never been built natively.** There is no `android/`
 directory, `prebuild` has never run, and round 1 was distributed through **Expo Go**
 (`docs/real-user-testing-checklist.md:21`, and the Maestro runbook still assumes
 `E2E_APP_ID=host.exp.Exponent`). A production AAB is a different runtime from Expo Go: its own
-manifest and permissions, release-mode JS, `__DEV__` false, R8 shrinking, the real icon and splash.
+manifest and permissions, release-mode JS, `__DEV__` false, the real icon and splash. (Not R8 shrinking, as this used to say: Expo leaves it off, and Play
+Console reported 1 % obfuscation on build 11 — it is switched on from the next build, task 41.)
 Everything that has been verified so far was verified somewhere else.
 
 That is not a reason to delay — it is the reason task 2.2 exists and why an internal test (3.0) is

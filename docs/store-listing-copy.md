@@ -1,8 +1,9 @@
-# Store listing copy — draft
+# Store listing copy
 
-Draft, based on `docs/value-proposition.md` and `docs/story.md`. Character counts noted against
-each field's limit — trim to fit before pasting into App Store Connect / Play Console. Review and
-edit before publishing; this is a starting point, not final copy.
+The Google Play text below was rewritten 2026-10-15 and is ready to paste (Play Console → Grow
+users → Store presence → Main store listing). The App Store fields further down are the older
+draft — iOS is parked. Originally based on `docs/value-proposition.md` and `docs/story.md`. Character counts noted against
+each field's limit.
 
 ## App name
 
@@ -14,32 +15,36 @@ edit before publishing; this is a starting point, not final copy.
 
 ## Google Play — Short description (80 characters max)
 
-**Small real-world quests that pull you out of routine and into your life.** (76 chars)
+**Real-world side quests to break your routine — and remember what you lived.** (75 chars)
 
-## Full description (both stores, ~4,000 characters max — this draft is well under)
+## Full description (Google Play, 4,000 characters max — this is 1,252)
 
-Break the routine. Start living.
+Rewritten 2026-10-15 (task 45) for the app as it is now. The earlier draft broke the app's own
+rules: it offered "an evening without a screen" and "put the phone down" — giving things up, the
+screen-time framing the mentor ruled out — and it described none of the map, the four places, or
+how quests open. The four quests named are real titles from the catalogue. No health claims
+("burned out by routine" is the audience, not something the app treats).
 
-Side Quest Life turns "I should get out more" into something you actually do. Pick a small,
-real-world quest — a short walk somewhere new, a conversation you'd normally skip, an evening
-without a screen — and the app walks you through it step by step. No planning, no overthinking.
+```
+Stuck in the same week on repeat?
 
-**Escape autopilot.** Work, gym, scroll, repeat — side quests break the loop and pull you into
-something real instead.
+Side Quest Life gives you real-world side quests — small ones for an ordinary Tuesday, big ones worth planning for. Watch the sun come up somewhere outdoors. Swim in wild water you had to walk to reach. Ask someone how they ended up doing what they do. Sign up for something you are not ready for.
 
-**Get off the screen, into the world.** Not one more app to scroll through — a nudge to put the
-phone down and go do something.
+HOW IT WORKS
+• Open the map and pick a place: Nature, Adventure, Social or Relax.
+• Choose a quest that calls to you. Each one comes with a few concrete steps — put it in your calendar, get what you need, go.
+• When it's done, keep it as a memory: a photo and a few words about how it felt.
 
-**Never wonder what to do.** Pick from a library of curated side quests, sorted by how much time
-you have and how bold you're feeling.
+WHAT MAKES IT DIFFERENT
+• Every quest is something to do — never something to give up.
+• A few quests are open in each place at a time. Finish one and the next one opens.
+• Your memories add up to a record of a life you actually lived, not a to-do list.
+• No points, no streaks, no leaderboards. What you do stays yours.
+• Start straight away, no account needed. Create one when you want to keep everything, even on a new phone.
 
-**Guided step by step.** Each quest walks you through exactly what to do, so you actually finish
-it instead of letting it sit on a list.
-
-**Keep every moment.** Add a note and a photo when you're done, and watch a real collection of
-memories build up — proof you lived it, not just planned to.
-
-No points, no streaks, no pressure. Just small nudges toward a life with less autopilot in it.
+WHY IT EXISTS
+Sitting on a beach in Morocco, I caught myself thinking about cancelling my flight home. I came back and built this instead: a gentle push out of autopilot, one side quest at a time.
+```
 
 ## App Store — Keywords (100 characters max, comma-separated, no spaces after commas)
 
