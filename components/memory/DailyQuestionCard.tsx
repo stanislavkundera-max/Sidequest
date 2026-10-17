@@ -1,11 +1,10 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect } from '@react-navigation/native';
 import { useRouter } from 'expo-router';
-import { useCallback, useState } from 'react';
-import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
+import { useCallback, useEffect, useState } from 'react';
+import { AppState, Image, Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { Theme } from '@/constants/Theme';
-import { MIN_TOUCH_TARGET } from '@/constants/touchTargets';
 import { dailyPromptFor } from '@/src/constants/dailyPrompts';
 import { trackEvent } from '@/src/lib/analytics';
 
@@ -21,7 +20,8 @@ import { trackEvent } from '@/src/lib/analytics';
  * no notification.
  *
  * Paper is recommended, writing here is offered ("some people will want to journal on the
- * tram"): **Write it here** opens a new memory titled with the question.
+ * tram"): one quiet line, "Best on paper — or write it here", the link opening a new memory
+ * titled with the question.
  */
 
 /** 571×1024, a sunrise valley with a path into the mountains (also used by Journey). */
@@ -38,18 +38,24 @@ const WINDOW_FROM = 0.16;
  */
 const FOREST = '#33471f'; // BRANDING.md §2 — the splash and icon ground
 const VEIL = 'rgba(255, 244, 220, 0.35)';
-const CREAM_TEXT = '#fff4dc';
 
 export function DailyQuestionCard() {
   const router = useRouter();
   const [width, setWidth] = useState(0);
   const [now, setNow] = useState(() => new Date());
-  // Re-read on every visit, so a tab left open overnight moves on to the new day's question.
+  // Re-read on every visit and whenever the app comes back to the front, so a phone left on this
+  // tab overnight shows the new day's question — a tab switch alone missed that case.
   useFocusEffect(
     useCallback(() => {
       setNow(new Date());
     }, [])
   );
+  useEffect(() => {
+    const sub = AppState.addEventListener('change', (next) => {
+      if (next === 'active') setNow(new Date());
+    });
+    return () => sub.remove();
+  }, []);
   const prompt = dailyPromptFor(now);
   const day = now.toLocaleDateString(undefined, { weekday: 'long', day: 'numeric', month: 'long' });
 
@@ -90,14 +96,16 @@ export function DailyQuestionCard() {
 
       <Text style={styles.question}>{prompt}</Text>
 
+      {/* One quiet line, not a button beside the advice (Standa: "best on paper or write it here"). */}
       <View style={styles.footRow}>
-        <Text style={styles.note}>Best on paper — take a pen.</Text>
+        <Text style={styles.note}>Best on paper — or </Text>
         <Pressable
           onPress={writeHere}
-          accessibilityRole="button"
+          hitSlop={{ top: 13, bottom: 13, left: 4, right: 16 }}
+          accessibilityRole="link"
           accessibilityLabel="Write the answer in the app"
-          style={({ pressed }) => [styles.writeBtn, pressed && styles.pressed]}>
-          <Text style={styles.writeBtnText}>Write it here</Text>
+          style={({ pressed }) => pressed && styles.pressed}>
+          <Text style={[styles.note, styles.link]}>write it here</Text>
         </Pressable>
       </View>
     </View>
@@ -149,21 +157,9 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: FOREST,
   },
-  footRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    gap: 12,
-  },
-  note: { flexShrink: 1, fontSize: 13, fontFamily: 'Inter_600SemiBold', fontWeight: '600', color: Theme.text },
-  writeBtn: {
-    justifyContent: 'center',
-    minHeight: MIN_TOUCH_TARGET,
-    borderRadius: 999,
-    paddingVertical: 8,
-    paddingHorizontal: 16,
-    backgroundColor: FOREST,
-  },
-  writeBtnText: { fontSize: 14, fontFamily: 'Inter_700Bold', fontWeight: '700', color: CREAM_TEXT },
-  pressed: { opacity: 0.85 },
+  footRow: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center' },
+  // Ink, not forest green: at 13 px the green measures 4.11:1 at worst, short of 4.5:1.
+  note: { fontSize: 13, fontFamily: 'Inter_600SemiBold', fontWeight: '600', color: Theme.text },
+  link: { fontFamily: 'Inter_700Bold', fontWeight: '700', textDecorationLine: 'underline' },
+  pressed: { opacity: 0.6 },
 });
