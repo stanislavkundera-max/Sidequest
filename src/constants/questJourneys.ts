@@ -273,6 +273,7 @@ export const QUEST_JOURNEY_BY_ID: Record<
         id: 's3',
         title: 'Get off and stay a few hours',
         detail: 'End of the line, or anywhere out the window that looked worth it.',
+        tip: 'Want more? Ask someone there what they would show a visitor, and go and see it. The trip already counts.',
         estimateMinutes: 180,
         interaction: {
           kind: 'timer',
@@ -605,6 +606,7 @@ export const QUEST_JOURNEY_BY_ID: Record<
       {
         id: 's3',
         title: 'Walk out and lie down under the open sky',
+        tip: 'Want more? Leave the alarm off and wake up with the light. Sleeping out already counts.',
         estimateMinutes: 480,
         interaction: { kind: 'confirm' },
       },
@@ -659,6 +661,7 @@ export const QUEST_JOURNEY_BY_ID: Record<
         id: 's4',
         title: 'Decide each morning where you are going next',
         detail: 'Three days of it. Ask people rather than searching.',
+        tip: 'Want more? Spend one night wherever a local tells you to — their pick, not a booking site\'s. The trip already counts.',
         estimateMinutes: 2880,
         interaction: { kind: 'confirm' },
       },
@@ -922,7 +925,7 @@ export const QUEST_JOURNEY_BY_ID: Record<
         id: 's2',
         title: 'Walk the bank to the next crossing',
         detail: 'Follow the water, not a planned route.',
-        tip: 'If the bank runs out, cross and carry on the other side — that counts.',
+        tip: 'If the bank runs out, cross and carry on the other side — that counts. Want more? Keep going past the next crossing to the one after it. One stretch already counts.',
         estimateMinutes: 75,
         interaction: {
           kind: 'timer',
@@ -974,7 +977,7 @@ export const QUEST_JOURNEY_BY_ID: Record<
         id: 's3',
         title: 'Go outside after dark and let your eyes adjust',
         detail: 'Twenty minutes with no torch and no screen.',
-        tip: 'The first five minutes look like nothing. Stay past that — it keeps arriving.',
+        tip: 'The first five minutes look like nothing. Stay past that — it keeps arriving. Want more? Stay out until you spot a satellite — a steady dot moving across the stars, no blinking. The dark already counts.',
         estimateMinutes: 20,
         interaction: {
           kind: 'timer',
@@ -1032,6 +1035,7 @@ export const QUEST_JOURNEY_BY_ID: Record<
         id: 's4',
         title: 'Stand still and watch the whole thing',
         detail: 'From first colour to the sun clear of the horizon. Do not leave early.',
+        tip: 'Want more? Carry up a small stove and make something hot at the top while it gets light — where stoves are allowed. The sunrise already counts.',
         estimateMinutes: 25,
         interaction: {
           kind: 'timer',
@@ -1187,6 +1191,7 @@ export const QUEST_JOURNEY_BY_ID: Record<
       {
         id: 's3',
         title: 'Get in',
+        tip: 'Want more? Where it is allowed and it is just you and whoever came with you, go in without the swimsuit. The swim already counts.',
         estimateMinutes: 15,
         interaction: { kind: 'confirm' },
       },
@@ -1235,6 +1240,7 @@ export const QUEST_JOURNEY_BY_ID: Record<
       {
         id: 's3',
         title: 'Go up',
+        tip: 'Want more? On a tandem paraglide, ask the pilot whether you can hold the controls for a minute in calm air — many say yes. Going up already counts.',
         estimateMinutes: 240,
         interaction: { kind: 'confirm' },
       },
@@ -1383,6 +1389,7 @@ export const QUEST_JOURNEY_BY_ID: Record<
       {
         id: 's2',
         title: 'Send the invitation',
+        tip: 'Want more? Invite a second person who does not know either of you well. One invitation already counts.',
         estimateMinutes: 5,
         interaction: { kind: 'confirm' },
       },
@@ -1456,6 +1463,7 @@ export const QUEST_JOURNEY_BY_ID: Record<
       {
         id: 's2',
         title: 'Read for half an hour',
+        tip: 'Want more? When you finish the book, leave it somewhere for a stranger with a note inside. The reading already counts.',
         estimateMinutes: 30,
         interaction: {
           kind: 'timer',
@@ -1529,6 +1537,7 @@ export const QUEST_JOURNEY_BY_ID: Record<
         id: 's2',
         title: 'Go, with nothing planned afterwards',
         detail: 'The empty hour after is part of it.',
+        tip: 'Want more? If there is a cold pool and you feel up to it, go in between rounds for a few breaths. The two hours already count.',
         estimateMinutes: 120,
         interaction: { kind: 'confirm' },
       },
