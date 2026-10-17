@@ -59,7 +59,7 @@ Write ✅ or ❌ next to each line; for a ❌ send a screenshot with the number.
 **If you are a guest** ("Guest — no account yet" at the top of Progress), do 20 first: signing out of a guest account loses everything.
 
 - [ ] **20.** Guest → account: Progress → **Create an account** → your e-mail → an e-mail arrives **with a 6-digit code, no link** (check spam) → type the code, choose a password → "Your account is saved". *(CR-5, Supabase template)*
-- [ ] **21.** Sign-up with a **new** e-mail: Settings → Sign out → "Need an account? Sign up" → new e-mail + password → the screen **"Confirm your e-mail"** asks for a code → the code arrives by e-mail (check spam) → type it → you are **signed in, no error page**. *(#37, #39 — blocks the production release)*
+- [ ] **21.** Sign-up with a **new** e-mail: Settings → Sign out → "Need an account? Sign up" → new e-mail + password → the screen **"Confirm your e-mail"** asks for a code → the code arrives by e-mail (check spam) → type it → you are **signed in, no error page**. *(#37, #39 — real users sign up this way — the app is in production)*
 - [ ] **22.** On that "Confirm your e-mail" screen, **"No e-mail? Send a new code"** sends a new one. *(#39)*
 - [ ] **23.** The new account goes through onboarding: the last screen ends with *"Now and then I'll send you an idea for a quest — change that any time in Progress → Settings."*, and **Start exploring** asks to allow notifications. *(#53)*
 - [ ] **24.** Sign out of the test account and sign back into your own.

@@ -415,6 +415,9 @@ This is the whole reason to start the clock early:
 
 ## Phase 4 — Production
 
+> ✅ **In production** — confirmed by Standa 2026-10-17. Since then every `eas update` to the
+> `production` branch reaches real users, not only testers.
+
 Gate: **testing requirement satisfied (or confirmed not to apply).**
 
 | # | Task | Owner |
