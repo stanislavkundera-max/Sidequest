@@ -11,6 +11,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { ExploreMapScene } from '@/components/explore/ExploreMapScene';
+import { DailyPromptCard } from '@/components/explore/DailyPromptCard';
 import { ExploreQuestPanel } from '@/components/explore/ExploreQuestPanel';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { Theme } from '@/constants/Theme';
@@ -143,6 +144,7 @@ export default function ExploreScreen() {
           revealedCategoryIds={revealedCategoryIds}
           onSelectCategory={handleSelectCategory}
         />
+        <DailyPromptCard />
         {selectedCategoryId ? (
           <Animated.View style={[styles.sheet, sheetDragStyle]}>
             <View {...sheetPan.panHandlers}>

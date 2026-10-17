@@ -28,7 +28,8 @@ import { useSessionStore } from '@/stores/session';
 
 export default function NewMemoryScreen() {
   const router = useRouter();
-  const { questId } = useLocalSearchParams<{ questId?: string }>();
+  // `prompt`: today's journaling question from the map (task 57) — it becomes the title.
+  const { questId, prompt } = useLocalSearchParams<{ questId?: string; prompt?: string }>();
   const user = useSessionStore((s) => s.user);
   const getQuestById = useQuestDomainStore((s) => s.getQuestById);
   const quests = useQuestDomainStore((s) => s.quests);
@@ -60,7 +61,9 @@ export default function NewMemoryScreen() {
     [questId, quests]
   );
 
-  const [title, setTitle] = useState<string>(quest?.title ?? '');
+  const [title, setTitle] = useState<string>(
+    quest?.title ?? (typeof prompt === 'string' ? prompt : '')
+  );
   const titleTouchedRef = useRef(false);
 
   // The initial useState above only runs once, so a quest that arrives later

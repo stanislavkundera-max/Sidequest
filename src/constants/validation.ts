@@ -27,6 +27,10 @@ export const VALIDATION_EVENT_NAMES = [
   'returned_day_7',
   'quest_feedback_submitted',
   'quest_step_completed',
+  /** Today's journaling question opened on the map (task 57). */
+  'daily_prompt_opened',
+  /** "Write it here" under today's question — answered in the app rather than on paper. */
+  'daily_prompt_write_tapped',
 ] as const;
 
 export type ValidationEventName = (typeof VALIDATION_EVENT_NAMES)[number];
