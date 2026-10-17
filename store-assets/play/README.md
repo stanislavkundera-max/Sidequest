@@ -1,10 +1,10 @@
 # Play Store listing assets
 
+**In Play Console since 2026-10-17:** the feature graphic in Inter and the description from `docs/store-listing-copy.md`. The screenshots there are still the older ones; they are replaced after the redesign (tasklist #26).
+
 Generated 2026-08-29, screenshots re-captured 2026-10-12 (current UI). Still not final: 02, 05
 and 06 are not listing material — see `docs/feedback/round-2-tasklist.md` item 44. Regenerate any
 time with the web server running:
-
-**In Play Console since 2026-10-17:** the feature graphic in Inter and the description from `docs/store-listing-copy.md`. The screenshots there are still the older ones; they are replaced after the redesign (tasklist #26).
 
 ```
 node scripts/capture-store-screenshots.cjs
