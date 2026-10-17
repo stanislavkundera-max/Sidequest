@@ -12,6 +12,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { DailyQuestionCard } from '@/components/memory/DailyQuestionCard';
 import { Chip } from '@/components/ui/Chip';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { ErrorState } from '@/components/ui/ErrorState';
@@ -132,6 +133,8 @@ export default function MemoriesScreen() {
       <Text style={styles.sub}>
         Your reflections in reverse chronological order.
       </Text>
+
+      <DailyQuestionCard />
 
       {ordered.length > 0 ? (
         // One row: category is the filter people reach for, so it gets the

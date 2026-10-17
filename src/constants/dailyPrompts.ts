@@ -1,7 +1,7 @@
 /**
  * The daily journaling question (task 57, option A — Standa, 2026-10-17).
  *
- * One a day, the same for everyone, shown on the map's "Today's question" card. Meant for paper
+ * One a day, the same for everyone, at the top of the Memories tab (DailyQuestionCard). Meant for paper
  * and pen — the card recommends it — but it can also be written in the app, where it is saved as a
  * memory (some people journal on the tram).
  *
