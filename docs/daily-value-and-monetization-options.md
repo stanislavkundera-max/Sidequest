@@ -1,7 +1,7 @@
 # #57 and #58 — options for Standa to decide
 
 Prepared 2026-10-17 from the mentor session ([raw notes](feedback/mentor-2026-10-17-raw-notes.md))
-and tasklist #57 / #58. Nothing here is decided or built. Each option: what the person sees, how it
+and tasklist #57 / #58. **Decided 2026-10-17 (Standa): #57 → A + E (E waits on a location, #54a); #58 → C to start.** The rest is kept below for later. Each option: what the person sees, how it
 sits with the app's rules, what it costs. A recommendation closes each half.
 
 The rules every option is checked against (AGENTS.md and the mentor's settled positions):
