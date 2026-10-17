@@ -231,8 +231,9 @@ export function AllQuestsList({ initialCategoryId, preferences, actions }: Props
 
         {categoryQuests.length === 0 ? (
           <Text style={styles.emptyText}>
-            You have taken on everything here for now. Finish one, or come back
-            when these come round again.
+            {likedHere.length > 0
+              ? 'Nothing else is open here right now. Start one you liked, or finish one you have going.'
+              : 'You have taken on everything here for now. Finish one, or come back when these come round again.'}
           </Text>
         ) : null}
 

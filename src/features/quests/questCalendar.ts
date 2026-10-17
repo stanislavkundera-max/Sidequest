@@ -87,6 +87,16 @@ export async function openQuestCalendarEditor(params: {
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 
+/** Whether the phone would still show its calendar prompt — i.e. access is neither given nor refused for good. */
+export async function calendarAccessNeedsAsking(): Promise<boolean> {
+  try {
+    const existing = await Calendar.getCalendarPermissionsAsync();
+    return existing.status !== 'granted' && existing.canAskAgain;
+  } catch {
+    return false;
+  }
+}
+
 /**
  * Asks once for calendar access, which reading the saved day back needs (Android). Opening the
  * editor itself needs none. Asked right before the calendar opens, where the step's note has just

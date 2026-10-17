@@ -110,6 +110,21 @@ async function schedule(data: QuestNotificationData): Promise<void> {
 
 /** Whether quest-day reminders are on ("Timers and quest days"), for copy that promises one. */
 /**
+ * Whether the app may notify, without asking. `ask`: the phone will still show its prompt;
+ * `blocked`: refused for good — only the phone's settings can change it (task 53, follow-up).
+ */
+export async function notificationAccessState(): Promise<'granted' | 'ask' | 'blocked' | 'unsupported'> {
+  if (!supported) return 'unsupported';
+  try {
+    const current = await Notifications.getPermissionsAsync();
+    if (current.granted) return 'granted';
+    return current.canAskAgain ? 'ask' : 'blocked';
+  } catch {
+    return 'unsupported';
+  }
+}
+
+/**
  * Asks for notification access now, where the quest-day reminder is being set up, so the reminder
  * scheduled later — when the app opens and reads the calendar back — never prompts out of nowhere.
  */

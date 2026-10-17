@@ -1,7 +1,15 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
+import {
+  ActivityIndicator,
+  AppState,
+  Linking,
+  Pressable,
+  StyleSheet,
+  Text,
+  View,
+} from 'react-native';
 
 import { MIN_TOUCH_TARGET } from '@/constants/touchTargets';
 import { Theme } from '@/constants/Theme';
@@ -21,8 +29,10 @@ import {
   type NotificationIntensity,
 } from '@/src/repositories/profilesRepository';
 import {
+  askNotificationAccess,
   cacheNotificationIntensity,
   cancelQuestDayNotifications,
+  notificationAccessState,
 } from '@/src/features/notifications/questNotifications';
 import { cancelWeeklyNudges } from '@/src/features/notifications/weeklyNudge';
 import { useSessionStore } from '@/stores/session';
@@ -52,6 +62,38 @@ export function AccountCard() {
   const [notificationIntensity, setNotificationIntensity] =
     useState<NotificationIntensity | null>(null);
   const [notificationBusy, setNotificationBusy] = useState(false);
+  // Whether the phone lets the app notify at all. Anyone onboarded before the weekly nudge
+  // (2026-10-15) was never asked unless a timer or calendar step asked them — "Everything" would
+  // then quietly send nothing (code review follow-up, 2026-10-17). Re-read when the app comes back,
+  // since the fix for "blocked" is in the phone's settings.
+  const [notificationAccess, setNotificationAccess] = useState<
+    'granted' | 'ask' | 'blocked' | 'unsupported'
+  >('unsupported');
+  useEffect(() => {
+    let alive = true;
+    const read = () =>
+      void notificationAccessState().then((state) => {
+        if (alive) setNotificationAccess(state);
+      });
+    read();
+    const sub = AppState.addEventListener('change', (next) => {
+      if (next === 'active') read();
+    });
+    return () => {
+      alive = false;
+      sub.remove();
+    };
+  }, []);
+
+  async function allowNotifications() {
+    if (notificationAccess === 'blocked') {
+      void Linking.openSettings();
+      return;
+    }
+    await askNotificationAccess();
+    setNotificationAccess(await notificationAccessState());
+  }
+
   // Settings start folded away: they sat at the top of Progress, above everything you have done,
   // and got in the way (Standa, round 2c, task 51).
   const [settingsOpen, setSettingsOpen] = useState(false);
@@ -337,6 +379,28 @@ export function AccountCard() {
                   ? 'Only when a step timer ends.'
                   : "When a step timer ends, the day before a quest you planned, and an idea for a quest if you haven't opened the app for a week."}
               </Text>
+              {notificationAccess === 'ask' || notificationAccess === 'blocked' ? (
+                <View style={styles.allowBlock}>
+                  <Text style={styles.allowText}>
+                    {notificationAccess === 'blocked'
+                      ? 'Notifications are turned off for Side Quest Life on this phone, so none of these arrive.'
+                      : 'Your phone has not allowed notifications yet, so none of these arrive.'}
+                  </Text>
+                  <Pressable
+                    accessibilityRole="button"
+                    accessibilityLabel={
+                      notificationAccess === 'blocked'
+                        ? 'Open phone settings to allow notifications'
+                        : 'Allow notifications'
+                    }
+                    onPress={() => void allowNotifications()}
+                    style={({ pressed }) => [styles.allowBtn, pressed && styles.pressed]}>
+                    <Text style={styles.allowBtnText}>
+                      {notificationAccess === 'blocked' ? 'Open phone settings' : 'Allow notifications'}
+                    </Text>
+                  </Pressable>
+                </View>
+              ) : null}
             </View>
           ) : null}
 
@@ -502,6 +566,18 @@ const styles = StyleSheet.create({
     backgroundColor: Theme.accentSoft,
   },
   notificationPillDisabled: { opacity: 0.6 },
+  allowBlock: { gap: 8 },
+  allowText: { fontSize: 13, fontFamily: 'Inter_400Regular', lineHeight: 18, color: Theme.text },
+  allowBtn: {
+    alignSelf: 'flex-start',
+    justifyContent: 'center',
+    minHeight: MIN_TOUCH_TARGET,
+    borderRadius: 999,
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    backgroundColor: Theme.accent,
+  },
+  allowBtnText: { fontSize: 13, fontFamily: 'Inter_700Bold', fontWeight: '700', color: '#ffffff' },
   notificationHint: {
     fontSize: 12,
     fontFamily: 'Inter_400Regular',
