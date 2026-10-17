@@ -735,7 +735,7 @@ it ships via OTA, SQL, the web deploy, or is not code at all.
 | 18 | ~~Upscaled map art~~ — **removed 2026-10-15** (Standa: the map art is fine as it is) | — |
 | 19 | ✅ Relax cabin no longer hidden behind its bubble (Standa, 2026-09-27) | — |
 | 20 | ~~Progress "trophy shelf" (trophy, medals #1–#3) — Standa's design call~~ — **merged into #26** (redesign), 2026-10-15 | — |
-| 21 | R2-34 optional stretch as a tip — parked until the test ends | No — SQL |
+| 21 | ✅ **Written 2026-10-17 (Standa un-parked it)** — R2-34, an optional stretch as a step tip, on the step where the quest is done, in one pattern: "Want more? <something to do>, <condition where it matters>. <The quest> already counts." Not tracked, not counted, nothing unlocks (no levels). Eleven quests: swim (q-m-09, Standa's skinny-dip example, worded "where it is allowed"), sunrise hike (stove "where stoves are allowed"), next train, travel alone, leave the ground, sleep out, follow water, dark skies, invite someone, sauna, read on paper. Regenerated `supabase/quests_catalogue.sql` — **Standa runs it in Supabase** (content is served from there; 11 rows change) | No — SQL |
 | 22 | R2-28 price as display logic — Standa: last | No — OTA + SQL |
 | 23 | R2-16 real city map with places | **Yes** — location permission, maps library |
 | 24 | R2-18 offline mode | **Likely yes** — native storage (SQLite) |
@@ -780,6 +780,8 @@ it ships via OTA, SQL, the web deploy, or is not code at all.
 **OTA 2026-10-15:** everything since — tasks 5, 8, 46, 48, 49, 50 (second pass), 52, 53 — published to build 11. Android update group `4f2c6ddb`, runtime `bb7b76b1…` (matches build 11), from `94d4ce3`. Not yet checked on a phone.
 
 **Code review 2026-10-15 — 🔴 needs an OTA now:** OTA `4f2c6ddb` releases 0-step pauses on every load, and treated a pause whose quest was retired from the catalogue (e.g. `q-m-04`) as untouched — deleting it with its step progress; a renamed step id did the same. Fixed in `8f58ad3` (quest must be known, the row must hold no progress, note or photo; unit tests added). ✅ Published 2026-10-15: Android update group `474b4acf`, runtime `bb7b76b1…`.
+
+**Follow-ups 2026-10-17 (code review + Standa), not yet published:** Settings shows "Allow notifications" / "Open phone settings" when the phone does not allow notifications (everyone onboarded before the weekly nudge was never asked); the calendar step says why before the two permission prompts ("A reminder the day before" — Continue / Skip the reminder) and saves the step *before* the calendar opens, undoing it if the calendar fails to open; Journey no longer says "You have taken on everything here" next to liked quests. Plus #21 above (SQL).
 
 **Phone test of everything since 2026-10-12:** [`phone-test-2026-10-15.md`](phone-test-2026-10-15.md) — not done yet.
 
