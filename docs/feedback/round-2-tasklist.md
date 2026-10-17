@@ -730,7 +730,7 @@ it ships via OTA, SQL, the web deploy, or is not code at all.
 | 12 | NEW badge on live data (R2-08) — not visible yet; every quest is still inside the 30-day "new in catalogue" window. Re-check once it ends | No |
 | 14 | Prepare the Play forms (R2-22) | No |
 | 15 | After 14 days: request production access (roadmap 4.1) | No |
-| 16 | Demo / reviewer account | No |
+| 16 | ~~Demo / reviewer account~~ — **not needed** (found 2026-10-17): `docs/play-store-roadmap.md` 2.5 settled it 2026-09-06 — the first launch signs in as a guest, so App access is "available without special access" | — |
 | 17 | ~~Make the map more interesting, so people want to touch it~~ — **removed 2026-10-15** (Standa: the bubbles move now; leave the map as it is) | — |
 | 18 | ~~Upscaled map art~~ — **removed 2026-10-15** (Standa: the map art is fine as it is) | — |
 | 19 | ✅ Relax cabin no longer hidden behind its bubble (Standa, 2026-09-27) | — |
