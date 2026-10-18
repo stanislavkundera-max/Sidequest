@@ -789,6 +789,8 @@ it ships via OTA, SQL, the web deploy, or is not code at all.
 
 **Phone test of everything since 2026-10-12:** [`phone-test-2026-10-15.md`](phone-test-2026-10-15.md) — ✅ **done quickly by Standa 2026-10-17: everything works**; sign-up and account creation by code work, e-mails arrive in the inbox.
 
+**OTA 2026-10-17 (evening):** today's question in Memories (#57A, final look) — Android update group `dfa1b188`, runtime `bb7b76b1…` (build 11).
+
 OTA caveat: with `runtimeVersion: fingerprint`, an update reaches build 11 only if nothing native
 changed. If any "No — OTA" item ends up touching native code, it needs a build.
 
