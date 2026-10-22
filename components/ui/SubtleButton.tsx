@@ -9,6 +9,7 @@ type Props = {
   icon?: keyof typeof Ionicons.glyphMap;
   /** Stretch to the card's width instead of hugging the label. */
   block?: boolean;
+  disabled?: boolean;
   accessibilityLabel?: string;
 };
 
@@ -18,13 +19,15 @@ type Props = {
  * broke the card (Standa, 2026-10-22). Ink measures 8.3:1 on the cream and 4.9:1
  * at the card's peach end.
  */
-export function SubtleButton({ label, onPress, icon, block = false, accessibilityLabel }: Props) {
+export function SubtleButton({ label, onPress, icon, block = false, disabled = false, accessibilityLabel }: Props) {
   return (
     <Pressable
       onPress={onPress}
+      disabled={disabled}
       accessibilityRole="button"
       accessibilityLabel={accessibilityLabel ?? label}
-      style={({ pressed }) => [styles.button, block && styles.block, pressed && styles.pressed]}>
+      accessibilityState={{ disabled }}
+      style={({ pressed }) => [styles.button, block && styles.block, pressed && !disabled && styles.pressed, disabled && styles.disabled]}>
       {icon ? <Ionicons name={icon} size={16} color={Dawn.subtleText} /> : null}
       <Text style={styles.text}>{label}</Text>
     </Pressable>
@@ -48,4 +51,5 @@ const styles = StyleSheet.create({
   block: { alignSelf: 'stretch', minHeight: 46 },
   text: { color: Dawn.subtleText, fontSize: 14, fontFamily: 'Inter_700Bold', fontWeight: '700' },
   pressed: { opacity: 0.75 },
+  disabled: { opacity: 0.5 },
 });

@@ -7,7 +7,7 @@ import { Theme } from '@/constants/Theme';
  * Shared “hub discover” chrome for Journey and Progress (chips, timeframe strip, quest rows).
  */
 export const journeyHubStyles = StyleSheet.create({
-  root: { width: '100%', overflow: 'hidden', backgroundColor: Theme.bg },
+  root: { width: '100%', overflow: 'hidden' },
   sectionHead: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -33,7 +33,7 @@ export const journeyHubStyles = StyleSheet.create({
   chipsRowFlush: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingLeft: 16,
+    paddingLeft: 20,
     paddingRight: 16,
     paddingBottom: 12,
   },
@@ -63,16 +63,16 @@ export const journeyHubStyles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 4,
-    minHeight: MIN_TOUCH_TARGET,
-    borderWidth: 1,
-    borderColor: Theme.border,
+    gap: 6,
+    minHeight: 38,
+    borderWidth: 1.5,
+    borderColor: 'rgba(243, 242, 236, 0.55)',
     borderRadius: 999,
     paddingVertical: 6,
-    paddingHorizontal: 8,
-    backgroundColor: Theme.surface,
+    paddingHorizontal: 14,
+    backgroundColor: 'rgba(243, 242, 236, 0.08)',
   },
-  chipText: { fontSize: 12, fontFamily: 'Inter_700Bold', fontWeight: '700', color: Theme.text },
+  chipText: { fontSize: 14, fontFamily: 'Inter_700Bold', fontWeight: '700', color: Theme.text },
   discoverBlock: { width: '100%', paddingBottom: 8 },
   heroCard: {
     marginHorizontal: 16,
@@ -255,7 +255,7 @@ export const journeyHubStyles = StyleSheet.create({
     paddingVertical: 6,
     paddingHorizontal: 14,
   },
-  btnSubtleSolidText: { color: '#fff', fontSize: 12, fontFamily: 'Inter_600SemiBold', fontWeight: '600' },
+  btnSubtleSolidText: { color: Theme.onAccent, fontSize: 12, fontFamily: 'Inter_600SemiBold', fontWeight: '600' },
   btnSubtleLight: {
     borderRadius: 999,
     backgroundColor: Theme.surface,

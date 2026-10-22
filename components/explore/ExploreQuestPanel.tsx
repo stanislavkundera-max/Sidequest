@@ -1,15 +1,14 @@
 import { useRouter } from 'expo-router';
 import { useMemo } from 'react';
-import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { ActivityIndicator, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import { journeyHubStyles as styles } from '@/components/journey/journeyHubStyles';
 import { CatalogLoadFailed, useCatalogLoadFailed } from '@/components/quests/CatalogLoadFailed';
-import { HubDiscoverUserQuestRow } from '@/components/quests/HubDiscoverUserQuestRow';
+import { InMotionCard } from '@/components/explore/InMotionCard';
 import { PathFullModal } from '@/components/quests/PathFullModal';
 import { useQuestActions } from '@/components/quests/useQuestActions';
-import { Theme } from '@/constants/Theme';
-import { categoryAccentForCategoryId } from '@/lib/categoryAccent';
+import { SecondaryButton } from '@/components/ui/SecondaryButton';
+import { Dawn, Theme } from '@/constants/Theme';
 import { EXPLORE_COPY } from '@/src/constants/exploreMapMarkers';
 import type { OnboardingPreferences } from '@/src/features/onboarding/types';
 import { QUEST_COPY } from '@/src/features/quests/questCopy';
@@ -91,40 +90,39 @@ export function ExploreQuestPanel({ userId, categoryId }: Props) {
                     q && stepTotal > 0
                       ? getNextActionableStepLabel(uq, q)
                       : uq.snapshotShort?.trim() || q?.shortDescription || 'Continue when ready';
-                  const progress = stepTotal > 0 ? `${stepDone}/${stepTotal} steps` : 'In motion';
                   return (
-                    <HubDiscoverUserQuestRow
+                    <InMotionCard
                       key={uq.id}
-                      accentColor={categoryAccentForCategoryId(cid)}
-                      categoryMeta={`${paused ? 'Paused' : categoryLabel(cid)} · ${progress}`}
+                      categoryId={cid}
+                      categoryName={categoryLabel(cid)}
                       title={title}
-                      subtitle={nextLabel}
-                      onRowPress={() =>
+                      stepDone={stepDone}
+                      stepTotal={stepTotal}
+                      nextLabel={nextLabel}
+                      paused={paused}
+                      actionLabel={paused ? QUEST_COPY.resumeQuest : QUEST_COPY.continueQuest}
+                      onPress={() =>
                         paused ? router.push(`/quest/${uq.questId}` as never) : actions.onContinue(uq)
                       }
-                      primaryAction={{
-                        label: paused ? QUEST_COPY.resumeQuest : QUEST_COPY.continueQuest,
-                        onPress: () =>
-                          paused ? void actions.onStartNow(uq.questId) : actions.onContinue(uq),
-                        disabled: actions.primaryBusy,
-                      }}
+                      onAction={() =>
+                        paused ? void actions.onStartNow(uq.questId) : actions.onContinue(uq)
+                      }
+                      disabled={actions.primaryBusy}
                     />
                   );
                 })}
               </View>
             )}
 
-            <Pressable
-              accessibilityRole="button"
-              accessibilityLabel={`Find ${categoryLabel(categoryId)} quests in Journey`}
-              onPress={openJourney}
-              style={({ pressed }) => [panelStyles.discoverMore, pressed && panelStyles.pressed]}>
-              <Ionicons name="map-outline" size={16} color={Theme.accent} />
-              <Text style={panelStyles.discoverMoreText}>
-                {inMotion.length === 0 ? EXPLORE_COPY.panelFindFirst : EXPLORE_COPY.panelFindMore}
-              </Text>
-              <Ionicons name="chevron-forward" size={14} color={Theme.accent} />
-            </Pressable>
+            <View style={panelStyles.discoverMore}>
+              <SecondaryButton
+                icon="map-outline"
+                chevron
+                label={`${inMotion.length === 0 ? EXPLORE_COPY.panelFindFirst : EXPLORE_COPY.panelFindMore} in ${categoryLabel(categoryId)}`}
+                accessibilityLabel={`Find ${categoryLabel(categoryId)} quests in Journey`}
+                onPress={openJourney}
+              />
+            </View>
           </>
         )}
       </ScrollView>
@@ -152,20 +150,14 @@ const panelStyles = StyleSheet.create({
   scroll: { flex: 1 },
   scrollContent: { paddingBottom: 24, paddingTop: 4 },
   list: { gap: 10, paddingHorizontal: 16, paddingBottom: 4 },
-  emptyCard: { minHeight: 120, marginHorizontal: 16 },
-  discoverMore: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 6,
+  emptyCard: {
+    minHeight: 120,
     marginHorizontal: 16,
-    marginTop: 12,
-    paddingVertical: 12,
-    borderRadius: 12,
+    backgroundColor: Dawn.card,
     borderWidth: 1,
-    borderColor: Theme.accent,
-    backgroundColor: Theme.accentSoft,
+    borderColor: Dawn.cardBorder,
+    borderRadius: 20,
   },
-  discoverMoreText: { fontSize: 14, fontFamily: 'Inter_700Bold', fontWeight: '700', color: Theme.accent },
+  discoverMore: { marginHorizontal: 16, marginTop: 12 },
   pressed: { opacity: 0.85 },
 });

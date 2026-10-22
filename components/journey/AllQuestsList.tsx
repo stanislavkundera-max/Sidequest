@@ -7,7 +7,7 @@ import { journeyHubStyles as hub } from '@/components/journey/journeyHubStyles';
 import { CatalogLoadFailed, useCatalogLoadFailed } from '@/components/quests/CatalogLoadFailed';
 import { CatalogQuestRow } from '@/components/quests/CatalogQuestRow';
 import type { useQuestActions } from '@/components/quests/useQuestActions';
-import { Theme } from '@/constants/Theme';
+import { Dawn, Theme } from '@/constants/Theme';
 import { categoryAccentForCategoryId } from '@/lib/categoryAccent';
 import { categoryIoniconNameForCategoryId } from '@/lib/categoryIcons';
 import type { OnboardingPreferences } from '@/src/features/onboarding/types';
@@ -161,6 +161,7 @@ export function AllQuestsList({ initialCategoryId, preferences, actions }: Props
 
   return (
     <View style={hub.root}>
+      <Text style={styles.sectionLabel}>OPEN TO YOU</Text>
       <View style={hub.chipsRowFlush}>
         <ScrollView
           horizontal
@@ -176,17 +177,20 @@ export function AllQuestsList({ initialCategoryId, preferences, actions }: Props
                 accessibilityRole="button"
                 accessibilityState={{ selected }}
                 onPress={() => setSelectedCategoryId(id)}
+                // 38 px to look, 44 px to touch.
+                hitSlop={{ top: 3, bottom: 3 }}
                 style={({ pressed }) => [
                   hub.chip,
-                  selected && { backgroundColor: accent, borderColor: accent },
+                  // Dawn: the chosen place is a cream pill, its icon in the category colour.
+                  selected && { backgroundColor: Dawn.cream, borderColor: Dawn.cream },
                   pressed && hub.pressed,
                 ]}>
                 <Ionicons
                   name={categoryIoniconNameForCategoryId(id)}
                   size={13}
-                  color={selected ? '#ffffff' : accent}
+                  color={selected ? accent : Theme.text}
                 />
-                <Text style={[hub.chipText, selected && { color: '#ffffff' }]}>
+                <Text style={[hub.chipText, selected && { color: Dawn.creamText }]}>
                   {categoryLabel(id)}
                 </Text>
               </Pressable>
@@ -265,15 +269,24 @@ const styles = StyleSheet.create({
   loadingWrap: { paddingVertical: 48, alignItems: 'center', gap: 12 },
   failedWrap: { paddingVertical: 24, paddingHorizontal: 16 },
   loadingText: { color: Theme.textMuted, fontSize: 14, fontFamily: 'Inter_400Regular' },
+  sectionLabel: {
+    fontSize: 13,
+    fontFamily: 'Inter_600SemiBold',
+    fontWeight: '600',
+    letterSpacing: 1.8,
+    color: Theme.textMuted,
+    paddingHorizontal: 20,
+    marginBottom: 12,
+  },
   countLine: {
     fontSize: 13,
     fontFamily: 'Inter_500Medium',
     fontWeight: '500',
     color: Theme.textMuted,
-    paddingHorizontal: 16,
+    paddingHorizontal: 20,
     marginBottom: 12,
   },
-  groupList: { gap: 10, paddingHorizontal: 16 },
+  groupList: { gap: 10, paddingHorizontal: 20 },
   emptyText: {
     fontSize: 14,
     fontFamily: 'Inter_400Regular',

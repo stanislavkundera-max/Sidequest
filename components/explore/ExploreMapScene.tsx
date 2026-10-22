@@ -4,7 +4,8 @@ import { Pressable, StyleSheet, Text, View, useWindowDimensions, type LayoutChan
 
 import { CategoryMapMarker } from '@/components/explore/CategoryMapMarker';
 import { ExploreMapBackground } from '@/components/explore/ExploreMapBackground';
-import { Theme } from '@/constants/Theme';
+import { gradientStyle } from '@/components/ui/DawnBackground';
+import { Dawn, Theme } from '@/constants/Theme';
 import {
   EXPLORE_COPY,
   EXPLORE_MAP_MARKERS,
@@ -14,6 +15,7 @@ import {
   imageNormToViewPixels,
   journeyBackgroundCoverLayout,
 } from '@/src/features/journey/journeyBackgroundFit';
+import { countCompletedJourneySteps } from '@/src/features/quests/questHelpers';
 import { useQuestDomainStore } from '@/src/features/quests/questStore';
 
 type Props = {
@@ -28,6 +30,8 @@ export function ExploreMapScene({
   onSelectCategory,
 }: Props) {
   const categories = useQuestDomainStore((s) => s.categories);
+  const userQuests = useQuestDomainStore((s) => s.userQuests);
+  const getQuestById = useQuestDomainStore((s) => s.getQuestById);
   const { width: windowWidth, height: windowHeight } = useWindowDimensions();
   const [measured, setMeasured] = useState({ w: 0, h: 0 });
   const [infoOpen, setInfoOpen] = useState(false);
@@ -56,6 +60,25 @@ export function ExploreMapScene({
     );
   }, [size.w, size.h]);
 
+  // How far the quest in motion in each place has got — the marker draws it as an arc. With two
+  // going in one place the one started first shows; paused quests don't count (they are not
+  // in motion, task 46).
+  const inMotionProgress = useMemo(() => {
+    const out = new Map<string, number>();
+    const active = userQuests
+      .filter((uq) => uq.status === 'active')
+      .sort((a, b) => a.startedAt.localeCompare(b.startedAt));
+    for (const uq of active) {
+      const q = getQuestById(uq.questId);
+      const cid = uq.snapshotCategoryId || q?.categoryId;
+      if (!cid || out.has(cid)) continue;
+      const total = q?.actionSteps.length ?? 0;
+      // A quest just begun still shows a sliver, so the arc never reads as empty.
+      out.set(cid, total > 0 ? Math.max(0.12, countCompletedJourneySteps(uq, q!) / total) : 0.12);
+    }
+    return out;
+  }, [userQuests, getQuestById]);
+
   const categoryName = useCallback(
     (categoryId: string) =>
       categories.find((c) => c.id === categoryId)?.name ?? categoryId,
@@ -65,6 +88,9 @@ export function ExploreMapScene({
   return (
     <View style={styles.root} onLayout={onMapLayout}>
       <ExploreMapBackground />
+      {/* Dawn: the sunrise sky tints the top of the painting, the warm ground the bottom. */}
+      <View style={[styles.skyTint, gradientStyle(SKY_TINT)]} pointerEvents="none" />
+      <View style={[styles.groundTint, gradientStyle(GROUND_TINT)]} pointerEvents="none" />
       {layout
         ? EXPLORE_MAP_MARKERS.map((marker) => {
             const { x, y } = imageNormToViewPixels(size.w, size.h, marker.u, marker.v, layout);
@@ -79,6 +105,7 @@ export function ExploreMapScene({
                 top={y}
                 accessibilityHint={marker.accessibilityHint}
                 bounds={size}
+                inMotionProgress={inMotionProgress.get(marker.categoryId) ?? null}
                 onPress={onSelectCategory}
               />
             );
@@ -93,8 +120,8 @@ export function ExploreMapScene({
           style={[styles.infoButton, infoOpen && styles.infoButtonOpen]}>
           <Ionicons
             name={infoOpen ? 'close' : 'information'}
-            size={16}
-            color={infoOpen ? Theme.text : 'rgba(255, 255, 255, 0.9)'}
+            size={18}
+            color={infoOpen ? Dawn.creamText : Theme.text}
           />
         </Pressable>
         {infoOpen ? (
@@ -108,7 +135,12 @@ export function ExploreMapScene({
   );
 }
 
+const SKY_TINT = 'linear-gradient(180deg, rgba(71, 83, 107, 0.62) 0%, rgba(127, 122, 150, 0.25) 55%, rgba(127, 122, 150, 0) 100%)';
+const GROUND_TINT = 'radial-gradient(80% 90% at 100% 100%, rgba(240, 150, 120, 0.24) 0%, rgba(240, 150, 120, 0) 70%), linear-gradient(0deg, rgba(69, 62, 45, 0.7) 0%, rgba(69, 62, 45, 0.3) 45%, rgba(69, 62, 45, 0) 100%)';
+
 const styles = StyleSheet.create({
+  skyTint: { position: 'absolute', top: 0, left: 0, right: 0, height: 130 },
+  groundTint: { position: 'absolute', left: 0, right: 0, bottom: 0, height: 300 },
   root: {
     ...StyleSheet.absoluteFillObject,
     overflow: 'hidden',
@@ -124,18 +156,18 @@ const styles = StyleSheet.create({
     zIndex: 2,
   },
   infoButton: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: 'rgba(16, 24, 18, 0.35)',
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: 'rgba(255, 255, 255, 0.35)',
+    backgroundColor: 'rgba(30, 28, 18, 0.88)',
+    borderWidth: 1,
+    borderColor: 'rgba(243, 242, 236, 0.5)',
   },
   infoButtonOpen: {
-    backgroundColor: 'rgba(252, 251, 248, 0.95)',
-    borderColor: Theme.border,
+    backgroundColor: Dawn.cream,
+    borderColor: Dawn.cream,
   },
   infoCard: {
     marginTop: 8,
@@ -143,9 +175,7 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     paddingHorizontal: 14,
     borderRadius: 14,
-    backgroundColor: 'rgba(252, 251, 248, 0.95)',
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: Theme.border,
+    backgroundColor: Dawn.cream,
     shadowColor: '#000',
     shadowOpacity: 0.12,
     shadowRadius: 8,
@@ -156,13 +186,13 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontFamily: 'Inter_600SemiBold',
     fontWeight: '600',
-    color: Theme.text,
+    color: Dawn.creamText,
     marginBottom: 2,
   },
   subtitle: {
     fontSize: 13,
     fontFamily: 'Inter_400Regular',
     lineHeight: 18,
-    color: Theme.textMuted,
+    color: Dawn.creamMuted,
   },
 });
