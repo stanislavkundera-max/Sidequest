@@ -1,9 +1,9 @@
 import React from 'react';
-import FontAwesome from '@expo/vector-icons/FontAwesome';
 import { Redirect, router, Tabs } from 'expo-router';
 import { useEffect } from 'react';
-import { Text, View } from 'react-native';
+import { View } from 'react-native';
 
+import { DawnTabBar } from '@/components/ui/DawnTabBar';
 import { LoadingState } from '@/components/ui/LoadingState';
 import { Theme } from '@/constants/Theme';
 import { useClientOnlyValue } from '@/components/useClientOnlyValue';
@@ -11,13 +11,6 @@ import { useMemoryStore } from '@/src/features/memories/memoryStore';
 import { useQuestDomainStore } from '@/src/features/quests/questStore';
 import { runSupabasePilotHealthCheck } from '@/src/lib/supabaseHealth';
 import { useSessionStore } from '@/stores/session';
-
-function TabBarIcon(props: {
-  name: React.ComponentProps<typeof FontAwesome>['name'];
-  color: string;
-}) {
-  return <FontAwesome size={24} style={{ marginBottom: -2 }} {...props} />;
-}
 
 export default function TabLayout() {
   const user = useSessionStore((s) => s.user);
@@ -50,36 +43,10 @@ export default function TabLayout() {
   return (
     <Tabs
       initialRouteName="explore"
+      // The Dawn floating pill (redesign, 2026-10-22): icons, labels and the active state live in
+      // DawnTabBar, so the tabBar* options that styled the old full-width bar are gone.
+      tabBar={(props) => <DawnTabBar {...props} />}
       screenOptions={{
-        tabBarActiveTintColor: Theme.accent,
-        // A lighter neutral used to sit here so the active tab read as clearly
-        // "changed", but at 2.17:1 the inactive labels failed contrast. The
-        // active state is now carried by weight as well as colour (see
-        // `tabBarLabel` below), which is a stronger cue anyway — colour alone
-        // is not something every user can see.
-        tabBarInactiveTintColor: Theme.textMuted,
-        tabBarLabel: ({ focused, color, children }) => (
-          // Inter like everything else — this rendered in the system font, the
-          // last text in the app outside the one family (R2-20). Weight follows
-          // the loaded cut; Android won't synthesise an 800 that doesn't exist.
-          <Text
-            style={{
-              fontSize: 10,
-              fontFamily: focused ? 'Inter_700Bold' : 'Inter_500Medium',
-              fontWeight: focused ? '700' : '500',
-              color,
-            }}>
-            {children}
-          </Text>
-        ),
-        tabBarStyle: {
-          backgroundColor: Theme.surface,
-          borderTopWidth: 0,
-          borderTopColor: 'transparent',
-          elevation: 0,
-          shadowOpacity: 0,
-          shadowOffset: { width: 0, height: 0 },
-        },
         headerStyle: { backgroundColor: Theme.bg },
         headerTintColor: Theme.text,
         headerShadowVisible: false,
@@ -90,9 +57,6 @@ export default function TabLayout() {
         options={{
           title: 'Explore',
           headerShown: false,
-          tabBarIcon: ({ color }) => (
-            <TabBarIcon name="compass" color={color} />
-          ),
         }}
       />
       <Tabs.Screen
@@ -100,9 +64,6 @@ export default function TabLayout() {
         options={{
           title: 'Journey',
           headerShown: false,
-          tabBarIcon: ({ color }) => (
-            <TabBarIcon name="map-o" color={color} />
-          ),
         }}
       />
       <Tabs.Screen
@@ -119,9 +80,6 @@ export default function TabLayout() {
           // Every tab screen renders its own title; leaving the navigation
           // header on showed "Memories" twice.
           headerShown: false,
-          tabBarIcon: ({ color }) => (
-            <TabBarIcon name="book" color={color} />
-          ),
         }}
       />
       <Tabs.Screen
@@ -129,9 +87,6 @@ export default function TabLayout() {
         options={{
           title: 'Progress',
           headerShown: false,
-          tabBarIcon: ({ color }) => (
-            <TabBarIcon name="trophy" color={color} />
-          ),
         }}
         listeners={{
           tabPress: () => {

@@ -103,7 +103,7 @@ const styles = StyleSheet.create({
   },
   buttonPrimary: { backgroundColor: Theme.accent },
   buttonSecondary: { borderWidth: 1, borderColor: Theme.border, backgroundColor: Theme.surface },
-  buttonPrimaryText: { color: '#fff', fontSize: 15, fontFamily: 'Inter_600SemiBold', fontWeight: '600' },
+  buttonPrimaryText: { color: Theme.onAccent, fontSize: 15, fontFamily: 'Inter_600SemiBold', fontWeight: '600' },
   buttonSecondaryText: {
     color: Theme.text,
     fontSize: 15,
