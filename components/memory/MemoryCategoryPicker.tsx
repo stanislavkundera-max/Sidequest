@@ -2,7 +2,6 @@ import { StyleSheet, View } from 'react-native';
 
 import { Chip } from '@/components/ui/Chip';
 import { categoryAccentForCategoryId } from '@/lib/categoryAccent';
-import { categoryIoniconNameForCategoryId } from '@/lib/categoryIcons';
 import { useQuestDomainStore } from '@/src/features/quests/questStore';
 
 type Props = {
@@ -30,8 +29,7 @@ export function MemoryCategoryPicker({ value, onChange }: Props) {
           <Chip
             key={c.id}
             label={c.name}
-            icon={categoryIoniconNameForCategoryId(c.id)}
-            accent={categoryAccentForCategoryId(c.id)}
+            dot={categoryAccentForCategoryId(c.id)}
             selected={selected}
             onPress={() => onChange(selected ? null : c.id)}
           />

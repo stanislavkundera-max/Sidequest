@@ -1,5 +1,5 @@
 import { Ionicons } from '@expo/vector-icons';
-import { Pressable, StyleSheet, Text } from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { Dawn, Theme } from '@/constants/Theme';
 import { MIN_TOUCH_TARGET } from '@/constants/touchTargets';
@@ -11,6 +11,9 @@ type Props = {
   /** Tints the selected state — category chips use their category colour. */
   accent?: string;
   icon?: keyof typeof Ionicons.glyphMap;
+  /** A small dot in this colour before the label, with a cream rim — how Dawn marks a category
+   * in a filter (Memories, screen 30). Use instead of `icon`. */
+  dot?: string;
   /** e.g. `chevron-down` on a chip that opens a menu. */
   trailingIcon?: keyof typeof Ionicons.glyphMap;
   accessibilityLabel?: string;
@@ -34,6 +37,7 @@ export function Chip({
   onPress,
   accent = Theme.accent,
   icon,
+  dot,
   trailingIcon,
   accessibilityLabel,
 }: Props) {
@@ -54,6 +58,7 @@ export function Chip({
         selected && styles.selected,
         pressed && styles.pressed,
       ]}>
+      {dot ? <View style={[styles.dot, { backgroundColor: dot }]} /> : null}
       {icon ? <Ionicons name={icon} size={13} color={iconColor} /> : null}
       <Text style={[styles.text, { color }]} numberOfLines={1}>
         {label}
@@ -77,6 +82,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(243, 242, 236, 0.08)',
   },
   selected: { backgroundColor: Dawn.cream, borderColor: Dawn.cream },
+  dot: { width: 9, height: 9, borderRadius: 5, borderWidth: 1.5, borderColor: 'rgba(246, 234, 214, 0.8)' },
   text: {
     fontSize: 13,
     fontFamily: 'Inter_600SemiBold',

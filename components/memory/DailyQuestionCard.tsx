@@ -4,7 +4,7 @@ import { useRouter } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
 import { AppState, Image, Pressable, StyleSheet, Text, View } from 'react-native';
 
-import { Theme } from '@/constants/Theme';
+import { Dawn, Theme } from '@/constants/Theme';
 import { dailyPromptFor } from '@/src/constants/dailyPrompts';
 import { trackEvent } from '@/src/lib/analytics';
 
@@ -149,7 +149,7 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: Theme.accentWarmText,
   },
-  day: { flexShrink: 1, fontSize: 12, fontFamily: 'Inter_600SemiBold', fontWeight: '600', color: Theme.text },
+  day: { flexShrink: 1, fontSize: 12, fontFamily: 'Inter_600SemiBold', fontWeight: '600', color: Dawn.creamText },
   question: {
     fontSize: 19,
     lineHeight: 26,
@@ -158,8 +158,9 @@ const styles = StyleSheet.create({
     color: FOREST,
   },
   footRow: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center' },
-  // Ink, not forest green: at 13 px the green measures 4.11:1 at worst, short of 4.5:1.
-  note: { fontSize: 13, fontFamily: 'Inter_600SemiBold', fontWeight: '600', color: Theme.text },
+  // Ink, not forest green: at 13 px the green measures 4.11:1 at worst, short of 4.5:1. The card
+  // keeps its own dark ink — Theme.text is cream on the Dawn ground and vanishes on this card.
+  note: { fontSize: 13, fontFamily: 'Inter_600SemiBold', fontWeight: '600', color: Dawn.creamText },
   link: { fontFamily: 'Inter_700Bold', fontWeight: '700', textDecorationLine: 'underline' },
   pressed: { opacity: 0.6 },
 });

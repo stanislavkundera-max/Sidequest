@@ -1,3 +1,4 @@
+import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useCallback, useMemo, useState } from 'react';
 import { useFocusEffect } from '@react-navigation/native';
@@ -13,15 +14,16 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { DailyQuestionCard } from '@/components/memory/DailyQuestionCard';
+import { CategoryTag, categoryKeyForId } from '@/components/ui/CategoryTag';
 import { Chip } from '@/components/ui/Chip';
+import { DawnBackground } from '@/components/ui/DawnBackground';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { ErrorState } from '@/components/ui/ErrorState';
 import { LoadingState } from '@/components/ui/LoadingState';
 import { OptionSheet } from '@/components/ui/OptionSheet';
 import { MIN_TOUCH_TARGET } from '@/constants/touchTargets';
-import { Theme } from '@/constants/Theme';
+import { Dawn, Theme } from '@/constants/Theme';
 import { categoryAccentForCategoryId } from '@/lib/categoryAccent';
-import { categoryIoniconNameForCategoryId } from '@/lib/categoryIcons';
 import { memoryCategoryId } from '@/src/features/memories/memoryCategory';
 import { useMemoryStore } from '@/src/features/memories/memoryStore';
 import { useQuestDomainStore } from '@/src/features/quests/questStore';
@@ -90,6 +92,32 @@ export default function MemoriesScreen() {
     });
   }, [ordered, categoryFilter, dateFilter, getQuestById]);
 
+  // The list in month groups, newest first: a heading row, then that month's memories.
+  type Row = { kind: 'month'; key: string; label: string; count: number } | { kind: 'memory'; key: string; id: string };
+  const rows = useMemo(() => {
+    const out: Row[] = [];
+    let current = '';
+    let header: Extract<Row, { kind: 'month' }> | null = null;
+    for (const m of filtered) {
+      const d = new Date(m.createdAt);
+      const key = `${d.getFullYear()}-${d.getMonth()}`;
+      if (key !== current) {
+        current = key;
+        const sameYear = d.getFullYear() === new Date().getFullYear();
+        header = {
+          kind: 'month',
+          key: `month-${key}`,
+          label: d.toLocaleDateString(undefined, sameYear ? { month: 'long' } : { month: 'long', year: 'numeric' }),
+          count: 0,
+        };
+        out.push(header);
+      }
+      if (header) header.count += 1;
+      out.push({ kind: 'memory', key: m.id, id: m.id });
+    }
+    return out;
+  }, [filtered]);
+
   if (!user) {
     return (
       <SafeAreaView style={styles.safe} edges={['top']}>
@@ -114,9 +142,12 @@ export default function MemoriesScreen() {
   }
 
   return (
-    <SafeAreaView style={styles.safe} edges={['top']}>
+    <DawnBackground>
+    <SafeAreaView style={styles.safeClear} edges={['top']}>
       <View style={styles.header}>
-        <Text style={styles.title}>Memories</Text>
+        <Text style={styles.title} accessibilityRole="header">
+          Memories
+        </Text>
         <Pressable
           onPress={() => {
             trackEvent('memory_creation_started', {
@@ -127,12 +158,10 @@ export default function MemoriesScreen() {
           accessibilityRole="button"
           accessibilityLabel="Add a new memory"
           style={({ pressed }) => [styles.addBtn, pressed && { opacity: 0.85 }]}>
-          <Text style={styles.addBtnText}>+ New</Text>
+          <Ionicons name="add" size={18} color={Theme.onAccent} />
+          <Text style={styles.addBtnText}>New</Text>
         </Pressable>
       </View>
-      <Text style={styles.sub}>
-        Your reflections in reverse chronological order.
-      </Text>
 
       <DailyQuestionCard />
 
@@ -161,20 +190,12 @@ export default function MemoriesScreen() {
               <Chip
                 key={c.id}
                 label={c.name}
-                icon={categoryIoniconNameForCategoryId(c.id)}
-                accent={categoryAccentForCategoryId(c.id)}
+                dot={categoryAccentForCategoryId(c.id)}
                 selected={selected}
                 onPress={() => setCategoryFilter(selected ? null : c.id)}
               />
             );
           })}
-          <Chip
-            label={dateLabel}
-            accessibilityLabel={`Time range: ${dateLabel}. Change`}
-            trailingIcon="chevron-down"
-            selected={dateFilter !== 'all'}
-            onPress={() => setDateSheetOpen(true)}
-          />
         </ScrollView>
       ) : null}
       <OptionSheet
@@ -202,16 +223,17 @@ export default function MemoriesScreen() {
       ) : null}
 
       <FlatList
-        data={filtered}
-        keyExtractor={(m) => m.id}
+        data={rows}
+        keyExtractor={(r) => r.key}
         contentContainerStyle={
           filtered.length === 0 ? styles.emptyContainer : styles.list
         }
         ListEmptyComponent={
           ordered.length === 0 ? (
             <EmptyState
+              art={<PathToCairn />}
               title="No memories yet"
-              message="Complete a quest or add a short reflection to begin your timeline."
+              message="Finish a quest or write a few lines about a good day — this becomes your timeline."
               actionLabel="Pick a quest"
               onAction={() => router.push('/(tabs)/journey' as never)}
             />
@@ -227,11 +249,52 @@ export default function MemoriesScreen() {
             />
           )
         }
-        renderItem={({ item }) => (
-          <MemoryRow id={item.id} onPress={(id) => router.push(`/memory/${id}`)} />
-        )}
+        renderItem={({ item, index }) =>
+          item.kind === 'month' ? (
+            <View style={styles.monthRow}>
+              <Text style={styles.monthLabel}>
+                {`${item.label} · ${item.count} ${item.count === 1 ? 'memory' : 'memories'}`.toUpperCase()}
+              </Text>
+              {/* The time range sits with the first heading, where it reads as "of these". */}
+              {index === 0 ? (
+                <Chip
+                  label={dateLabel}
+                  accessibilityLabel={`Time range: ${dateLabel}. Change`}
+                  trailingIcon="chevron-down"
+                  selected={dateFilter !== 'all'}
+                  onPress={() => setDateSheetOpen(true)}
+                />
+              ) : null}
+            </View>
+          ) : (
+            <MemoryRow id={item.id} onPress={(id) => router.push(`/memory/${id}`)} />
+          )
+        }
       />
     </SafeAreaView>
+    </DawnBackground>
+  );
+}
+
+/** A dotted path from a first step to the cairn: where a timeline starts (screen 33). */
+function PathToCairn() {
+  return (
+    <View style={styles.pathArt} accessible={false}>
+      <View style={styles.pathStart} />
+      {[0, 1, 2, 3, 4, 5].map((i) => (
+        <View key={i} style={[styles.pathDash, { transform: [{ translateY: Math.sin(i / 1.6) * 6 }] }]} />
+      ))}
+      <View style={styles.pathRing} />
+      {[0, 1, 2, 3].map((i) => (
+        <View key={`b${i}`} style={[styles.pathDash, { transform: [{ translateY: Math.sin((i + 6) / 1.6) * 6 }] }]} />
+      ))}
+      <View style={styles.pathCairn}>
+        <View style={[styles.stone, { width: 7, height: 5 }]} />
+        <View style={[styles.stone, { width: 11, height: 6 }]} />
+        <View style={[styles.stone, { width: 15, height: 6 }]} />
+        <View style={[styles.stone, { width: 19, height: 7 }]} />
+      </View>
+    </View>
   );
 }
 
@@ -252,68 +315,84 @@ function MemoryRow({
   const ownCategory =
     !quest && entry.categoryId ? getCategoryById(entry.categoryId) : undefined;
 
+  const categoryId = quest?.categoryId ?? ownCategory?.id;
+  const when = new Date(entry.createdAt);
+  const whenLabel = `${when.toLocaleDateString(undefined, { weekday: 'short', day: 'numeric', month: 'short' })} · ${when.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' })}`;
+  const ownKey = ownCategory ? categoryKeyForId(ownCategory.id) : null;
+
+  // Dawn (screen 30): with a photo, the photo leads and the date sits on it; without one, a
+  // stripe in the category colour down the left edge and the date top right.
   return (
     <Pressable
       onPress={() => onPress(entry.id)}
       accessibilityRole="button"
-      accessibilityLabel={`Memory: ${entry.title}`}
-      style={({ pressed }) => [styles.card, pressed && styles.cardPressed]}>
-      <Text style={styles.cardDate}>
-        {new Date(entry.createdAt).toLocaleString(undefined, {
-          dateStyle: 'medium',
-          timeStyle: 'short',
-        })}
-      </Text>
-      {entry.title ? (
-        <Text style={styles.cardTitle} numberOfLines={2}>
-          {entry.title}
-        </Text>
-      ) : null}
-      {quest ? <Text style={styles.cardMeta}>{quest.title}</Text> : null}
-      {ownCategory ? (
-        <Text style={[styles.cardMeta, { color: categoryAccentForCategoryId(ownCategory.id) }]}>
-          {ownCategory.name}
-        </Text>
-      ) : null}
+      accessibilityLabel={`Memory: ${entry.title}, ${whenLabel}`}
+      style={({ pressed }) => [
+        styles.card,
+        !entry.photoUri && categoryId ? { borderLeftWidth: 3, borderLeftColor: categoryAccentForCategoryId(categoryId) } : null,
+        pressed && styles.cardPressed,
+      ]}>
       {entry.photoUri ? (
-        <Image source={{ uri: entry.photoUri }} style={styles.cardImage} />
-      ) : (
-        <Text style={styles.noPhotoText}>No photo</Text>
-      )}
-      <Text style={styles.cardBody} numberOfLines={3}>
-        {entry.body}
-      </Text>
+        <View>
+          <Image source={{ uri: entry.photoUri }} style={styles.cardImage} />
+          <View style={styles.datePill}>
+            <Text style={styles.datePillText}>{whenLabel}</Text>
+          </View>
+        </View>
+      ) : null}
+      <View style={styles.cardBodyWrap}>
+        {!entry.photoUri ? (
+          <View style={styles.cardTopRow}>
+            {ownKey ? <CategoryTag category={ownKey} /> : <View />}
+            <Text style={styles.cardDate}>{whenLabel}</Text>
+          </View>
+        ) : null}
+        {quest ? (
+          <View style={styles.questLine}>
+            <View style={[styles.questDot, { backgroundColor: categoryAccentForCategoryId(quest.categoryId) }]} />
+            <Text style={styles.questText} numberOfLines={1}>
+              {quest.title}
+            </Text>
+          </View>
+        ) : null}
+        {entry.title ? (
+          <Text style={styles.cardTitle} numberOfLines={2}>
+            {entry.title}
+          </Text>
+        ) : null}
+        {entry.body ? (
+          <Text style={styles.cardBody} numberOfLines={3}>
+            {entry.body}
+          </Text>
+        ) : null}
+      </View>
     </Pressable>
   );
 }
 
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: Theme.bg },
+  safeClear: { flex: 1 },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 20,
-    paddingTop: 8,
+    paddingTop: 16,
+    paddingBottom: 14,
   },
-  title: { fontSize: 28, fontFamily: 'Inter_700Bold', fontWeight: '700', color: Theme.text },
+  title: { fontSize: 34, fontFamily: 'Inter_700Bold', fontWeight: '700', letterSpacing: -0.6, color: Theme.text },
   addBtn: {
-    justifyContent: 'center',
-    minHeight: MIN_TOUCH_TARGET,
-    backgroundColor: Theme.accent,
-    paddingHorizontal: 14,
-    paddingVertical: 8,
-    borderRadius: 10,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    minHeight: MIN_TOUCH_TARGET - 4,
+    backgroundColor: '#e0823d',
+    paddingLeft: 12,
+    paddingRight: 16,
+    borderRadius: 20,
   },
-  addBtnText: { color: '#fff', fontWeight: '600', fontSize: 15, fontFamily: 'Inter_600SemiBold' },
-  sub: {
-    paddingHorizontal: 20,
-    marginTop: 6,
-    marginBottom: 12,
-    color: Theme.textMuted,
-    fontSize: 15,
-    fontFamily: 'Inter_400Regular',
-  },
+  addBtnText: { color: Theme.onAccent, fontWeight: '700', fontSize: 15, fontFamily: 'Inter_700Bold' },
   filterScroll: { flexGrow: 0 },
   filterRow: {
     gap: 8,
@@ -321,39 +400,55 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     // Room for the chips' enlarged hit area so it isn't clipped by the scroll view.
     paddingVertical: 5,
-    marginBottom: 6,
+    marginTop: 14,
   },
-  list: { paddingHorizontal: 20, paddingBottom: 32, gap: 12 },
+  list: { paddingHorizontal: 20, paddingBottom: 32 },
   emptyContainer: {
     flexGrow: 1,
     justifyContent: 'center',
     paddingHorizontal: 28,
   },
+  monthRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingTop: 14,
+    paddingBottom: 12,
+  },
+  monthLabel: { fontSize: 13, fontFamily: 'Inter_600SemiBold', fontWeight: '600', letterSpacing: 1.6, color: Theme.textMuted },
   card: {
-    backgroundColor: Theme.surface,
-    borderRadius: 14,
-    padding: 16,
+    backgroundColor: Dawn.card,
+    borderRadius: 20,
     borderWidth: 1,
-    borderColor: Theme.border,
+    borderColor: Dawn.cardBorder,
+    overflow: 'hidden',
     marginBottom: 12,
+    boxShadow: '0 6px 16px rgba(20, 18, 10, 0.25)',
   },
   cardPressed: { opacity: 0.92 },
-  cardDate: { fontSize: 12, fontFamily: 'Inter_400Regular', color: Theme.textMuted, marginBottom: 8 },
-  cardTitle: {
-    fontSize: 16,
-    fontFamily: 'Inter_700Bold',
-    fontWeight: '700',
-    color: Theme.text,
-    marginBottom: 6,
-  },
-  cardMeta: { fontSize: 13, fontFamily: 'Inter_400Regular', color: Theme.textMuted, marginBottom: 10 },
-  cardImage: {
-    width: '100%',
-    aspectRatio: 4 / 3,
+  cardImage: { width: '100%', height: 180, backgroundColor: Theme.surface },
+  datePill: {
+    position: 'absolute',
+    top: 12,
+    left: 12,
+    backgroundColor: 'rgba(27, 25, 16, 0.78)',
     borderRadius: 10,
-    marginBottom: 12,
-    backgroundColor: Theme.border,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
   },
-  noPhotoText: { color: Theme.textMuted, fontSize: 12, fontFamily: 'Inter_400Regular', marginBottom: 10 },
-  cardBody: { fontSize: 16, fontFamily: 'Inter_400Regular', lineHeight: 24, color: Theme.text },
+  datePillText: { fontSize: 11, fontFamily: 'Inter_700Bold', fontWeight: '700', color: '#ffffff' },
+  cardBodyWrap: { paddingHorizontal: 16, paddingVertical: 14, gap: 4 },
+  cardTopRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 },
+  cardDate: { fontSize: 12, fontFamily: 'Inter_400Regular', color: Theme.textMuted },
+  questLine: { flexDirection: 'row', alignItems: 'center', gap: 7 },
+  questDot: { width: 8, height: 8, borderRadius: 4, boxShadow: '0 0 0 1.5px rgba(246, 234, 214, 0.7)' },
+  questText: { flex: 1, fontSize: 12, fontFamily: 'Inter_600SemiBold', fontWeight: '600', color: '#e6dfca' },
+  cardTitle: { fontSize: 17, lineHeight: 22, fontFamily: 'Inter_700Bold', fontWeight: '700', color: Theme.text },
+  cardBody: { fontSize: 14, fontFamily: 'Inter_400Regular', lineHeight: 21, color: '#e6dfca' },
+  pathArt: { flexDirection: 'row', alignItems: 'center', gap: 5, height: 70 },
+  pathStart: { width: 14, height: 14, borderRadius: 7, backgroundColor: '#e0823d' },
+  pathDash: { width: 7, height: 2, borderRadius: 1, backgroundColor: 'rgba(246, 234, 214, 0.45)' },
+  pathRing: { width: 12, height: 12, borderRadius: 6, borderWidth: 2, borderColor: 'rgba(246, 234, 214, 0.55)' },
+  pathCairn: { alignItems: 'center', gap: 1, marginLeft: 2, marginBottom: 18 },
+  stone: { borderRadius: 999, backgroundColor: Dawn.cairn },
 });

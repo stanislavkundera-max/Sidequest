@@ -1,6 +1,6 @@
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
-import { Theme } from '@/constants/Theme';
+import { Dawn, Theme } from '@/constants/Theme';
 
 type Props = {
   message: string;
@@ -21,26 +21,27 @@ export function ErrorState({ message, onRetry }: Props) {
   );
 }
 
+// Dawn (canvas screen 38): a quiet card with a warm-red rim — what went wrong, in plain words,
+// and a cream "Try again". The white button it had read 2:1 once the ground went dark.
 const styles = StyleSheet.create({
   card: {
     borderWidth: 1,
     borderColor: Theme.dangerBorder,
-    borderRadius: 12,
-    backgroundColor: Theme.dangerSoft,
-    padding: 14,
+    borderRadius: 20,
+    backgroundColor: Dawn.card,
+    padding: 16,
   },
-  title: { color: Theme.danger, fontWeight: '600', fontSize: 15, fontFamily: 'Inter_600SemiBold', marginBottom: 4 },
-  message: { color: Theme.danger, fontSize: 14, fontFamily: 'Inter_400Regular', lineHeight: 20 },
+  title: { color: Theme.text, fontWeight: '700', fontSize: 15, fontFamily: 'Inter_700Bold', marginBottom: 4 },
+  message: { color: Theme.textMuted, fontSize: 14, fontFamily: 'Inter_400Regular', lineHeight: 20 },
   retry: {
-    marginTop: 10,
+    marginTop: 12,
     alignSelf: 'flex-start',
-    backgroundColor: '#fff',
-    borderRadius: 10,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderWidth: 1,
-    borderColor: Theme.dangerBorder,
+    minHeight: 40,
+    justifyContent: 'center',
+    backgroundColor: Dawn.primaryFill,
+    borderRadius: 20,
+    paddingHorizontal: 16,
   },
-  retryText: { color: Theme.danger, fontWeight: '600', fontSize: 14, fontFamily: 'Inter_600SemiBold' },
+  retryText: { color: Dawn.primaryText, fontWeight: '700', fontSize: 14, fontFamily: 'Inter_700Bold' },
   pressed: { opacity: 0.9 },
 });
