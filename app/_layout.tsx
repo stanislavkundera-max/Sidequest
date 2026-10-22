@@ -209,6 +209,8 @@ function RootLayoutNav() {
             // system font — Roboto on Android — next to Inter everywhere else.
             // One family throughout (R2-20).
             headerTitleStyle: { fontFamily: 'Inter_600SemiBold', fontWeight: '600' },
+            // Dawn: the header is part of the ground, no rule under it.
+            headerShadowVisible: false,
           }}>
           <Stack.Screen name="index" options={{ headerShown: false }} />
           <Stack.Screen

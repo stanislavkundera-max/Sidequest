@@ -11,6 +11,12 @@ const NAMES: Record<CategoryKey, string> = {
   relax: 'Relax',
 };
 
+/** 'cat-nature' → 'nature'; null for an id outside the four. */
+export function categoryKeyForId(categoryId: string): CategoryKey | null {
+  const key = categoryId.replace(/^cat-/, '');
+  return key in NAMES ? (key as CategoryKey) : null;
+}
+
 type Props = {
   category: CategoryKey;
   /** `md` for a screen header, `sm` inside cards and lists. */
