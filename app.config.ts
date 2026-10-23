@@ -44,11 +44,13 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   splash: {
     image: './assets/images/splash-icon.png',
     resizeMode: 'contain',
-    // The brand green, with the all-amber cairn on it — the same mark as the
-    // app icon. It was beige with a green-stoned cairn, the logo from before
-    // 2026-09-05 (round 2, R2-07). app/index.tsx's loading gate matches this so
-    // the hand-off from native splash to JS doesn't flash.
-    backgroundColor: '#33471f',
+    // The amber cairn on the Dawn ground (the top colour of Dawn.ground in
+    // constants/Theme.ts), the redesign every screen stands on. It was the brand
+    // green until the Dawn redesign; before 2026-09-05 beige (R2-07).
+    // app/index.tsx's loading gate shows the same image on the same ground, so
+    // the hand-off from native splash to JS doesn't flash: build only with
+    // redesign-dawn merged, or the old green loading screen follows this.
+    backgroundColor: '#3b3628',
   },
   ios: {
     supportsTablet: true,
