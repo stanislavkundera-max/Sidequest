@@ -78,13 +78,14 @@ export default function Index() {
 
   if (!initialized || !authChecked || (user && onboardingDone === null)) {
     return (
-      // Loading (redesign screen 1): the app mark on the Dawn ground, the same ground every screen
-      // after it stands on. The native splash behind it is still the forest green
-      // (app.config.ts) until a build carries the new splash colour.
-      <DawnBackground>
+      // Loading (redesign screen 1): the amber cairn on the Dawn ground, exactly what the native
+      // splash shows (app.config.ts: same image, same size, the ground's top colour), so the
+      // hand-off from splash to JS doesn't jump. No glow, since the native splash can only be one
+      // flat colour. The splash colour is native: it changes with the next build (next-build).
+      <DawnBackground noGlow>
         <View style={styles.center}>
           <Image
-            source={require('@/assets/images/icon.png')}
+            source={require('@/assets/images/splash-icon.png')}
             style={styles.mark}
             resizeMode="contain"
             accessibilityIgnoresInvertColors
@@ -110,8 +111,8 @@ export default function Index() {
 }
 
 const styles = StyleSheet.create({
-  center: { flex: 1, justifyContent: 'center', alignItems: 'center', gap: 28 },
-  mark: { width: 104, height: 104, borderRadius: 26 },
+  center: { flex: 1, justifyContent: 'center', alignItems: 'center', gap: 12 },
+  mark: { width: 220, height: 220 },
   status: { alignItems: 'center', gap: 14 },
   label: { color: '#e6dfca', fontSize: 15, fontFamily: 'Inter_400Regular' },
 });
