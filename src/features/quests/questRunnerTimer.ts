@@ -51,6 +51,28 @@ export async function clearStepTimer(userQuestId: string, stepId: string): Promi
   }
 }
 
+/**
+ * Every step timer still stored — started and not yet finished, skipped or reset. A quest paused
+ * mid-timer can leave one behind, so callers should match it against what is actually going.
+ */
+export async function storedStepTimers(): Promise<
+  { userQuestId: string; stepId: string; startedAt: number }[]
+> {
+  try {
+    const keys = (await AsyncStorage.getAllKeys()).filter((k) => k.startsWith(KEY_PREFIX));
+    const pairs = await AsyncStorage.multiGet(keys);
+    return pairs.flatMap(([key, raw]) => {
+      const rest = key.slice(KEY_PREFIX.length);
+      const cut = rest.indexOf(':');
+      const startedAt = Number(raw);
+      if (cut <= 0 || !Number.isFinite(startedAt) || startedAt <= 0) return [];
+      return [{ userQuestId: rest.slice(0, cut), stepId: rest.slice(cut + 1), startedAt }];
+    });
+  } catch {
+    return [];
+  }
+}
+
 export function elapsedSeconds(startedAt: number, now: number = Date.now()): number {
   return Math.max(0, Math.floor((now - startedAt) / 1000));
 }

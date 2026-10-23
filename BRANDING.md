@@ -20,9 +20,9 @@ positioning has been reinforced more than once and is not up for casual revision
 | # | Decision | Status |
 |---|---|---|
 | 1 | Brand name | 🟢 **Confirmed `Side Quest Life`** 2026-09-05 — package `com.sidequestlife.app` is now locked in by choice |
-| 2 | Colours | 🟢 **Decided** — beige `#f3f2ec`, forest green `#33471f`, amber `#d9a441`, brand-only. Violet retired 2026-09-05 |
+| 2 | Colours | 🟢 **Decided** — beige `#f3f2ec`, forest green `#33471f`, amber `#d9a441`, brand-only. Violet retired 2026-09-05. **In the app: Dawn** since the redesign (2026-10-21, frozen 10-22): warm dark ground `#3b3628` → `#4b4331`, cream text, peach accent `#f0b27a` (§2, top) |
 | 3 | Typography | 🟢 **Revised 2026-09-21 — Inter only.** Fraunces dropped after the closed-test mentor flagged serif + sans mixing (§3) |
-| 4 | Logo | 🟢 **Done 2026-09-05: a cairn** — green ground, all stones amber. Icons and feature graphic generated |
+| 4 | Logo | 🟢 **Done 2026-09-05: a cairn** — green ground, all stones amber. Icons and feature graphic generated. **Inside the app the cairn is orange `#f0b27a`**, no badge (Dawn, 2026-10-21); the icon itself is unchanged (§4) |
 
 ---
 
@@ -67,6 +67,51 @@ needed — but a package id that contradicts the brand is a small permanent emba
 ---
 
 ## 2. Colours
+
+### ✅ 2026-10-21 — the app's own palette is Dawn
+
+The redesign (`docs/redesign-screen-inventory.md` § Frozen, canvas
+<https://claude.ai/artifact/2WmzdiXKbEWxHC9fdVzpvS>) replaced the app's beige-and-moss UI palette.
+Standa picked it from five directions on 2026-10-19 ("Ember", a dark warm olive), asked for it
+lighter, and chose **Dawn** on 2026-10-21: Ember with a sunrise. A forest-green ground built from
+`#33471f` was tried in between and dropped as "too green"; an extreme-sunrise variant was rejected
+too. Screens frozen 2026-10-22, built 2026-10-23. The values live in `constants/Theme.ts`
+(`dawnPalette` for the roles, `Dawn` for the gradients and button levels); this table is the record
+of what was chosen, not a second copy to keep in sync by hand.
+
+| Role | Value | Notes |
+|---|---|---|
+| Ground | `#3b3628` → `#413a2b` → `#4b4331`, top to bottom | With a peach glow low on the right of every screen |
+| Sky (headers, art) | `#47536b` → `#7f7a96` → `#d79a8c` → `#f2b98e` → `#f8dcaa` | The sunrise. Art only, never behind body text |
+| Text | `#f3f2ec` | The brand beige, now the ink |
+| Muted text | `#d9d1ba` | |
+| Accent | `#f0b27a` peach | Secondary buttons, the active tab, the cairn |
+| Card on the ground | `rgba(246, 234, 214, 0.16)`, hairline 0.32 | |
+| Surface | `#5b5445` | Accent and danger must not be used for small text on it |
+| Cream card | `#f6ead6` → `#eda877`, ink `#28281f` | "In motion", Today's question |
+| Categories | Nature `#215e4f` · Adventure `#8d6025` · Social `#824071` · Relax `#4264b3` | Only as chips or dots with white text and a cream rim, never as a text colour |
+
+**Contrast, measured 2026-10-23** (WCAG): text on the ground 10.7:1 at the top, 8.7:1 at the bottom;
+muted 7.9 / 6.4; accent 6.5 / 5.3. On the surface `#5b5445` accent drops to 4.1 and danger to 3.5,
+which is where the small-text rule above comes from. White on the category chips 5.5–7.6.
+
+**Buttons** — three levels and one exception, decided by Standa 2026-10-22:
+
+- **Primary:** cream fill `#f3f2ec`, dark ink `#1b1a12` (15.6:1).
+- **Secondary:** 1.5px `#f0b27a` outline, `rgba(240, 178, 122, 0.18)` fill, `#ffe2c2` text, icon in
+  a peach disc.
+- **Subtle**, inside a cream card: `rgba(163, 79, 37, 0.1)` fill, `#6b3416` ink. A button on a cream
+  card is never black.
+- Dismiss buttons (Close, Cancel, Not now) stay neutral.
+- **The only orange primary button is "Complete quest"** in the runner — the one moment the app
+  raises its voice.
+
+**What this means for the brand palette below:** it still holds for the logo, the app icon and
+marketing. Beige and amber both live on inside the app — beige as the text colour, amber
+`#d9a441` as `accentWarm`. Forest green appears only in the icon. The native splash moves from
+forest `#33471f` to the Dawn ground `#3b3628` with the amber cairn (branch `next-build`, `6f39c6e`),
+so the hand-off from splash to the first screen does not flash; it ships together with the redesign
+or not at all.
 
 ### ✅ Decided 2026-08-29 — the brand palette
 
@@ -272,12 +317,14 @@ move, and the cheapest thing to move is `social` — not `danger`, whose meaning
   re-discovered from scratch.
 - **"Dark = green" means the brand colour, not a dark theme** (Standa, 2026-08-29). Dark mode
   remains a separate, still-open project — `ThemePalette` is structured for it and the values were
-  never written (`tasks.md` #6).
+  never written (`tasks.md` #6). *Overtaken 2026-10-21: Dawn is a dark ground, and the app now has
+  only that one palette — there is no light mode left to switch from.*
 
 ### Still open
 
-- **Do the brand colours ever enter the app?** Today the answer is no, and nothing forces a change:
-  the in-app accent stays `#536534`. Worth revisiting only if the app starts feeling disconnected
+- ~~**Do the brand colours ever enter the app?**~~ *Answered by Dawn (2026-10-21): beige as the
+  text, amber as `accentWarm`; the forest ground was tried and dropped. Kept below as history.*
+  Today the answer is no, and nothing forces a change: the in-app accent stays `#536534`. Worth revisiting only if the app starts feeling disconnected
   from its own marketing — at which point the deeper green could become an in-app *heading* colour
   without touching the action colour, since headings do not carry the category meaning that caused
   the crowding.
@@ -405,6 +452,17 @@ on this — it can be replaced whenever the branding lands. Store screenshots an
 graphic are downstream of this too, and both can be swapped in the Play listing without a new app
 review.
 
+### Dawn: inside the app the cairn is orange (2026-10-21)
+
+Standa's call during the redesign: **every cairn drawn inside the app is peach-orange `#f0b27a`**
+(`Dawn.cairn` in `constants/Theme.ts`) — the Progress cairn, icons, scene illustrations, the loading
+screen — **with no badge or number on it**. It replaces the redesign's first rule ("all stones
+dark"). The logo itself does not change: the app icon, adaptive icon and Play icon stay amber on
+forest. The native splash shows the amber cairn on the Dawn ground `#3b3628` (see §2).
+
+Drawing rule, learned the hard way: draw it like the logo, **four chunky, irregular stones**. A tall,
+evenly tapering stack of seven read as a Christmas tree.
+
 ### Every icon comes out of one script
 
 `scripts/make-brand-icons.cjs` renders the cairn into all five assets — app icon, adaptive
@@ -437,3 +495,8 @@ colours, because a differently drawn favicon would be a second logo.
 | 2026-08-29 | **Type: Fraunces (headings) + Inter (body)** | Standa, after seeing the three pairings set in real copy |
 | 2026-08-29 | **Colour: brand-only palette — beige / `#33471f` / `#4a3f73`** | Standa. Settles the role question: brand surfaces, not UI |
 | 2026-08-29 | Visual comparison published | Colour candidates and type specimens, set in the palette itself: https://claude.ai/code/artifact/4718686a-8596-4fc8-9cfe-a8d9245f2222 |
+| 2026-10-21 | **In-app cairn: orange `#f0b27a`, no badge** | Standa. The logo and app icon stay amber on forest. §4 |
+| 2026-10-21 | **In-app palette: Dawn** (warm dark ground, sunrise sky, peach accent) | Standa. Chosen over Ember, forest-green ground ("too green") and an extreme sunrise. §2 |
+| 2026-10-22 | Button levels: cream primary, peach-outline secondary, subtle tint in cream cards | Only "Complete quest" is an orange primary. §2 |
+| 2026-10-22 | **Dawn frozen, screens 1–39** | Standa: "takhle bych ten design zamrazil". Changes now need his explicit OK |
+| 2026-10-23 | Dawn built on branch `redesign-dawn`; splash ground `#3b3628` on `next-build` | Both ship in the same build, or splash and loading screen disagree on every cold start |

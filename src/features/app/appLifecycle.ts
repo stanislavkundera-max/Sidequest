@@ -1,4 +1,5 @@
 import { supabase } from '@/lib/supabase';
+import { recordAppOpenDay } from '@/src/features/feedback/feedbackPrompt';
 import { useMemoryStore } from '@/src/features/memories/memoryStore';
 import {
   cacheNotificationIntensity,
@@ -30,6 +31,7 @@ const PHOTO_LINKS_REFRESH_MS = 24 * 60 * 60 * 1000;
  * scheduling by the default until someone happened to open that tab (code review 2026-09-27).
  */
 export function syncDeviceStateForUser(userId: string): void {
+  void recordAppOpenDay(userId);
   void useUnavailableQuestStore.getState().load();
   afterQuestsLoaded(userId);
   getProfile(userId)
@@ -56,8 +58,10 @@ export function resetDeviceStateForSignOut(): void {
  * - Memories loaded more than a day ago are fetched again, so photo links stay fresh.
  * - A guest who confirmed their e-mail in the browser comes back to an account that is no
  *   longer anonymous; refreshing the session is how the app finds out.
+ * - The day counts towards the feedback pop-up's "opened on three different days" (task 60).
  */
 export function onAppForeground(userId: string): void {
+  void recordAppOpenDay(userId);
   const quests = useQuestDomainStore.getState();
   if (!quests.loading && (quests.quests.length === 0 || quests.initializedForUserId !== userId)) {
     void quests.bootstrap(userId);

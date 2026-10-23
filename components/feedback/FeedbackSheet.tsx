@@ -7,11 +7,12 @@ import { gradientStyle } from '@/components/ui/DawnBackground';
 import { LEGAL_CONTACT_EMAIL } from '@/constants/legal';
 import { Dawn, Theme } from '@/constants/Theme';
 import { alertCompat } from '@/lib/alertCompat';
+import { recordFeedbackSent } from '@/src/features/feedback/feedbackPrompt';
 import { trackEvent } from '@/src/lib/analytics';
 
 type Props = {
   visible: boolean;
-  onClose: () => void;
+  onClose: (outcome: 'sent' | 'dismissed') => void;
   /** Where it was opened from, for the analytics event. */
   source: 'settings' | 'prompt';
 };
@@ -20,8 +21,9 @@ const CARD_BG = `radial-gradient(90% 60% at 100% 100%, rgba(240, 150, 120, 0.22)
 
 /**
  * "Help me make this better for you" (redesign screen 39, task 60). Opened from Settings → Send
- * feedback; the occasional prompt that opens it on its own is task 60's later half. Standa asked
- * for the benefit up front, in his own voice, so it reads as an invitation, not a nag.
+ * feedback, or now and then on its own (`FeedbackPromptHost`). Standa asked for the benefit up
+ * front, in his own voice, so it reads as an invitation, not a nag. Sending from either place
+ * stops the pop-up from asking again.
  *
  * Send hands the text to the phone's mail app, addressed to the app's inbox with the version and
  * platform added — no server needed, so it ships over the air. If no mail app opens, the address
@@ -38,14 +40,20 @@ export function FeedbackSheet({ visible, onClose, source }: Props) {
     try {
       await Linking.openURL(url);
       setText('');
-      onClose();
+      void recordFeedbackSent();
+      onClose('sent');
     } catch {
       alertCompat('No mail app opened', `Write to ${LEGAL_CONTACT_EMAIL} — your text is still here.`);
     }
   }
 
+  function dismiss() {
+    trackEvent('feedback_dismissed', { sourceScreen: source }).catch(() => undefined);
+    onClose('dismissed');
+  }
+
   return (
-    <Modal transparent visible={visible} animationType="fade" onRequestClose={onClose}>
+    <Modal transparent visible={visible} animationType="fade" onRequestClose={dismiss}>
       <View style={styles.backdrop}>
         <View style={[styles.card, gradientStyle(CARD_BG)]} accessibilityViewIsModal>
           <View style={styles.icon}>
@@ -77,7 +85,7 @@ export function FeedbackSheet({ visible, onClose, source }: Props) {
             style={({ pressed }) => [styles.send, !text.trim() && styles.disabled, pressed && styles.pressed]}>
             <Text style={styles.sendText}>Send</Text>
           </Pressable>
-          <Pressable onPress={onClose} accessibilityRole="button" style={({ pressed }) => [styles.notNow, pressed && styles.pressed]}>
+          <Pressable onPress={dismiss} accessibilityRole="button" style={({ pressed }) => [styles.notNow, pressed && styles.pressed]}>
             <Text style={styles.notNowText}>Not now</Text>
           </Pressable>
           <View style={styles.footer}>
