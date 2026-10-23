@@ -111,8 +111,9 @@ export default function Index() {
 }
 
 const styles = StyleSheet.create({
-  center: { flex: 1, justifyContent: 'center', alignItems: 'center', gap: 12 },
+  center: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   mark: { width: 220, height: 220 },
-  status: { alignItems: 'center', gap: 14 },
+  // Below the cairn, out of the layout, so the cairn stays exactly where the splash had it.
+  status: { position: 'absolute', top: '50%', marginTop: 130, left: 0, right: 0, alignItems: 'center', gap: 14 },
   label: { color: '#e6dfca', fontSize: 15, fontFamily: 'Inter_400Regular' },
 });
