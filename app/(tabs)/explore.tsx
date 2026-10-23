@@ -12,8 +12,12 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { ExploreMapScene } from '@/components/explore/ExploreMapScene';
 import { ExploreQuestPanel } from '@/components/explore/ExploreQuestPanel';
+import { InMotionCarousel } from '@/components/explore/InMotionCarousel';
+import { CategoryMapMarkerGlyph } from '@/components/explore/CategoryMapMarkerGlyph';
+import { useQuestActions } from '@/components/quests/useQuestActions';
+import { gradientStyle } from '@/components/ui/DawnBackground';
 import { EmptyState } from '@/components/ui/EmptyState';
-import { Theme } from '@/constants/Theme';
+import { Dawn, Theme } from '@/constants/Theme';
 import { getOnboardingState } from '@/lib/onboarding';
 import { categoryAccentForCategoryId } from '@/lib/categoryAccent';
 import { EXPLORE_MAP_MARKERS } from '@/src/constants/exploreMapMarkers';
@@ -39,6 +43,8 @@ export default function ExploreScreen() {
   const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(null);
   const [revealedCategoryIds, setRevealedCategoryIds] = useState<Set<string>>(new Set());
   const [preferences, setPreferences] = useState<OnboardingPreferences | null>(null);
+  // Called unconditionally (rules of hooks); the signed-out return below keeps it idle.
+  const carouselActions = useQuestActions(user?.id ?? '', 'explore');
 
   const categoryIdsWithQuests = useMemo(() => {
     const withQuests = new Set(quests.map((q) => q.categoryId));
@@ -111,14 +117,12 @@ export default function ExploreScreen() {
 
   // What you have going on in the place — the panel's content (task 46). It used to count the
   // whole category in the catalogue ("10 quests") while at most five were ever on offer.
-  const selectedInMotionCount = useMemo(
-    () =>
-      selectedCategoryId
-        ? questsInMotionInCategory({ catalog: quests, userQuests, categoryId: selectedCategoryId })
-            .length
-        : 0,
-    [quests, userQuests, selectedCategoryId]
-  );
+  const selectedCounts = useMemo(() => {
+    if (!selectedCategoryId) return { going: 0, paused: 0 };
+    const here = questsInMotionInCategory({ catalog: quests, userQuests, categoryId: selectedCategoryId });
+    const going = here.filter((uq) => uq.status === 'active').length;
+    return { going, paused: here.length - going };
+  }, [quests, userQuests, selectedCategoryId]);
 
   if (!user) {
     return (
@@ -143,8 +147,10 @@ export default function ExploreScreen() {
           revealedCategoryIds={revealedCategoryIds}
           onSelectCategory={handleSelectCategory}
         />
+        {!selectedCategoryId ? <InMotionCarousel actions={carouselActions} /> : null}
         {selectedCategoryId ? (
-          <Animated.View style={[styles.sheet, sheetDragStyle]}>
+          <Animated.View style={[styles.sheet, gradientStyle(SHEET_BG), sheetDragStyle]}>
+            <View style={[styles.sheetStrip, gradientStyle(SHEET_STRIP)]} />
             <View {...sheetPan.panHandlers}>
             <View style={styles.grabberArea}>
               <View style={styles.grabber} />
@@ -152,18 +158,24 @@ export default function ExploreScreen() {
             <View style={styles.sheetHeader}>
               <View
                 style={[
-                  styles.sheetAccent,
+                  styles.sheetIcon,
                   { backgroundColor: categoryAccentForCategoryId(selectedCategoryId) },
-                ]}
-              />
+                ]}>
+                <CategoryMapMarkerGlyph categoryId={selectedCategoryId} color="#ffffff" size={20} />
+              </View>
               <View style={styles.sheetHeaderText}>
                 <Text style={styles.sheetTitle} numberOfLines={1}>
                   {selectedCategoryName}
                 </Text>
                 <Text style={styles.sheetSubtitle}>
-                  {selectedInMotionCount === 0
+                  {selectedCounts.going + selectedCounts.paused === 0
                     ? 'Nothing in progress yet'
-                    : `${selectedInMotionCount} in progress`}
+                    : [
+                        selectedCounts.going > 0 ? `${selectedCounts.going} in motion` : null,
+                        selectedCounts.paused > 0 ? `${selectedCounts.paused} paused` : null,
+                      ]
+                        .filter(Boolean)
+                        .join(' · ')}
                 </Text>
               </View>
               <Pressable
@@ -172,7 +184,7 @@ export default function ExploreScreen() {
                 hitSlop={8}
                 onPress={() => setSelectedCategoryId(null)}
                 style={({ pressed }) => [styles.sheetClose, pressed && styles.sheetClosePressed]}>
-                <Ionicons name="close" size={18} color={Theme.text} />
+                <Ionicons name="close" size={20} color={Theme.text} />
               </Pressable>
             </View>
             </View>
@@ -189,6 +201,9 @@ export default function ExploreScreen() {
   );
 }
 
+const SHEET_BG = `radial-gradient(90% 70% at 100% 100%, rgba(240, 150, 120, 0.22) 0%, rgba(240, 150, 120, 0) 72%), linear-gradient(180deg, ${Dawn.ground[0]} 0%, ${Dawn.ground[1]} 55%, ${Dawn.ground[2]} 100%)`;
+const SHEET_STRIP = 'linear-gradient(90deg, #d79a8c, #f8dcaa)';
+
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: Theme.bg },
   stage: { flex: 1, backgroundColor: Theme.bg },
@@ -200,21 +215,19 @@ const styles = StyleSheet.create({
     bottom: 0,
     height: '64%',
     backgroundColor: Theme.bg,
-    borderTopLeftRadius: 26,
-    borderTopRightRadius: 26,
+    borderTopLeftRadius: 28,
+    borderTopRightRadius: 28,
     overflow: 'hidden',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: -4 },
-    shadowOpacity: 0.22,
-    shadowRadius: 18,
-    elevation: 16,
+    boxShadow: '0 -10px 30px rgba(20, 18, 10, 0.45)',
   },
+  // The sunrise as a thin band along the sheet's top edge.
+  sheetStrip: { height: 6 },
   grabberArea: { alignItems: 'center', paddingTop: 8, paddingBottom: 4 },
   grabber: {
     width: 40,
     height: 5,
     borderRadius: 3,
-    backgroundColor: Theme.border,
+    backgroundColor: 'rgba(243, 242, 236, 0.25)',
   },
   sheetHeader: {
     flexDirection: 'row',
@@ -223,13 +236,13 @@ const styles = StyleSheet.create({
     paddingHorizontal: 18,
     paddingTop: 8,
     paddingBottom: 12,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: Theme.border,
   },
-  sheetAccent: {
-    width: 6,
-    height: 32,
-    borderRadius: 3,
+  sheetIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   sheetHeaderText: { flex: 1, minWidth: 0 },
   sheetTitle: {
@@ -247,12 +260,14 @@ const styles = StyleSheet.create({
     color: Theme.textMuted,
   },
   sheetClose: {
-    width: 34,
-    height: 34,
-    borderRadius: 17,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: Theme.accentSoft,
+    backgroundColor: 'rgba(243, 242, 236, 0.18)',
+    borderWidth: 1,
+    borderColor: 'rgba(243, 242, 236, 0.4)',
   },
   sheetClosePressed: { opacity: 0.6 },
 });

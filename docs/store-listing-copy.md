@@ -15,15 +15,49 @@ each field's limit.
 
 ## Google Play — Short description (80 characters max)
 
-**Real-world side quests to break your routine — and remember what you lived.** (75 chars)
+**Make your days worth remembering — real-world side quests, one at a time.** (73 chars) — 2026-10-23, the same line as the first screenshot.
 
-## Full description (Google Play, 4,000 characters max — this is 1,252)
+Previous (2026-10-15): *Real-world side quests to break your routine — and remember what you lived.* (75 chars)
 
-Rewritten 2026-10-15 (task 45) for the app as it is now. The earlier draft broke the app's own
-rules: it offered "an evening without a screen" and "put the phone down" — giving things up, the
-screen-time framing the mentor ruled out — and it described none of the map, the four places, or
-how quests open. The four quests named are real titles from the catalogue. No health claims
-("burned out by routine" is the audience, not something the app treats).
+## Full description (Google Play, 4,000 characters max — this is 1,369)
+
+Rewritten 2026-10-23 together with the Dawn screenshots (`store-assets/play/screenshots/`, made by
+`scripts/make-play-screenshots.cjs`), as Standa planned ("popis v play až se screenama"). The mentor
+(2026-10-17): the listing should answer *what do I get* with a feeling — "appreciate my days more" —
+not a feature list. So it opens with how it feels and keeps "how it works" short. Same rules as
+before: every quest named is a real catalogue title, nothing to give up, no health claims.
+
+```
+Some weeks you can't tell apart. Side Quest Life is for those.
+
+It gives you real-world side quests — small ones for an ordinary Tuesday, big ones worth planning for. Watch the sun come up somewhere outdoors. Swim in wild water you had to walk to reach. Ask someone how they ended up doing what they do. Sign up for something you are not ready for.
+
+WHAT IT FEELS LIKE
+• Going to bed with a day you will actually remember.
+• The small rush of a first time — this week, not someday.
+• Looking back at a month and seeing the days you went out and lived, not a blur.
+
+HOW IT WORKS
+• Pick a place on the map — Nature, Adventure, Social or Relax — and a quest that calls to you.
+• Each quest comes with a few concrete steps: put it in your calendar, get what you need, go.
+• Afterwards, keep a few words and a photo of how it felt. Every quest leaves a stone on your cairn.
+• One question a day to think about — best answered with a pen.
+
+WHAT IT ISN'T
+• No points, no streaks, no leaderboards. Miss a week and nothing breaks.
+• Every quest is something to do — never something to give up.
+• Start straight away, no account needed. Create one when you want to keep everything.
+
+WHY IT EXISTS
+Sitting on a beach in Morocco, I caught myself thinking about cancelling my flight home. I came back and built this instead: a gentle push out of autopilot, one side quest at a time.
+```
+
+### Previous version (2026-10-15)
+
+Rewritten then for task 45. The earlier draft broke the app's own rules: it offered "an evening
+without a screen" and "put the phone down" — giving things up, the screen-time framing the mentor
+ruled out.
+
 
 ```
 Stuck in the same week on repeat?

@@ -1,14 +1,17 @@
-import { memo, useCallback, useRef } from 'react';
+import { memo, useCallback, useEffect, useRef } from 'react';
 import { PanResponder, Pressable, StyleSheet, Text, View } from 'react-native';
 import Animated, {
   useAnimatedStyle,
   useSharedValue,
+  withRepeat,
   withSpring,
   withTiming,
+  Easing,
 } from 'react-native-reanimated';
 
 import { CategoryMapMarkerGlyph } from '@/components/explore/CategoryMapMarkerGlyph';
-import { Theme } from '@/constants/Theme';
+import { ProgressRing } from '@/components/ui/ProgressRing';
+import { Dawn } from '@/constants/Theme';
 import { categoryAccentForCategoryId } from '@/lib/categoryAccent';
 
 type Props = {
@@ -21,10 +24,14 @@ type Props = {
   accessibilityHint: string;
   /** Size of the map the marker sits on; a dragged marker is kept inside it. */
   bounds: { w: number; h: number };
+  /** A quest in motion here: how far along it is (0–1). Draws the orange arc and the pulse. */
+  inMotionProgress?: number | null;
   onPress: (categoryId: string) => void;
 };
 
-const MARKER_SIZE = 52;
+const MARKER_SIZE = 56;
+/** The progress arc sits just outside the cream rim. */
+const RING_SIZE = MARKER_SIZE + 18;
 /** Finger travel, in px, before a touch stops being a tap and becomes a drag. A finger always
  * wobbles a little on a tap, so this is generous. */
 const DRAG_SLOP = 12;
@@ -43,8 +50,22 @@ export const CategoryMapMarker = memo(function CategoryMapMarker({
   top,
   accessibilityHint,
   bounds,
+  inMotionProgress = null,
   onPress,
 }: Props) {
+  const inMotion = inMotionProgress != null;
+  // A slow warm pulse says "something of yours is going on here" without a number (Standa
+  // rejected "2/4" and "Step 2/4" on the map, 2026-10-22).
+  const pulse = useSharedValue(0);
+  useEffect(() => {
+    pulse.value = inMotion
+      ? withRepeat(withTiming(1, { duration: 2200, easing: Easing.out(Easing.quad) }), -1, false)
+      : 0;
+  }, [inMotion, pulse]);
+  const pulseStyle = useAnimatedStyle(() => ({
+    opacity: 0.55 * (1 - pulse.value),
+    transform: [{ scale: 1 + pulse.value * 0.45 }],
+  }));
   const scale = useSharedValue(1);
   const tx = useSharedValue(0);
   const ty = useSharedValue(0);
@@ -130,32 +151,34 @@ export const CategoryMapMarker = memo(function CategoryMapMarker({
       <Pressable
         onPress={handlePress}
         accessibilityRole="button"
-        accessibilityLabel={`${categoryName}. ${accessibilityHint}`}
+        accessibilityLabel={`${categoryName}${inMotion ? ', a quest in motion here' : ''}. ${accessibilityHint}`}
         accessibilityState={{ selected }}
         style={({ pressed }) => [styles.press, pressed && styles.pressed]}>
         <View style={styles.circleSlot}>
-          {/* Soft glow so the marker separates from the busy illustration. */}
-          <View style={[styles.glow, { backgroundColor: `${accent}38` }]} />
+          {inMotion ? <Animated.View style={[styles.halo, pulseStyle]} /> : null}
+          {inMotion ? (
+            <View style={styles.ringSlot}>
+              <ProgressRing
+                size={RING_SIZE}
+                thickness={4.5}
+                progress={inMotionProgress ?? 0}
+                color={Dawn.secondaryBorder}
+                trackColor="rgba(246, 234, 214, 0.45)"
+              />
+            </View>
+          ) : null}
           <View
             style={[
               styles.circle,
-              {
-                borderColor: accent,
-                backgroundColor: selected ? accent : Theme.surface,
-              },
+              { backgroundColor: accent },
+              selected && styles.circleSelected,
             ]}>
-            <CategoryMapMarkerGlyph
-              categoryId={categoryId}
-              color={selected ? '#ffffff' : accent}
-              size={26}
-            />
+            <CategoryMapMarkerGlyph categoryId={categoryId} color="#ffffff" size={selected ? 28 : 25} />
           </View>
-          {!revealed && !selected ? (
-            <View style={[styles.newDot, { backgroundColor: accent }]} />
-          ) : null}
+          {!revealed && !selected && !inMotion ? <View style={styles.newDot} /> : null}
         </View>
 
-        <View style={[styles.label, selected && { borderColor: accent, borderWidth: 1.5 }]}>
+        <View style={[styles.label, { backgroundColor: accent }, inMotion && styles.labelBelowRing]}>
           <Text style={styles.labelText} numberOfLines={1}>
             {categoryName}
           </Text>
@@ -184,50 +207,61 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  glow: {
+  halo: {
     position: 'absolute',
-    width: MARKER_SIZE + 16,
-    height: MARKER_SIZE + 16,
-    borderRadius: (MARKER_SIZE + 16) / 2,
+    width: RING_SIZE,
+    height: RING_SIZE,
+    borderRadius: RING_SIZE / 2,
+    backgroundColor: 'rgba(240, 178, 122, 0.45)',
   },
+  ringSlot: {
+    position: 'absolute',
+    width: RING_SIZE,
+    height: RING_SIZE,
+    left: (MARKER_SIZE - RING_SIZE) / 2,
+    top: (MARKER_SIZE - RING_SIZE) / 2,
+  },
+  // Dawn (canvas screen 15): the category colour solid, a cream rim, a white glyph. The old
+  // outline-on-light marker sat too close in value to the painted forest behind it.
   circle: {
     width: MARKER_SIZE,
     height: MARKER_SIZE,
     borderRadius: MARKER_SIZE / 2,
-    borderWidth: 2.5,
+    borderWidth: 3,
+    borderColor: Dawn.cream,
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: '#1c1a17',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.3,
-    shadowRadius: 5,
-    elevation: 4,
+    boxShadow: '0 6px 14px rgba(10, 9, 5, 0.55)',
   },
+  circleSelected: { transform: [{ scale: 1.12 }] },
+  // "Not opened yet": a small peach dot on the rim.
   newDot: {
     position: 'absolute',
-    top: 0,
-    right: 2,
-    width: 12,
-    height: 12,
-    borderRadius: 6,
+    top: 1,
+    right: 1,
+    width: 13,
+    height: 13,
+    borderRadius: 7,
     borderWidth: 2,
-    borderColor: '#ffffff',
+    borderColor: Dawn.cream,
+    backgroundColor: Dawn.secondaryBorder,
   },
   label: {
     maxWidth: WRAP_WIDTH,
     borderRadius: 999,
-    paddingHorizontal: 10,
+    paddingHorizontal: 11,
     paddingVertical: 3,
-    backgroundColor: 'rgba(24,22,19,0.82)',
     borderWidth: 1.5,
-    borderColor: 'rgba(255,255,255,0.18)',
+    borderColor: 'rgba(246, 234, 214, 0.7)',
+    boxShadow: '0 3px 8px rgba(10, 9, 5, 0.45)',
   },
+  // The arc reaches 9 px below the disc; keep the label clear of it.
+  labelBelowRing: { marginTop: 6 },
   labelText: {
     color: '#ffffff',
-    fontSize: 12,
+    fontSize: 13,
     fontFamily: 'Inter_700Bold',
     fontWeight: '700',
-    letterSpacing: 0.2,
   },
 });
 

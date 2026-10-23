@@ -13,7 +13,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   // depend on whichever account happens to be logged in — the CLI offers both
   // `sidequestlife` and the auto-created `sidequestlifes-team` organization.
   owner: 'sidequestlife',
-  version: '1.0.0',
+  version: '1.1.0',
   // Over-the-air updates (R2-30). JavaScript-only changes — copy, screens,
   // logic — reach testers in minutes through `eas update`, instead of a full
   // build plus a Play review that Google states can take up to 7 days.
@@ -40,16 +40,9 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   // prebuild` warns the setting is inert on Android without `expo-system-ui`.
   // 'light' is what the app actually does. Revisit when a dark palette exists.
   userInterfaceStyle: 'light',
-  newArchEnabled: true,
-  splash: {
-    image: './assets/images/splash-icon.png',
-    resizeMode: 'contain',
-    // The brand green, with the all-amber cairn on it — the same mark as the
-    // app icon. It was beige with a green-stoned cairn, the logo from before
-    // 2026-09-05 (round 2, R2-07). app/index.tsx's loading gate matches this so
-    // the hand-off from native splash to JS doesn't flash.
-    backgroundColor: '#33471f',
-  },
+  // `newArchEnabled` is gone since SDK 55: the New Architecture is the only one.
+  // The splash moved into the expo-splash-screen plugin below (top-level `splash` is gone
+  // since SDK 56).
   ios: {
     supportsTablet: true,
     bundleIdentifier: 'com.sidequestlife.app',
@@ -62,7 +55,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
       // old beige here would have rendered beige stones on a beige ground.
       backgroundColor: '#33471f',
     },
-    edgeToEdgeEnabled: true,
+    // `edgeToEdgeEnabled` is gone since SDK 55: edge-to-edge is always on.
     package: 'com.sidequestlife.app',
     /**
      * Permissions Expo's prebuild template adds by default and this app does
@@ -84,6 +77,19 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
      * selection on Android 12 and below (minSdk is 24).
      */
     blockedPermissions: ['android.permission.SYSTEM_ALERT_WINDOW'],
+    /**
+     * On-time "Time is up" notifications (code review 2026-09-27).
+     *
+     * Without this, expo-notifications can only set an inexact alarm on Android 12+, which the
+     * system may deliver well after the timer ends — up to three quarters of the timer's length
+     * late with the phone locked in a pocket, the exact situation the timer is for. Declared,
+     * it is granted by default on Android 12 and 13. On Android 14+ it starts off and the person
+     * can turn it on under App info → Alarms & reminders; the app does not ask (a design call —
+     * one more prompt), so there the alert stays as timely as before.
+     *
+     * Not USE_EXACT_ALARM: Play restricts that one to alarm-clock and calendar apps.
+     */
+    permissions: ['android.permission.SCHEDULE_EXACT_ALARM'],
   },
   web: {
     bundler: 'metro',
@@ -92,6 +98,27 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   },
   plugins: [
     'expo-router',
+    // Asked for by `expo install` from SDK 55 on; a dynamic config has to list them by hand.
+    'expo-font',
+    'expo-web-browser',
+    [
+      'expo-splash-screen',
+      {
+        image: './assets/images/splash-icon.png',
+        resizeMode: 'contain',
+        // 200dp on the 288dp splash canvas: the size the old top-level `splash` drew it at
+        // (measured at the SDK 56 upgrade). The plugin's default, 100, halves the cairn, and
+        // app/index.tsx's loading screen is sized to match this one (753dc8a).
+        imageWidth: 200,
+        // The amber cairn on the Dawn ground (the top colour of Dawn.ground in
+        // constants/Theme.ts), the redesign every screen stands on. It was the brand
+        // green until the Dawn redesign; before 2026-09-05 beige (R2-07).
+        // app/index.tsx's loading gate shows the same image on the same ground, so
+        // the hand-off from native splash to JS doesn't flash: build only with
+        // redesign-dawn merged, or the old green loading screen follows this.
+        backgroundColor: '#3b3628',
+      },
+    ],
     [
       'expo-notifications',
       {
@@ -120,6 +147,25 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
         // and a reason for a reviewer to look harder. `false` is the plugin's
         // own supported way to block it.
         microphonePermission: false,
+      },
+    ],
+    [
+      'expo-build-properties',
+      {
+        android: {
+          // R8 in release builds (Play Console, 2026-10-12: "DEX optimisation
+          // below our limit — obfuscation 1 %", fix by February 2027; under 25 %
+          // can cost visibility). Expo leaves it off by default, so build 11
+          // shipped unshrunk. R8 can strip classes a library loads by
+          // reflection, which crashes only in a release build — smoke-test
+          // sign-in, a memory photo, notifications and the calendar on the
+          // first build with this. Play then asks for the build's mapping.txt
+          // to read native crashes; JS errors are unaffected.
+          //
+          // Not `enableShrinkResourcesInReleaseBuilds`: Play did not ask for
+          // it, and it can drop resources looked up by name at runtime.
+          enableMinifyInReleaseBuilds: true,
+        },
       },
     ],
   ],

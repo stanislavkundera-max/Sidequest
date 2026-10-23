@@ -54,7 +54,7 @@ Keep the **MVP scope narrow**; prefer removing or deferring scope over cramming 
 
 **Stack (do not swap without explicit approval):**
 
-- **React Native** + **Expo** (SDK ~54) + **TypeScript**
+- **React Native** + **Expo** (SDK ~58, upgraded from 54 on 2026-10-23) + **TypeScript**
 - **Expo Router** — file-based routes under `app/`
 - **Zustand** — lightweight client state (e.g. session, cached quest picks for home)
 - **Supabase** — Auth, Postgres, Storage (private bucket for memory photos)

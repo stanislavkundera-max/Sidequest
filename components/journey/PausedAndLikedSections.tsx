@@ -1,13 +1,12 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useCallback, useMemo } from 'react';
-import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 
-import { journeyHubStyles as hub } from '@/components/journey/journeyHubStyles';
 import type { useQuestActions } from '@/components/quests/useQuestActions';
-import { Theme } from '@/constants/Theme';
+import { Dawn, Theme } from '@/constants/Theme';
 import { categoryAccentForCategoryId } from '@/lib/categoryAccent';
-import { QUEST_COPY } from '@/src/features/quests/questCopy';
+import { QUEST_COPY, TIMEFRAME_LABEL } from '@/src/features/quests/questCopy';
 import { countCompletedJourneySteps } from '@/src/features/quests/questHelpers';
 import { useQuestDomainStore } from '@/src/features/quests/questStore';
 import { isPausedQuest } from '@/src/features/quests/suggestedQuests';
@@ -21,9 +20,6 @@ function rowTitle(uq: UserQuest, quest?: Quest): string {
   return uq.snapshotTitle?.trim() || quest?.title || 'Side quest';
 }
 
-function rowShort(uq: UserQuest, quest?: Quest): string {
-  return uq.snapshotShort?.trim() || quest?.shortDescription || '';
-}
 
 function rowCategoryId(uq: UserQuest, quest?: Quest): string {
   return uq.snapshotCategoryId || quest?.categoryId || '';
@@ -77,6 +73,8 @@ export function PausedAndLikedSections({ actions }: Props) {
     [setAsideList, wasStarted]
   );
 
+  // Dawn (screen 34): one compact row each — a category dot, the name, where it stands, and
+  // the one action. The photo thumbnail and the long description made two quests fill a screen.
   const renderRow = useCallback(
     (uq: UserQuest) => {
       const q = getQuestById(uq.questId);
@@ -84,58 +82,49 @@ export function PausedAndLikedSections({ actions }: Props) {
       const stepTotal = q?.actionSteps.length ?? 0;
       const stepDone = q && stepTotal > 0 ? countCompletedJourneySteps(uq, q) : 0;
       const started = wasStarted(uq);
+      const meta = [
+        categoryLabel(rowCategoryId(uq, q)),
+        started && stepTotal > 0 ? `${stepDone} of ${stepTotal} steps` : q ? TIMEFRAME_LABEL[q.timeframe] : '',
+      ]
+        .filter(Boolean)
+        .join(' · ');
       return (
         <Pressable
           key={uq.id}
           onPress={() => router.push(`/quest/${uq.questId}` as never)}
-          accessibilityRole="button"
-          accessibilityLabel={`Open ${rowTitle(uq, q)}`}
-          style={hub.likedCompactRow}>
-          {uq.photoUri ? (
-            <Image source={{ uri: uq.photoUri }} style={hub.likedThumb} resizeMode="cover" />
-          ) : null}
-          <View style={[hub.discoverQuestAccent, { backgroundColor: accent }]} />
-          <View style={hub.likedCompactBody}>
-            <Text style={hub.questRowMeta}>
-              {categoryLabel(rowCategoryId(uq, q))}
-              {started && stepTotal > 0 ? ` · ${stepDone}/${stepTotal} steps done` : ''}
-            </Text>
-            <Text style={hub.questRowTitle} numberOfLines={2}>
+          style={({ pressed }) => [styles.row, pressed && styles.pressed]}>
+          {started ? (
+            <View style={[styles.dot, { backgroundColor: accent }]} />
+          ) : (
+            <Ionicons name="heart" size={14} color={Theme.accent} />
+          )}
+          <View style={styles.rowText}>
+            <Text style={styles.rowTitle} numberOfLines={1}>
               {rowTitle(uq, q)}
             </Text>
-            <Text style={hub.questRowSub} numberOfLines={2}>
-              {rowShort(uq, q)}
+            <Text style={styles.rowMeta} numberOfLines={1}>
+              {meta}
             </Text>
-            <View style={hub.questRowActions}>
-              <Pressable
-                disabled={actions.primaryBusy}
-                onPress={() => void actions.onStartNow(uq.questId)}
-                style={({ pressed }) => [
-                  hub.btnSubtleSolid,
-                  pressed && !actions.primaryBusy && hub.pressed,
-                  actions.primaryBusy && hub.disabled,
-                ]}>
-                <Text style={hub.btnSubtleSolidText}>
-                  {started ? QUEST_COPY.resumeQuest : QUEST_COPY.startNow}
-                </Text>
-              </Pressable>
-              {!started ? (
-                <Pressable
-                  disabled={actions.primaryBusy}
-                  onPress={() => void actions.onUnlike(uq.id)}
-                  accessibilityRole="button"
-                  accessibilityLabel={`Unlike ${rowTitle(uq, q)}`}
-                  style={({ pressed }) => [
-                    hub.btnSubtleLight,
-                    pressed && !actions.primaryBusy && hub.pressed,
-                    actions.primaryBusy && hub.disabled,
-                  ]}>
-                  <Ionicons name="heart-dislike-outline" size={13} color={Theme.textMuted} />
-                  <Text style={[hub.btnSubtleLightText, { color: Theme.textMuted }]}>Unlike</Text>
-                </Pressable>
-              ) : null}
-            </View>
           </View>
+          <Pressable
+            disabled={actions.primaryBusy}
+            onPress={() => void actions.onStartNow(uq.questId)}
+            accessibilityRole="button"
+            accessibilityLabel={`${started ? QUEST_COPY.resumeQuest : QUEST_COPY.startNow}: ${rowTitle(uq, q)}`}
+            style={({ pressed }) => [styles.action, pressed && styles.pressed, actions.primaryBusy && styles.disabled]}>
+            <Text style={styles.actionText}>{started ? QUEST_COPY.resumeQuest : QUEST_COPY.startNow}</Text>
+          </Pressable>
+          {!started ? (
+            <Pressable
+              disabled={actions.primaryBusy}
+              onPress={() => void actions.onUnlike(uq.id)}
+              accessibilityRole="button"
+              accessibilityLabel={`Unlike ${rowTitle(uq, q)}`}
+              hitSlop={6}
+              style={({ pressed }) => [styles.unlike, pressed && styles.pressed]}>
+              <Text style={styles.unlikeText}>Unlike</Text>
+            </Pressable>
+          ) : null}
         </Pressable>
       );
     },
@@ -148,19 +137,13 @@ export function PausedAndLikedSections({ actions }: Props) {
     <View style={styles.root}>
       {pausedRows.length > 0 ? (
         <View style={styles.section}>
-          <View style={hub.sectionHead}>
-            <Ionicons name="walk-outline" size={16} color={Theme.accent} />
-            <Text style={hub.sectionHeadText}>{QUEST_COPY.pausedSectionTitle}</Text>
-          </View>
+          <Text style={styles.sectionTitle}>{QUEST_COPY.pausedSectionTitle}</Text>
           <View style={styles.list}>{pausedRows.map(renderRow)}</View>
         </View>
       ) : null}
       {likedRows.length > 0 ? (
         <View style={styles.section}>
-          <View style={hub.sectionHead}>
-            <Ionicons name="heart-outline" size={16} color={Theme.accent} />
-            <Text style={hub.sectionHeadText}>{QUEST_COPY.forLaterSectionTitle}</Text>
-          </View>
+          <Text style={styles.sectionTitle}>{QUEST_COPY.forLaterSectionTitle}</Text>
           <View style={styles.list}>{likedRows.map(renderRow)}</View>
         </View>
       ) : null}
@@ -169,7 +152,37 @@ export function PausedAndLikedSections({ actions }: Props) {
 }
 
 const styles = StyleSheet.create({
-  root: { marginBottom: 8 },
-  section: { marginBottom: 16 },
-  list: { gap: 10, paddingHorizontal: 16 },
+  root: {},
+  section: { marginTop: 22 },
+  sectionTitle: { fontSize: 17, fontFamily: 'Inter_700Bold', fontWeight: '700', color: Theme.text, marginBottom: 10, marginHorizontal: 2 },
+  list: { gap: 8 },
+  row: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    minHeight: 60,
+    paddingVertical: 10,
+    paddingLeft: 14,
+    paddingRight: 10,
+    borderRadius: 18,
+    backgroundColor: Dawn.card,
+    borderWidth: 1,
+    borderColor: Dawn.cardBorder,
+  },
+  dot: { width: 9, height: 9, borderRadius: 5, borderWidth: 1.5, borderColor: 'rgba(246, 234, 214, 0.8)' },
+  rowText: { flex: 1, minWidth: 0 },
+  rowTitle: { fontSize: 15, fontFamily: 'Inter_600SemiBold', fontWeight: '600', color: Theme.text },
+  rowMeta: { marginTop: 1, fontSize: 12, fontFamily: 'Inter_400Regular', color: Theme.textMuted },
+  action: {
+    minHeight: 36,
+    paddingHorizontal: 14,
+    borderRadius: 18,
+    backgroundColor: Dawn.cream,
+    justifyContent: 'center',
+  },
+  actionText: { fontSize: 13, fontFamily: 'Inter_700Bold', fontWeight: '700', color: Dawn.primaryText },
+  unlike: { minHeight: 36, justifyContent: 'center', paddingHorizontal: 4 },
+  unlikeText: { fontSize: 13, fontFamily: 'Inter_600SemiBold', fontWeight: '600', color: Theme.textMuted },
+  pressed: { opacity: 0.85 },
+  disabled: { opacity: 0.45 },
 });

@@ -22,7 +22,7 @@ export const ExploreMapBackground = memo(function ExploreMapBackground() {
 const styles = StyleSheet.create({
   image: { width: '100%', height: '100%' },
   root: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
     overflow: 'hidden',
     pointerEvents: 'none',
   },

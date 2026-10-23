@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { MIN_TOUCH_TARGET } from '@/constants/touchTargets';
-import { Theme } from '@/constants/Theme';
+import { Dawn, Theme } from '@/constants/Theme';
 
 const RESEARCH_NOTE =
   "People who get outside for at least two hours a week report meaningfully " +
@@ -15,7 +15,10 @@ const RESEARCH_NOTE =
   'actually somewhere, doing something — regardless of what that something ' +
   'is (Killingsworth & Gilbert, 2010).';
 
-/** Tucked-away credibility note — collapsed by default, for the curious. */
+/**
+ * Tucked-away credibility note — collapsed by default, for the curious. Dawn (screen 34): a
+ * quiet card with an info mark and one line saying what is inside.
+ */
 export function ScienceNote() {
   const [open, setOpen] = useState(false);
 
@@ -27,12 +30,12 @@ export function ScienceNote() {
         accessibilityState={{ expanded: open }}
         onPress={() => setOpen((v) => !v)}
         style={({ pressed }) => [styles.toggle, pressed && styles.pressed]}>
-        <Text style={styles.toggleText}>Why this works</Text>
-        <Ionicons
-          name={open ? 'chevron-up-outline' : 'chevron-down-outline'}
-          size={14}
-          color={Theme.textMuted}
-        />
+        <Ionicons name="information-circle-outline" size={20} color={Theme.accent} />
+        <View style={styles.toggleTextWrap}>
+          <Text style={styles.toggleText}>Why this works</Text>
+          <Text style={styles.toggleHint}>Small real things, a memory each time</Text>
+        </View>
+        <Ionicons name={open ? 'chevron-up' : 'chevron-down'} size={16} color={Theme.accent} />
       </Pressable>
       {open ? <Text style={styles.note}>{RESEARCH_NOTE}</Text> : null}
     </View>
@@ -40,28 +43,29 @@ export function ScienceNote() {
 }
 
 const styles = StyleSheet.create({
-  wrap: { marginHorizontal: 16, marginTop: 4, marginBottom: 20 },
+  wrap: {
+    borderRadius: 18,
+    borderWidth: 1,
+    borderColor: Dawn.cardBorder,
+    backgroundColor: 'rgba(246, 234, 214, 0.1)',
+  },
   toggle: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 4,
-    alignSelf: 'flex-start',
-    minHeight: MIN_TOUCH_TARGET,
-    paddingRight: 8,
+    gap: 12,
+    minHeight: MIN_TOUCH_TARGET + 14,
+    paddingHorizontal: 16,
   },
-  toggleText: {
-    fontSize: 12,
-    fontFamily: 'Inter_600SemiBold',
-    fontWeight: '600',
-    color: Theme.textMuted,
-    textDecorationLine: 'underline',
-  },
+  toggleTextWrap: { flex: 1 },
+  toggleText: { fontSize: 15, fontFamily: 'Inter_600SemiBold', fontWeight: '600', color: Theme.text },
+  toggleHint: { marginTop: 2, fontSize: 12, fontFamily: 'Inter_400Regular', color: Theme.textMuted },
   note: {
-    marginTop: 8,
-    fontSize: 12,
+    paddingHorizontal: 16,
+    paddingBottom: 16,
+    fontSize: 13,
     fontFamily: 'Inter_400Regular',
-    lineHeight: 18,
-    color: Theme.textMuted,
+    lineHeight: 20,
+    color: '#e6dfca',
   },
   pressed: { opacity: 0.85 },
 });

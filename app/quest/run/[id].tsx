@@ -22,10 +22,10 @@ import { HeaderBackButton } from '@/components/ui/HeaderBackButton';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { ErrorState } from '@/components/ui/ErrorState';
 import { LoadingState } from '@/components/ui/LoadingState';
+import { DawnBackground } from '@/components/ui/DawnBackground';
 import { PrimaryButton } from '@/components/ui/PrimaryButton';
-import { Theme } from '@/constants/Theme';
-import { alertCompat, alertTwoChoice } from '@/lib/alertCompat';
-import { categoryAccentForCategoryId } from '@/lib/categoryAccent';
+import { Dawn, Theme } from '@/constants/Theme';
+import { alertCompat, alertTwoChoice, showQuestDone } from '@/lib/alertCompat';
 import { isSupabaseConfigured, SUPABASE_CONFIGURE_HELP } from '@/lib/supabase';
 import { plainErrorMessage } from '@/lib/userFacingError';
 import { composeMemoryDraftFromRun, NO_EVIDENCE_NOTE } from '@/src/features/memories/memoryDraft';
@@ -135,7 +135,9 @@ export default function QuestRunScreen() {
     return userQuests.find((uq) => uq.questId === quest.id && uq.status === 'active');
   }, [quest, userQuests]);
 
-  const accent = quest ? categoryAccentForCategoryId(quest.categoryId) : Theme.accent;
+  // The timer bar and the counter's numbers: the warm orange of Dawn. The category colours are
+  // too dark to read on the Dawn ground.
+  const accent = '#e0823d';
   const [acting, setActing] = useState(false);
   const [calendarDeviceOk, setCalendarDeviceOk] = useState<boolean>(() => Platform.OS !== 'web');
   // Tracks which step's Guide tip is expanded — collapsed by default (testers
@@ -335,15 +337,22 @@ export default function QuestRunScreen() {
       // Completed quests show up in Progress (the completed-quests showcase),
       // not the plain Journey catalog — land where the result is visible.
       router.replace('/(tabs)/profile');
+      // Which stone this was: every quest finished before it, plus this one.
+      const stone =
+        useQuestDomainStore
+          .getState()
+          .userQuests.filter((uq) => uq.status === 'completed' && uq.id !== activeUq.id).length + 1;
       if (memoryId) {
-        alertTwoChoice(
-          'Nice work — quest complete',
-          memoryPhotoFailed
+        showQuestDone({
+          title: quest.title,
+          badge: `QUEST DONE · STONE ${stone}`,
+          message: memoryPhotoFailed
             ? "Saved to your memories — but the photo didn't upload. You can add it again from the memory."
-            : 'Saved to your memories.',
-          {
-            cancel: { text: 'OK' },
-            confirm: {
+            : draft.photoUri
+              ? 'Saved to your memories, photo included.'
+              : 'Saved to your memories.',
+          dismissText: 'OK',
+          action: {
               text: 'View memory',
               onPress: () =>
                 router.push({
@@ -357,25 +366,22 @@ export default function QuestRunScreen() {
                     ...(memoryBody === NO_EVIDENCE_NOTE ? { autoEdit: '1' } : {}),
                   },
                 }),
-            },
-          }
-        );
+          },
+        });
       } else {
         // Completion always succeeds even if the auto-memory save failed —
         // but that failure must stay visible, or it looks like memories
         // silently vanish (reported by testers as "memories don't propagate").
-        alertTwoChoice(
-          'Quest complete',
-          "Nice work — this one is done. We couldn't save a memory for it automatically.",
-          {
-            cancel: { text: 'OK' },
-            confirm: {
-              text: 'Add a memory',
-              onPress: () =>
-                router.push({ pathname: '/memory/new', params: { questId: quest.id } }),
-            },
-          }
-        );
+        showQuestDone({
+          title: quest.title,
+          badge: `QUEST DONE · STONE ${stone}`,
+          message: "This one is done. We couldn't save a memory for it automatically.",
+          dismissText: 'OK',
+          action: {
+            text: 'Add a memory',
+            onPress: () => router.push({ pathname: '/memory/new', params: { questId: quest.id } }),
+          },
+        });
       }
     } catch (e: unknown) {
       logError('quest.runner.wrapUpQuest', e, { questId: quest.id, userQuestId: activeUq.id });
@@ -714,7 +720,8 @@ export default function QuestRunScreen() {
   }
 
   return (
-    <SafeAreaView style={styles.safe} edges={['bottom']}>
+    <DawnBackground>
+    <SafeAreaView style={styles.safeClear} edges={['bottom']}>
       <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
         {error ? (
           <ErrorState message={error} onRetry={() => refreshUserQuests(user.id)} />
@@ -722,18 +729,20 @@ export default function QuestRunScreen() {
 
         {needsBegin ? (
           <>
-            <View style={[styles.header, { borderLeftColor: accent }]}>
+            <View style={styles.header}>
               <Text style={styles.kicker}>Guided quest</Text>
               <Text style={styles.title}>{quest.title}</Text>
               {quest.journeyIntro ? <Text style={styles.sub}>{quest.journeyIntro}</Text> : null}
             </View>
 
             {steps.length > 0 ? (
-              <View style={[styles.stepsOverview, { borderColor: Theme.border }]}>
+              <View style={styles.stepsOverview}>
                 <Text style={styles.stepsOverviewTitle}>Your journey — {steps.length} steps</Text>
                 {steps.map((s, i) => (
                   <View key={s.id} style={styles.stepOverviewRow}>
-                    <Ionicons name={stepKindIcon(s)} size={18} color={accent} />
+                    <View style={styles.kindBox}>
+                      <Ionicons name={stepKindIcon(s)} size={17} color={Theme.accent} />
+                    </View>
                     <View style={styles.stepOverviewBody}>
                       <Text style={styles.stepOverviewRowTitle} numberOfLines={2}>
                         {i + 1}. {s.title}
@@ -787,8 +796,8 @@ export default function QuestRunScreen() {
                       key={s.id}
                       style={[
                         styles.segment,
-                        done && { backgroundColor: accent },
-                        isCurrent && { backgroundColor: `${accent}66` },
+                        done && { backgroundColor: DONE_ORANGE },
+                        isCurrent && { backgroundColor: 'rgba(224, 130, 61, 0.45)' },
                       ]}
                     />
                   );
@@ -796,10 +805,10 @@ export default function QuestRunScreen() {
               </View>
             </View>
 
-            <View style={[styles.stepCard, { borderColor: Theme.border }]}>
+            <View style={styles.stepCard}>
               <View style={styles.stepHeadRow}>
-                <Ionicons name={stepKindIcon(currentStep)} size={20} color={accent} />
-                <Text style={[styles.stepIndex, { color: accent }]}>
+                <Ionicons name={stepKindIcon(currentStep)} size={18} color={Theme.accent} />
+                <Text style={styles.stepIndex}>
                   {currentStep.estimateMinutes
                     ? `~${formatQuestDuration(currentStep.estimateMinutes)}`
                     : 'Take your time'}
@@ -832,7 +841,7 @@ export default function QuestRunScreen() {
                       prev === currentStep.id ? null : currentStep.id
                     )
                   }
-                  style={[styles.stepTipBlock, { borderLeftColor: `${accent}55` }]}>
+                  style={styles.stepTipBlock}>
                   <View style={styles.stepTipHeadRow}>
                     <Text style={styles.stepTipLabel}>Guide</Text>
                     <Ionicons
@@ -852,8 +861,12 @@ export default function QuestRunScreen() {
           </>
         ) : (
           <View style={styles.doneCard}>
-            <View style={[styles.doneBadge, { backgroundColor: accent }]}>
-              <Ionicons name="trophy" size={26} color="#fff" />
+            {/* Your cairn, not a trophy: no prizes in this app, just a stone for what you did. */}
+            <View style={styles.doneCairn} accessible={false}>
+              <View style={[styles.stone, { width: 18, height: 12 }]} />
+              <View style={[styles.stone, { width: 28, height: 14, marginLeft: -3 }]} />
+              <View style={[styles.stone, { width: 38, height: 16, marginLeft: 3 }]} />
+              <View style={[styles.stone, { width: 48, height: 18 }]} />
             </View>
             <Text style={styles.doneTitle}>Every step is done</Text>
             <Text style={styles.doneBody}>Here is what you gathered along the way:</Text>
@@ -864,7 +877,7 @@ export default function QuestRunScreen() {
                 if (!entry) return null;
                 return (
                   <View key={s.id} style={styles.evidenceRow}>
-                    <Ionicons name={stepKindIcon(s)} size={16} color={accent} />
+                    <Ionicons name={stepKindIcon(s)} size={16} color={Theme.accent} />
                     <View style={styles.evidenceBody}>
                       <Text style={styles.evidenceTitle} numberOfLines={1}>
                         {s.title}
@@ -890,11 +903,16 @@ export default function QuestRunScreen() {
               />
             </View>
 
-            <PrimaryButton
-              label="Complete quest"
-              loading={primaryBusy}
+            {/* The one orange main button in the app: finishing a quest is the moment it builds
+                to (Standa kept it, 2026-10-21). Dark ink on #e0823d measures 6.3:1. */}
+            <Pressable
+              accessibilityRole="button"
+              accessibilityState={{ disabled: primaryBusy, busy: primaryBusy }}
+              disabled={primaryBusy}
               onPress={() => void wrapUpQuest()}
-            />
+              style={({ pressed }) => [styles.completeBtn, (pressed || primaryBusy) && { opacity: 0.8 }]}>
+              <Text style={styles.completeBtnText}>{primaryBusy ? 'Finishing…' : 'Complete quest'}</Text>
+            </Pressable>
             <Pressable
               accessibilityRole="button"
               accessibilityLabel="Not yet — keep this quest active without completing it"
@@ -914,40 +932,48 @@ export default function QuestRunScreen() {
         )}
       </ScrollView>
     </SafeAreaView>
+    </DawnBackground>
   );
 }
 
+/** Done steps, the step you are on: the warm orange of the frozen design, not the category colour. */
+const DONE_ORANGE = '#e0823d';
+
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: Theme.bg },
+  safeClear: { flex: 1 },
   scroll: { padding: 20, paddingBottom: 40, gap: 16 },
   headerLeaveBtn: { paddingHorizontal: 12, paddingVertical: 6 },
   headerLeaveBtnText: { color: Theme.danger, fontSize: 15, fontFamily: 'Inter_600SemiBold', fontWeight: '600' },
   linkPressed: { opacity: 0.75 },
-  header: {
-    backgroundColor: Theme.surface,
-    borderRadius: 14,
-    borderWidth: 1,
-    borderColor: Theme.border,
-    borderLeftWidth: 4,
-    padding: 16,
-  },
+  // Dawn: the opening words sit on the ground, no box around them (canvas screen 23).
+  header: { paddingTop: 8, paddingBottom: 4 },
   kicker: {
     fontSize: 12,
     fontFamily: 'Inter_700Bold',
     fontWeight: '700',
-    color: Theme.textMuted,
+    color: Theme.accent,
     textTransform: 'uppercase',
-    letterSpacing: 0.8,
-    marginBottom: 6,
+    letterSpacing: 1.8,
+    marginBottom: 10,
   },
-  title: { fontSize: 20, fontFamily: 'Inter_700Bold', fontWeight: '700', color: Theme.text, marginBottom: 8 },
-  sub: { fontSize: 14, fontFamily: 'Inter_400Regular', lineHeight: 20, color: Theme.textMuted },
+  title: { fontSize: 26, lineHeight: 31, fontFamily: 'Inter_700Bold', fontWeight: '700', color: Theme.text, marginBottom: 10 },
+  sub: { fontSize: 15, fontFamily: 'Inter_400Regular', lineHeight: 22, color: '#e6dfca' },
   stepsOverview: {
-    backgroundColor: Theme.surface,
-    borderRadius: 14,
+    backgroundColor: Dawn.card,
+    borderRadius: 22,
     borderWidth: 1,
+    borderColor: Dawn.cardBorder,
     padding: 16,
     gap: 12,
+  },
+  kindBox: {
+    width: 32,
+    height: 32,
+    borderRadius: 10,
+    backgroundColor: 'rgba(240, 178, 122, 0.14)',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   stepsOverviewTitle: {
     fontSize: 13,
@@ -957,7 +983,7 @@ const styles = StyleSheet.create({
     textTransform: 'uppercase',
     letterSpacing: 0.6,
   },
-  stepOverviewRow: { flexDirection: 'row', alignItems: 'flex-start', gap: 10 },
+  stepOverviewRow: { flexDirection: 'row', alignItems: 'center', gap: 12 },
   stepOverviewBody: { flex: 1, minWidth: 0 },
   stepOverviewRowTitle: { fontSize: 15, fontFamily: 'Inter_400Regular', lineHeight: 21, color: Theme.text },
   preBeginNoteText: { fontSize: 13, fontFamily: 'Inter_400Regular', lineHeight: 19, color: Theme.textMuted, marginTop: 4 },
@@ -982,34 +1008,35 @@ const styles = StyleSheet.create({
     flex: 1,
     height: 6,
     borderRadius: 3,
-    backgroundColor: Theme.border,
+    backgroundColor: 'rgba(246, 234, 214, 0.3)',
   },
+  // Dawn: the step is the screen — big title on the ground, no card (canvas screens 24–27).
   stepCard: {
-    backgroundColor: Theme.surface,
-    borderRadius: 14,
-    borderWidth: 1,
-    padding: 16,
+    paddingTop: 4,
     gap: 4,
   },
   stepHeadRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: 8,
+    gap: 6,
+    marginBottom: 6,
   },
   stepIndex: {
-    fontSize: 12,
+    fontSize: 13,
     fontFamily: 'Inter_700Bold',
     fontWeight: '700',
-    textTransform: 'uppercase',
-    letterSpacing: 0.8,
+    color: Theme.accent,
   },
-  stepTitle: { fontSize: 19, fontFamily: 'Inter_700Bold', fontWeight: '700', color: Theme.text, marginBottom: 6 },
-  stepDetail: { fontSize: 14, fontFamily: 'Inter_400Regular', lineHeight: 20, color: Theme.textMuted, marginBottom: 10 },
+  stepTitle: { fontSize: 24, lineHeight: 29, fontFamily: 'Inter_700Bold', fontWeight: '700', color: Theme.text, marginBottom: 8 },
+  stepDetail: { fontSize: 15, fontFamily: 'Inter_400Regular', lineHeight: 22, color: '#e6dfca', marginBottom: 14 },
   stepTipBlock: {
     marginBottom: 16,
-    paddingLeft: 12,
+    paddingVertical: 12,
+    paddingHorizontal: 14,
+    borderRadius: 14,
     borderLeftWidth: 3,
+    borderLeftColor: Theme.accent,
+    backgroundColor: Dawn.card,
     gap: 4,
   },
   stepTipHeadRow: {
@@ -1034,37 +1061,42 @@ const styles = StyleSheet.create({
   },
   calendarBlock: { gap: 4 },
   calendarNote: { fontSize: 13, fontFamily: 'Inter_400Regular', lineHeight: 19, color: Theme.textMuted, marginTop: 4 },
+  // Dawn (canvas screen 28): on the ground, no box; the cairn glows above the title.
   doneCard: {
-    backgroundColor: Theme.surface,
-    borderRadius: 14,
-    borderWidth: 1,
-    borderColor: Theme.border,
-    padding: 18,
+    paddingTop: 12,
     gap: 12,
   },
-  doneBadge: {
-    width: 52,
-    height: 52,
-    borderRadius: 26,
-    alignItems: 'center',
-    justifyContent: 'center',
+  doneCairn: {
     alignSelf: 'center',
+    alignItems: 'center',
+    gap: 1,
+    marginBottom: 6,
+    paddingHorizontal: 28,
+    paddingVertical: 18,
+    borderRadius: 60,
+    backgroundColor: 'rgba(242, 185, 142, 0.14)',
   },
-  doneTitle: { fontSize: 19, fontFamily: 'Inter_700Bold', fontWeight: '700', color: Theme.text, textAlign: 'center' },
+  stone: { borderRadius: 999, backgroundColor: Dawn.cairn },
+  doneTitle: { fontSize: 26, fontFamily: 'Inter_700Bold', fontWeight: '700', color: Theme.text, textAlign: 'center' },
   doneBody: { fontSize: 14, fontFamily: 'Inter_400Regular', lineHeight: 20, color: Theme.textMuted, textAlign: 'center' },
-  evidenceList: { gap: 10, marginVertical: 4 },
+  evidenceList: {
+    marginVertical: 4,
+    paddingHorizontal: 14,
+    borderRadius: 22,
+    borderWidth: 1,
+    borderColor: Dawn.cardBorder,
+    backgroundColor: Dawn.card,
+  },
   evidenceRow: {
     flexDirection: 'row',
     alignItems: 'flex-start',
     gap: 10,
-    borderWidth: 1,
-    borderColor: Theme.border,
-    borderRadius: 12,
-    padding: 12,
-    backgroundColor: Theme.bg,
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(246, 234, 214, 0.14)',
   },
   evidenceBody: { flex: 1, minWidth: 0 },
-  evidenceTitle: { fontSize: 13, fontFamily: 'Inter_700Bold', fontWeight: '700', color: Theme.text },
+  evidenceTitle: { fontSize: 14, fontFamily: 'Inter_700Bold', fontWeight: '700', color: Theme.text },
   evidenceLine: { fontSize: 13, fontFamily: 'Inter_400Regular', lineHeight: 18, color: Theme.textMuted, marginTop: 2 },
   feelingsBlock: { gap: 6, marginTop: 4 },
   feelingsLabel: { fontSize: 13, fontFamily: 'Inter_700Bold', fontWeight: '700', color: Theme.text },
@@ -1078,13 +1110,22 @@ const styles = StyleSheet.create({
     fontFamily: 'Inter_400Regular',
     lineHeight: 20,
     color: Theme.text,
-    backgroundColor: Theme.bg,
+    backgroundColor: Theme.surface,
     textAlignVertical: 'top',
   },
+  completeBtn: {
+    minHeight: 54,
+    borderRadius: 27,
+    backgroundColor: DONE_ORANGE,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 8,
+  },
+  completeBtnText: { fontSize: 16, fontFamily: 'Inter_700Bold', fontWeight: '700', color: Theme.onAccent },
   doneBackLink: {
     alignSelf: 'center',
     paddingVertical: 8,
     paddingHorizontal: 4,
   },
-  doneBackLinkText: { fontSize: 15, fontFamily: 'Inter_600SemiBold', fontWeight: '600', color: Theme.accent },
+  doneBackLinkText: { fontSize: 15, fontFamily: 'Inter_600SemiBold', fontWeight: '600', color: '#e6dfca' },
 });

@@ -27,3 +27,23 @@ export function alertTwoChoice(
     ],
   });
 }
+
+/** A quest finished: the sunrise-and-cairn dialog (redesign screen 29). */
+export function showQuestDone(params: {
+  title: string;
+  message: string;
+  badge: string;
+  dismissText: string;
+  action: { text: string; onPress: () => void };
+}): void {
+  useDialogStore.getState().show({
+    title: params.title,
+    message: params.message,
+    art: 'questDone',
+    badge: params.badge,
+    buttons: [
+      { text: params.action.text, onPress: params.action.onPress, kind: 'primary' },
+      { text: params.dismissText, kind: 'secondary' },
+    ],
+  });
+}

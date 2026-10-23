@@ -216,7 +216,7 @@ the three legal placeholders, the Data safety table, the IARC answers, and the r
   `journey-world-scene` (not merged) with the blockers written up in `docs/journey-visual-style.md`.
   The fork below is updated accordingly.
 - **Two paintings, two unrelated styles.** `explore-map-background.png` (live) is a detailed,
-  saturated, top-down illustration; `journey-valley-background.png` is soft hazy concept art; the
+  saturated, top-down illustration; `journey-valley-background.jpg` is soft hazy concept art; the
   UI around both is flat and minimal. Picking one house style and redrawing to it is probably the
   single most visible thing this pillar can do.
 - `AGENTS.md`'s own design principles are a real constraint to design *within*, not against: "calm,

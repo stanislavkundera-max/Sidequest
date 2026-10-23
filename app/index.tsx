@@ -2,6 +2,8 @@ import { Redirect } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, Image, StyleSheet, Text, View } from 'react-native';
 
+import { DawnBackground } from '@/components/ui/DawnBackground';
+import { Theme } from '@/constants/Theme';
 import { getDevAutoLoginCredentials } from '@/lib/devAuth';
 import { getOnboardingComplete } from '@/lib/onboarding';
 import { isSupabaseConfigured, supabase } from '@/lib/supabase';
@@ -76,20 +78,24 @@ export default function Index() {
 
   if (!initialized || !authChecked || (user && onboardingDone === null)) {
     return (
-      // Same ground and same mark as the native splash (app.config.ts), so the
-      // hand-off doesn't flash from green to beige. It used to be a beige screen
-      // with a spinner, over which the old green-stoned splash faded out — the
-      // "outdated logo" a tester reported (round 2, R2-07).
-      <View style={styles.center}>
-        <Image
-          source={require('@/assets/images/splash-icon.png')}
-          style={styles.mark}
-          resizeMode="contain"
-          accessibilityIgnoresInvertColors
-        />
-        <ActivityIndicator color={BRAND_BEIGE} />
-        <Text style={styles.label}>Preparing your space…</Text>
-      </View>
+      // Loading (redesign screen 1): the amber cairn on the Dawn ground, exactly what the native
+      // splash shows (app.config.ts: same image, same size, the ground's top colour), so the
+      // hand-off from splash to JS doesn't jump. No glow, since the native splash can only be one
+      // flat colour. The splash colour is native: it changes with the next build (next-build).
+      <DawnBackground noGlow>
+        <View style={styles.center}>
+          <Image
+            source={require('@/assets/images/splash-icon.png')}
+            style={styles.mark}
+            resizeMode="contain"
+            accessibilityIgnoresInvertColors
+          />
+          <View style={styles.status}>
+            <ActivityIndicator color={Theme.accent} />
+            <Text style={styles.label}>Preparing your space…</Text>
+          </View>
+        </View>
+      </DawnBackground>
     );
   }
 
@@ -104,23 +110,10 @@ export default function Index() {
   return <Redirect href="/(tabs)/explore" />;
 }
 
-/** Brand colours, not the UI palette — BRANDING.md §2 reserves these for the mark. */
-const BRAND_GREEN = '#33471f';
-const BRAND_BEIGE = '#f3f2ec';
-
 const styles = StyleSheet.create({
-  center: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    gap: 12,
-    backgroundColor: BRAND_GREEN,
-  },
+  center: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   mark: { width: 220, height: 220 },
-  label: {
-    color: BRAND_BEIGE,
-    fontSize: 14,
-    fontFamily: 'Inter_400Regular',
-    opacity: 0.85,
-  },
+  // Below the cairn, out of the layout, so the cairn stays exactly where the splash had it.
+  status: { position: 'absolute', top: '50%', marginTop: 130, left: 0, right: 0, alignItems: 'center', gap: 14 },
+  label: { color: '#e6dfca', fontSize: 15, fontFamily: 'Inter_400Regular' },
 });

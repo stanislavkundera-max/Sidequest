@@ -48,6 +48,10 @@ const SECTIONS: { heading: string; body: string }[] = [
       'a private bucket that only your own account can read — nobody else using the app can reach ' +
       'them. The app only opens your camera or photo library after you grant permission, and only ' +
       'for the photo you are adding.\n\n' +
+      'Feedback: if you send feedback from the app, we keep your message together with the app ' +
+      'version and your phone\'s operating system and its version, tied to your account, so we can ' +
+      'read it and improve the app. Nobody else using the app can see it, and it is deleted with ' +
+      'your account.\n\n' +
       'Usage data: basic app-usage events (e.g. "quest started," "memory saved") tied to your ' +
       'account, used only to understand how the app is used and improve it. This is first-party ' +
       'only — we do not use any third-party analytics, advertising, or cross-app tracking SDKs, ' +

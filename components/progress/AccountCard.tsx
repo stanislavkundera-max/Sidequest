@@ -1,4 +1,5 @@
 import { Ionicons } from '@expo/vector-icons';
+import Constants from 'expo-constants';
 import { useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
 import {
@@ -11,8 +12,9 @@ import {
   View,
 } from 'react-native';
 
+import { FeedbackSheet } from '@/components/feedback/FeedbackSheet';
 import { MIN_TOUCH_TARGET } from '@/constants/touchTargets';
-import { Theme } from '@/constants/Theme';
+import { Dawn, Theme } from '@/constants/Theme';
 import { alertCompat, alertTwoChoice } from '@/lib/alertCompat';
 import { resetOnboardingComplete } from '@/lib/onboarding';
 import { plainErrorMessage } from '@/lib/userFacingError';
@@ -45,7 +47,15 @@ const NOTIFICATION_OPTIONS: { value: NotificationIntensity; label: string }[] = 
 ];
 
 
+/** The re-ask of the two baseline questions is due ~3 months after they were last answered. */
+const REASK_AFTER_DAYS = 90;
+
 /**
+ * Settings (redesign screen 35) — its own screen now, opened from the gear on Progress. It was a
+ * fold-out block at the top of Progress. Grouped by use: account, you, notifications, about, then
+ * leaving; admin tools last. "Still feeling the same way?" became the "Your two questions" row
+ * (it shows, with DUE, once the re-ask is due) and Send feedback opens the feedback sheet (39).
+ *
  * Account controls.
  * - Everyone: sign out, edit onboarding preferences.
  * - Admin email only: redo onboarding, delete all progress, and a
@@ -94,9 +104,8 @@ export function AccountCard() {
     setNotificationAccess(await notificationAccessState());
   }
 
-  // Settings start folded away: they sat at the top of Progress, above everything you have done,
-  // and got in the way (Standa, round 2c, task 51).
-  const [settingsOpen, setSettingsOpen] = useState(false);
+  const [feedbackOpen, setFeedbackOpen] = useState(false);
+  const [baselineDue, setBaselineDue] = useState(false);
 
   const email = user?.email ?? null;
   const admin = isAdminEmail(email);
@@ -124,6 +133,10 @@ export function AccountCard() {
           const value = profile.notificationIntensity === 'chatty' ? 'occasional' : profile.notificationIntensity;
           setNotificationIntensity(value);
           void cacheNotificationIntensity(value);
+          if (profile.onboardingCompleted) {
+            const ageDays = (Date.now() - new Date(profile.baselineUpdatedAt).getTime()) / 86_400_000;
+            setBaselineDue(ageDays >= REASK_AFTER_DAYS);
+          }
         }
       })
       .catch((e: unknown) => {
@@ -298,382 +311,346 @@ export function AccountCard() {
   const showAdminTools = admin && !previewAsUser;
 
   return (
-    <View style={styles.card}>
-      <View style={styles.row}>
-        <Ionicons name="person-circle-outline" size={20} color={Theme.textMuted} />
-        <Text style={styles.email} numberOfLines={1}>
-          {isGuest ? 'Guest — no account yet' : (email ?? 'Signed in')}
-        </Text>
-      </View>
-
-      {isGuest ? (
-        <View style={styles.guestBlock}>
-          <Text style={styles.guestTitle}>Keep what you have done</Text>
-          <Text style={styles.guestBody}>
-            {pendingEmail
-              ? `Almost there: confirm ${pendingEmail} from the e-mail we sent, then choose a password.`
-              : "If you don't want to lose your quests and memories — on a new phone, or if you sign out — create an account. Everything you have done stays in it."}
-          </Text>
+    <View style={styles.root}>
+      {/* ACCOUNT */}
+      <Text style={styles.groupTitle}>ACCOUNT</Text>
+      <View style={[styles.group, styles.groupPadded]}>
+        <View style={styles.accountRow}>
+          <View style={styles.avatar}>
+            <Ionicons name="person-outline" size={20} color="#e6dfca" />
+          </View>
+          <View style={styles.accountText}>
+            <Text style={styles.accountTitle} numberOfLines={1}>
+              {isGuest ? 'Guest — no account yet' : (email ?? 'Signed in')}
+            </Text>
+            {isGuest ? (
+              <Text style={styles.accountHint}>
+                {pendingEmail
+                  ? `Almost there: confirm ${pendingEmail} from the e-mail we sent, then choose a password.`
+                  : 'Everything lives on this phone. An account keeps it if you get a new one.'}
+              </Text>
+            ) : null}
+          </View>
+        </View>
+        {isGuest ? (
           <Pressable
             accessibilityRole="button"
             accessibilityLabel={pendingEmail ? 'Finish creating your account' : 'Create an account'}
             onPress={() => router.push('/account/save' as never)}
-            style={({ pressed }) => [styles.guestBtn, pressed && styles.pressed]}>
-            <Text style={styles.guestBtnText}>
-              {pendingEmail ? 'Finish creating your account' : 'Create an account'}
-            </Text>
+            style={({ pressed }) => [styles.primaryBtn, pressed && styles.pressed]}>
+            <Text style={styles.primaryBtnText}>{pendingEmail ? 'Finish creating your account' : 'Create an account'}</Text>
           </Pressable>
-        </View>
+        ) : null}
+      </View>
+
+      {/* YOU */}
+      <Text style={styles.groupTitle}>YOU</Text>
+      <View style={styles.group}>
+        {baselineDue ? (
+          <SettingsRow
+            icon="help-circle-outline"
+            label="Your two questions"
+            hint="A few months since you answered — answer again to compare"
+            tag="DUE"
+            onPress={() => router.push('/onboarding?edit=1')}
+          />
+        ) : null}
+        <SettingsRow
+          icon="options-outline"
+          label="Edit my answers"
+          hint="What brings you here, how bold"
+          onPress={() => router.push('/onboarding?edit=1')}
+        />
+        <SettingsRow
+          icon="chatbox-ellipses-outline"
+          label="Send feedback"
+          hint="An idea, something broken, a quest that missed"
+          tag="NEW"
+          last
+          onPress={() => setFeedbackOpen(true)}
+        />
+      </View>
+
+      {/* NOTIFICATIONS */}
+      {notificationIntensity ? (
+        <>
+          <Text style={styles.groupTitle}>NOTIFICATIONS</Text>
+          <View style={[styles.group, styles.groupPadded]}>
+            <View style={styles.segment}>
+              {NOTIFICATION_OPTIONS.map((opt) => {
+                const selected = opt.value === notificationIntensity;
+                return (
+                  <Pressable
+                    key={opt.value}
+                    disabled={notificationBusy}
+                    accessibilityRole="button"
+                    accessibilityLabel={`Notifications: ${opt.label}`}
+                    accessibilityState={{ selected }}
+                    onPress={() => changeNotificationIntensity(opt.value)}
+                    style={({ pressed }) => [
+                      styles.segmentPill,
+                      selected && styles.segmentPillOn,
+                      pressed && !notificationBusy && styles.pressed,
+                      notificationBusy && styles.disabled,
+                    ]}>
+                    <Text style={[styles.segmentText, selected && styles.segmentTextOn]}>{opt.label}</Text>
+                  </Pressable>
+                );
+              })}
+            </View>
+            <Text style={styles.notificationHint}>
+              {notificationIntensity === 'quiet'
+                ? 'Only when a step timer ends.'
+                : "When a step timer ends, the day before a quest you planned, and an idea for a quest if you haven't opened the app for a week."}
+            </Text>
+            {notificationAccess === 'ask' || notificationAccess === 'blocked' ? (
+              <View style={styles.allowRow}>
+                <Ionicons name="notifications-off-outline" size={18} color={Theme.danger} />
+                <Text style={styles.allowText}>
+                  {notificationAccess === 'blocked' ? 'Turned off for this app on your phone.' : 'Your phone blocks them for now.'}
+                </Text>
+                <Pressable
+                  accessibilityRole="button"
+                  accessibilityLabel={
+                    notificationAccess === 'blocked' ? 'Open phone settings to allow notifications' : 'Allow notifications'
+                  }
+                  onPress={() => void allowNotifications()}
+                  style={({ pressed }) => [styles.allowBtn, pressed && styles.pressed]}>
+                  <Text style={styles.allowBtnText}>{notificationAccess === 'blocked' ? 'Settings' : 'Allow'}</Text>
+                </Pressable>
+              </View>
+            ) : null}
+          </View>
+        </>
       ) : null}
 
-      <Pressable
-        accessibilityRole="button"
-        accessibilityLabel="Settings"
-        accessibilityState={{ expanded: settingsOpen }}
-        onPress={() => setSettingsOpen((open) => !open)}
-        style={({ pressed }) => [styles.settingsRow, pressed && styles.pressed]}>
-        <Ionicons name="settings-outline" size={16} color={Theme.textMuted} />
-        <Text style={styles.settingsRowText}>Settings</Text>
-        <Ionicons
-          name={settingsOpen ? 'chevron-up' : 'chevron-down'}
-          size={16}
-          color={Theme.textMuted}
-        />
-      </Pressable>
+      {/* ABOUT */}
+      <Text style={styles.groupTitle}>ABOUT</Text>
+      <View style={styles.group}>
+        <SettingsRow icon="document-text-outline" label="Privacy Policy" onPress={() => router.push('/legal/privacy')} />
+        <SettingsRow icon="document-text-outline" label="Terms of Service" last onPress={() => router.push('/legal/terms')} />
+      </View>
 
-      {settingsOpen ? (
-        <View style={styles.settingsBody}>
-          {notificationIntensity ? (
-            <View style={styles.notificationBlock}>
-              <Text style={styles.notificationLabel}>Notifications</Text>
-              <View style={styles.notificationPills}>
-                {NOTIFICATION_OPTIONS.map((opt) => {
-                  const selected = opt.value === notificationIntensity;
-                  return (
-                    <Pressable
-                      key={opt.value}
-                      disabled={notificationBusy}
-                      accessibilityRole="button"
-                      accessibilityLabel={`Notifications: ${opt.label}`}
-                      accessibilityState={{ selected }}
-                      onPress={() => changeNotificationIntensity(opt.value)}
-                      style={({ pressed }) => [
-                        styles.notificationPill,
-                        selected && styles.notificationPillSelected,
-                        pressed && !notificationBusy && styles.pressed,
-                        notificationBusy && styles.notificationPillDisabled,
-                      ]}>
-                      <Text
-                        style={[
-                          styles.notificationPillText,
-                          selected && styles.notificationPillTextSelected,
-                        ]}>
-                        {opt.label}
-                      </Text>
-                    </Pressable>
-                  );
-                })}
-              </View>
-              <Text style={styles.notificationHint}>
-                {notificationIntensity === 'quiet'
-                  ? 'Only when a step timer ends.'
-                  : "When a step timer ends, the day before a quest you planned, and an idea for a quest if you haven't opened the app for a week."}
-              </Text>
-              {notificationAccess === 'ask' || notificationAccess === 'blocked' ? (
-                <View style={styles.allowBlock}>
-                  <Text style={styles.allowText}>
-                    {notificationAccess === 'blocked'
-                      ? 'Notifications are turned off for Side Quest Life on this phone, so none of these arrive.'
-                      : 'Your phone has not allowed notifications yet, so none of these arrive.'}
-                  </Text>
-                  <Pressable
-                    accessibilityRole="button"
-                    accessibilityLabel={
-                      notificationAccess === 'blocked'
-                        ? 'Open phone settings to allow notifications'
-                        : 'Allow notifications'
-                    }
-                    onPress={() => void allowNotifications()}
-                    style={({ pressed }) => [styles.allowBtn, pressed && styles.pressed]}>
-                    <Text style={styles.allowBtnText}>
-                      {notificationAccess === 'blocked' ? 'Open phone settings' : 'Allow notifications'}
-                    </Text>
-                  </Pressable>
-                </View>
-              ) : null}
-            </View>
-          ) : null}
+      {/* LEAVE */}
+      <View style={[styles.group, styles.groupGap]}>
+        {busy ? (
+          <View style={styles.busyRow}>
+            <ActivityIndicator color={Theme.accent} />
+          </View>
+        ) : (
+          <>
+            <SettingsRow icon="log-out-outline" label="Sign out" iconColor="#e6dfca" noChevron onPress={signOut} />
+            <SettingsRow
+              icon="trash-outline"
+              label="Delete account"
+              danger
+              last
+              noChevron
+              onPress={deleteAccount}
+            />
+          </>
+        )}
+      </View>
 
-          {busy ? (
-            <View style={styles.busyRow}>
-              <ActivityIndicator color={Theme.accent} />
-            </View>
-          ) : (
-            <View style={styles.actionsRow}>
-              <Pressable
-                accessibilityRole="button"
-                accessibilityLabel="Edit preferences"
-                onPress={() => router.push('/onboarding?edit=1')}
-                style={({ pressed }) => [styles.editBtn, pressed && styles.pressed]}>
-                <Ionicons name="options-outline" size={14} color={Theme.text} />
-                <Text style={styles.editBtnText}>Edit preferences</Text>
-              </Pressable>
-              {showAdminTools ? (
-                <>
-                  <Pressable
-                    accessibilityRole="button"
-                    accessibilityLabel="Preview as a regular user"
-                    onPress={() => togglePreview(true)}
-                    style={({ pressed }) => [styles.adminBtn, pressed && styles.pressed]}>
-                    <Ionicons name="eye-outline" size={14} color={Theme.accent} />
-                    <Text style={styles.adminBtnText}>Preview as user</Text>
-                  </Pressable>
-                  <Pressable
-                    accessibilityRole="button"
-                    accessibilityLabel="Redo onboarding"
-                    onPress={redoOnboarding}
-                    style={({ pressed }) => [styles.adminBtn, pressed && styles.pressed]}>
-                    <Ionicons name="refresh-outline" size={14} color={Theme.accent} />
-                    <Text style={styles.adminBtnText}>Redo onboarding</Text>
-                  </Pressable>
-                  <Pressable
-                    accessibilityRole="button"
-                    accessibilityLabel="Delete all progress"
-                    onPress={deleteAllProgress}
-                    style={({ pressed }) => [styles.dangerBtn, pressed && styles.pressed]}>
-                    <Ionicons name="trash-outline" size={14} color={Theme.danger} />
-                    <Text style={styles.dangerBtnText}>Delete all progress</Text>
-                  </Pressable>
-                </>
-              ) : null}
-              <Pressable
-                accessibilityRole="button"
-                accessibilityLabel="Sign out"
-                onPress={signOut}
-                style={({ pressed }) => [styles.signOutBtn, pressed && styles.pressed]}>
-                <Text style={styles.signOutBtnText}>Sign out</Text>
-              </Pressable>
-            </View>
-          )}
-
-          {admin && previewAsUser ? (
+      {/* ADMIN */}
+      {showAdminTools ? (
+        <View style={styles.admin}>
+          <Text style={styles.adminTitle}>ADMIN — ONLY YOU SEE THIS</Text>
+          <View style={styles.adminRow}>
             <Pressable
               accessibilityRole="button"
-              accessibilityLabel="Exit admin preview"
-              onPress={() => togglePreview(false)}
-              style={({ pressed }) => [styles.exitPreviewLink, pressed && styles.pressed]}>
-              <Text style={styles.exitPreviewLinkText}>Admin preview mode · Exit</Text>
+              accessibilityLabel="Preview as a regular user"
+              onPress={() => togglePreview(true)}
+              style={({ pressed }) => [styles.adminBtn, pressed && styles.pressed]}>
+              <Text style={styles.adminBtnText}>Preview as user</Text>
             </Pressable>
-          ) : null}
-
-          <View style={styles.legalRow}>
             <Pressable
-              accessibilityRole="link"
-              accessibilityLabel="Privacy Policy"
-              style={styles.legalLink}
-              onPress={() => router.push('/legal/privacy')}>
-              <Text style={styles.legalLinkText}>Privacy Policy</Text>
+              accessibilityRole="button"
+              accessibilityLabel="Redo onboarding"
+              onPress={redoOnboarding}
+              style={({ pressed }) => [styles.adminBtn, pressed && styles.pressed]}>
+              <Text style={styles.adminBtnText}>Redo onboarding</Text>
             </Pressable>
-            <Text style={styles.legalDivider}>·</Text>
             <Pressable
-              accessibilityRole="link"
-              accessibilityLabel="Terms of Service"
-              style={styles.legalLink}
-              onPress={() => router.push('/legal/terms')}>
-              <Text style={styles.legalLinkText}>Terms of Service</Text>
+              accessibilityRole="button"
+              accessibilityLabel="Delete all progress"
+              onPress={deleteAllProgress}
+              style={({ pressed }) => [styles.adminBtn, styles.adminBtnDanger, pressed && styles.pressed]}>
+              <Text style={[styles.adminBtnText, styles.adminBtnDangerText]}>Delete all progress</Text>
             </Pressable>
           </View>
-
-          {!busy ? (
-            <Pressable
-              accessibilityRole="button"
-              accessibilityLabel="Delete your account permanently"
-              onPress={deleteAccount}
-              style={({ pressed }) => [styles.deleteAccountLink, pressed && styles.pressed]}>
-              <Text style={styles.deleteAccountLinkText}>Delete account</Text>
-            </Pressable>
-          ) : null}
         </View>
       ) : null}
+      {admin && previewAsUser ? (
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel="Exit admin preview"
+          onPress={() => togglePreview(false)}
+          style={({ pressed }) => [styles.exitPreview, pressed && styles.pressed]}>
+          <Text style={styles.exitPreviewText}>Admin preview mode · Exit</Text>
+        </Pressable>
+      ) : null}
+
+      <Text style={styles.version}>Side Quest Life · version {Constants.expoConfig?.version ?? ''}</Text>
+
+      <FeedbackSheet visible={feedbackOpen} onClose={() => setFeedbackOpen(false)} source="settings" />
     </View>
   );
 }
 
+/** One row of a settings group: an icon in a soft peach square, a label, an optional hint and tag. */
+function SettingsRow({
+  icon,
+  label,
+  hint,
+  tag,
+  last = false,
+  danger = false,
+  noChevron = false,
+  iconColor,
+  onPress,
+}: {
+  icon: keyof typeof Ionicons.glyphMap;
+  label: string;
+  hint?: string;
+  tag?: string;
+  last?: boolean;
+  danger?: boolean;
+  noChevron?: boolean;
+  iconColor?: string;
+  onPress: () => void;
+}) {
+  const ink = danger ? Theme.danger : Theme.text;
+  return (
+    <Pressable
+      onPress={onPress}
+      accessibilityRole="button"
+      accessibilityLabel={hint ? `${label}. ${hint}` : label}
+      style={({ pressed }) => [styles.rowItem, !last && styles.rowDivider, pressed && styles.pressed]}>
+      <View style={styles.rowIcon}>
+        <Ionicons name={icon} size={18} color={danger ? Theme.danger : (iconColor ?? Theme.accent)} />
+      </View>
+      <View style={styles.rowText}>
+        <Text style={[styles.rowLabel, { color: ink }]}>{label}</Text>
+        {hint ? <Text style={styles.rowHint}>{hint}</Text> : null}
+      </View>
+      {tag ? (
+        <View style={styles.tag}>
+          <Text style={styles.tagText}>{tag}</Text>
+        </View>
+      ) : null}
+      {noChevron ? null : <Ionicons name="chevron-forward" size={16} color="#bfb69c" />}
+    </Pressable>
+  );
+}
+
 const styles = StyleSheet.create({
-  card: {
-    marginHorizontal: 16,
-    marginBottom: 16,
-    borderRadius: 14,
-    borderWidth: 1,
-    borderColor: Theme.border,
-    backgroundColor: Theme.surface,
-    padding: 14,
-    gap: 12,
+  root: { paddingHorizontal: 20, paddingBottom: 32 },
+  groupTitle: {
+    fontSize: 12,
+    fontFamily: 'Inter_700Bold',
+    fontWeight: '700',
+    letterSpacing: 1.6,
+    color: Theme.textMuted,
+    marginTop: 22,
+    marginBottom: 8,
+    marginHorizontal: 4,
   },
-  row: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  settingsRow: {
-    flexDirection: 'row',
+  group: {
+    borderRadius: 20,
+    backgroundColor: Dawn.card,
+    borderWidth: 1,
+    borderColor: 'rgba(246, 234, 214, 0.22)',
+    paddingHorizontal: 16,
+  },
+  groupPadded: { paddingVertical: 14 },
+  groupGap: { marginTop: 22 },
+  accountRow: { flexDirection: 'row', alignItems: 'center', gap: 12 },
+  avatar: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: 'rgba(246, 234, 214, 0.24)',
     alignItems: 'center',
-    gap: 8,
-    minHeight: MIN_TOUCH_TARGET,
+    justifyContent: 'center',
+  },
+  accountText: { flex: 1, minWidth: 0 },
+  accountTitle: { fontSize: 15, fontFamily: 'Inter_700Bold', fontWeight: '700', color: Theme.text },
+  accountHint: { marginTop: 2, fontSize: 13, lineHeight: 18, fontFamily: 'Inter_400Regular', color: Theme.textMuted },
+  primaryBtn: {
+    marginTop: 12,
+    minHeight: 46,
+    borderRadius: 23,
+    backgroundColor: Dawn.primaryFill,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  primaryBtnText: { fontSize: 15, fontFamily: 'Inter_700Bold', fontWeight: '700', color: Dawn.primaryText },
+  rowItem: { minHeight: 58, paddingVertical: 10, flexDirection: 'row', alignItems: 'center', gap: 12 },
+  rowDivider: { borderBottomWidth: 1, borderBottomColor: 'rgba(246, 234, 214, 0.14)' },
+  rowIcon: {
+    width: 34,
+    height: 34,
+    borderRadius: 11,
+    backgroundColor: 'rgba(240, 178, 122, 0.14)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  rowText: { flex: 1, minWidth: 0 },
+  rowLabel: { fontSize: 15, fontFamily: 'Inter_600SemiBold', fontWeight: '600' },
+  rowHint: { marginTop: 2, fontSize: 12, lineHeight: 16, fontFamily: 'Inter_400Regular', color: Theme.textMuted },
+  tag: { backgroundColor: Theme.accent, borderRadius: 7, paddingHorizontal: 7, paddingVertical: 3 },
+  tagText: { fontSize: 11, fontFamily: 'Inter_700Bold', fontWeight: '700', letterSpacing: 0.6, color: Theme.onAccent },
+  segment: {
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: 'rgba(27, 25, 16, 0.45)',
+    padding: 4,
+    flexDirection: 'row',
+    gap: 4,
+  },
+  segmentPill: { flex: 1, borderRadius: 18, alignItems: 'center', justifyContent: 'center' },
+  segmentPillOn: { backgroundColor: Theme.accent },
+  segmentText: { fontSize: 14, fontFamily: 'Inter_600SemiBold', fontWeight: '600', color: '#e6dfca' },
+  segmentTextOn: { fontFamily: 'Inter_700Bold', fontWeight: '700', color: Theme.onAccent },
+  notificationHint: { marginTop: 10, fontSize: 13, lineHeight: 19, fontFamily: 'Inter_400Regular', color: Theme.textMuted },
+  allowRow: {
+    marginTop: 12,
+    paddingTop: 12,
     borderTopWidth: 1,
-    borderTopColor: Theme.border,
-    paddingTop: 10,
-  },
-  settingsRowText: {
-    flex: 1,
-    fontSize: 14,
-    fontFamily: 'Inter_600SemiBold',
-    fontWeight: '600',
-    color: Theme.textMuted,
-  },
-  settingsBody: { gap: 12 },
-  email: { flex: 1, fontSize: 14, fontFamily: 'Inter_600SemiBold', fontWeight: '600', color: Theme.text },
-  guestBlock: {
-    gap: 8,
-    padding: 12,
-    borderRadius: 12,
-    backgroundColor: Theme.accentSoft,
-  },
-  guestTitle: { fontSize: 15, fontFamily: 'Inter_700Bold', fontWeight: '700', color: Theme.text },
-  guestBody: { fontSize: 14, fontFamily: 'Inter_400Regular', lineHeight: 20, color: Theme.text },
-  guestBtn: {
-    alignSelf: 'flex-start',
-    justifyContent: 'center',
-    minHeight: MIN_TOUCH_TARGET,
-    borderRadius: 999,
-    paddingVertical: 8,
-    paddingHorizontal: 16,
-    backgroundColor: Theme.accent,
-  },
-  guestBtnText: { fontSize: 14, fontFamily: 'Inter_700Bold', fontWeight: '700', color: '#ffffff' },
-  notificationBlock: { gap: 8 },
-  notificationLabel: { fontSize: 13, fontFamily: 'Inter_600SemiBold', fontWeight: '600', color: Theme.textMuted },
-  notificationPills: { flexDirection: 'row', gap: 8 },
-  notificationPill: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    minHeight: MIN_TOUCH_TARGET,
-    borderRadius: 999,
-    paddingVertical: 8,
-    borderWidth: 1,
-    borderColor: Theme.border,
-    backgroundColor: Theme.bg,
-  },
-  notificationPillSelected: {
-    borderColor: Theme.accent,
-    backgroundColor: Theme.accentSoft,
-  },
-  notificationPillDisabled: { opacity: 0.6 },
-  allowBlock: { gap: 8 },
-  allowText: { fontSize: 13, fontFamily: 'Inter_400Regular', lineHeight: 18, color: Theme.text },
-  allowBtn: {
-    alignSelf: 'flex-start',
-    justifyContent: 'center',
-    minHeight: MIN_TOUCH_TARGET,
-    borderRadius: 999,
-    paddingVertical: 8,
-    paddingHorizontal: 16,
-    backgroundColor: Theme.accent,
-  },
-  allowBtnText: { fontSize: 13, fontFamily: 'Inter_700Bold', fontWeight: '700', color: '#ffffff' },
-  notificationHint: {
-    fontSize: 12,
-    fontFamily: 'Inter_400Regular',
-    lineHeight: 17,
-    color: Theme.textMuted,
-  },
-  notificationPillText: { fontSize: 13, fontFamily: 'Inter_700Bold', fontWeight: '700', color: Theme.textMuted },
-  notificationPillTextSelected: { color: Theme.accent },
-  actionsRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
-  busyRow: { alignItems: 'center', paddingVertical: 4 },
-  editBtn: {
+    borderTopColor: 'rgba(246, 234, 214, 0.14)',
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
-    minHeight: MIN_TOUCH_TARGET,
-    gap: 6,
-    borderRadius: 999,
-    paddingVertical: 8,
-    paddingHorizontal: 14,
-    borderWidth: 1,
-    borderColor: Theme.border,
-    backgroundColor: Theme.bg,
+    gap: 10,
   },
-  editBtnText: { fontSize: 13, fontFamily: 'Inter_700Bold', fontWeight: '700', color: Theme.text },
+  allowText: { flex: 1, fontSize: 13, lineHeight: 18, fontFamily: 'Inter_400Regular', color: '#f0d2c8' },
+  allowBtn: { minHeight: 36, paddingHorizontal: 14, borderRadius: 18, backgroundColor: Dawn.primaryFill, justifyContent: 'center' },
+  allowBtnText: { fontSize: 13, fontFamily: 'Inter_700Bold', fontWeight: '700', color: Dawn.primaryText },
+  busyRow: { alignItems: 'center', paddingVertical: 18 },
+  admin: {
+    marginTop: 22,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderStyle: 'dashed',
+    borderColor: 'rgba(243, 242, 236, 0.22)',
+    padding: 14,
+  },
+  adminTitle: { fontSize: 12, fontFamily: 'Inter_700Bold', fontWeight: '700', letterSpacing: 1.4, color: '#bfb69c' },
+  adminRow: { marginTop: 10, flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   adminBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    minHeight: MIN_TOUCH_TARGET,
-    gap: 6,
-    borderRadius: 999,
-    paddingVertical: 8,
-    paddingHorizontal: 14,
+    minHeight: MIN_TOUCH_TARGET - 8,
+    paddingHorizontal: 12,
+    borderRadius: 18,
     borderWidth: 1,
-    borderColor: Theme.accent,
-    backgroundColor: Theme.accentSoft,
-  },
-  adminBtnText: { fontSize: 13, fontFamily: 'Inter_700Bold', fontWeight: '700', color: Theme.accent },
-  dangerBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    borderColor: 'rgba(243, 242, 236, 0.22)',
     justifyContent: 'center',
-    minHeight: MIN_TOUCH_TARGET,
-    gap: 6,
-    borderRadius: 999,
-    paddingVertical: 8,
-    paddingHorizontal: 14,
-    borderWidth: 1,
-    borderColor: Theme.danger,
-    backgroundColor: Theme.dangerSoft,
   },
-  dangerBtnText: { fontSize: 13, fontFamily: 'Inter_700Bold', fontWeight: '700', color: Theme.danger },
-  signOutBtn: {
-    justifyContent: 'center',
-    minHeight: MIN_TOUCH_TARGET,
-    borderRadius: 999,
-    paddingVertical: 8,
-    paddingHorizontal: 14,
-    borderWidth: 1,
-    borderColor: Theme.border,
-    backgroundColor: Theme.bg,
-  },
-  signOutBtnText: { fontSize: 13, fontFamily: 'Inter_700Bold', fontWeight: '700', color: Theme.textMuted },
-  exitPreviewLink: { alignSelf: 'flex-start', justifyContent: 'center', minHeight: MIN_TOUCH_TARGET },
-  exitPreviewLinkText: {
-    fontSize: 11,
-    fontFamily: 'Inter_600SemiBold',
-    fontWeight: '600',
-    color: Theme.textMuted,
-    textDecorationLine: 'underline',
-  },
-  legalRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  legalLink: { justifyContent: 'center', minHeight: MIN_TOUCH_TARGET },
-  legalLinkText: {
-    fontSize: 12,
-    fontFamily: 'Inter_600SemiBold',
-    fontWeight: '600',
-    color: Theme.textMuted,
-    textDecorationLine: 'underline',
-  },
-  legalDivider: { fontSize: 12, fontFamily: 'Inter_400Regular', color: Theme.textMuted },
-  // Destructive and previously the hardest thing on the screen to hit (19px).
-  // Kept visually quiet, but the tap area now meets the same floor as
-  // everything else — a mis-tap here is worse than a mis-tap anywhere.
-  deleteAccountLink: {
-    alignSelf: 'flex-start',
-    justifyContent: 'center',
-    minHeight: MIN_TOUCH_TARGET,
-    paddingRight: 8,
-  },
-  deleteAccountLinkText: {
-    fontSize: 11,
-    fontFamily: 'Inter_600SemiBold',
-    fontWeight: '600',
-    color: Theme.danger,
-    textDecorationLine: 'underline',
-  },
+  adminBtnText: { fontSize: 13, fontFamily: 'Inter_600SemiBold', fontWeight: '600', color: '#e6dfca' },
+  adminBtnDanger: { borderColor: Theme.dangerBorder },
+  adminBtnDangerText: { color: Theme.danger },
+  exitPreview: { marginTop: 12, alignSelf: 'center', minHeight: MIN_TOUCH_TARGET, justifyContent: 'center' },
+  exitPreviewText: { fontSize: 13, fontFamily: 'Inter_600SemiBold', fontWeight: '600', color: Theme.accent },
+  version: { marginTop: 22, textAlign: 'center', fontSize: 12, fontFamily: 'Inter_400Regular', color: '#a39a80' },
+  disabled: { opacity: 0.6 },
   pressed: { opacity: 0.85 },
 });

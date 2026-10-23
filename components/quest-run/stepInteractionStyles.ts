@@ -28,7 +28,7 @@ export const stepInteractionStyles = StyleSheet.create({
     fontFamily: 'Inter_400Regular',
     lineHeight: 21,
     color: Theme.text,
-    backgroundColor: Theme.bg,
+    backgroundColor: Theme.surface,
   },
   inputSingle: {
     minHeight: 46,
@@ -40,7 +40,7 @@ export const stepInteractionStyles = StyleSheet.create({
     fontSize: 15,
     fontFamily: 'Inter_400Regular',
     color: Theme.text,
-    backgroundColor: Theme.bg,
+    backgroundColor: Theme.surface,
   },
   progressTrack: {
     height: 8,
@@ -78,7 +78,7 @@ export const stepInteractionStyles = StyleSheet.create({
     borderRadius: 12,
     paddingVertical: 10,
     paddingHorizontal: 12,
-    backgroundColor: Theme.bg,
+    backgroundColor: Theme.surface,
   },
   itemIndex: { fontSize: 13, fontFamily: 'Inter_700Bold', fontWeight: '700', width: 20, textAlign: 'center' },
   itemText: { flex: 1, fontSize: 15, fontFamily: 'Inter_400Regular', color: Theme.text },

@@ -1,4 +1,7 @@
-import * as Calendar from 'expo-calendar';
+// The legacy API, by name. Since SDK 58 the same functions imported from 'expo-calendar' are stubs
+// that throw at runtime — typecheck passes, and the calendar step silently did nothing on the 1.1.0
+// preview build. Moving to the object-oriented API is a separate change.
+import * as Calendar from 'expo-calendar/legacy';
 import { Platform } from 'react-native';
 
 import { earliestUpcomingStart } from '@/src/features/quests/calendarMatch';

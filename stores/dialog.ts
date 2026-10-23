@@ -19,6 +19,12 @@ export type AppDialog = {
   title: string;
   message: string;
   buttons: AppDialogButton[];
+  /**
+   * The finished-quest moment (redesign screen 29): a sunrise with your cairn above the words,
+   * and a small badge such as "QUEST DONE · STONE 8". Plain dialogs leave both out.
+   */
+  art?: 'questDone';
+  badge?: string;
 };
 
 type DialogState = {

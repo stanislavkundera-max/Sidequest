@@ -12,7 +12,11 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { Ionicons } from '@expo/vector-icons';
+
 import { MemoryCategoryPicker } from '@/components/memory/MemoryCategoryPicker';
+import { memoryFormStyles as form } from '@/components/memory/memoryFormStyles';
+import { DawnBackground } from '@/components/ui/DawnBackground';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { ErrorState } from '@/components/ui/ErrorState';
 import { PrimaryButton } from '@/components/ui/PrimaryButton';
@@ -168,7 +172,8 @@ export default function NewMemoryScreen() {
   }
 
   return (
-    <SafeAreaView style={styles.safe} edges={['bottom']}>
+    <DawnBackground>
+    <SafeAreaView style={styles.safeClear} edges={['bottom']}>
       <ScrollView
         contentContainerStyle={styles.scroll}
         keyboardShouldPersistTaps="handled">
@@ -181,9 +186,18 @@ export default function NewMemoryScreen() {
 
         {memoryError ? <ErrorState message={memoryError} /> : null}
 
+        {/* Where the title came from, when it came from today's question (screen 31). */}
+        {typeof prompt === 'string' && prompt && !quest ? (
+          <View style={styles.fromQuestion}>
+            <Ionicons name="create-outline" size={14} color={Theme.accent} />
+            <Text style={styles.fromQuestionText}>From today's question</Text>
+          </View>
+        ) : null}
+
         <Text style={styles.label}>Title</Text>
         <TextInput
           style={styles.titleInput}
+          multiline
           placeholder={quest?.title ?? 'Memory title'}
           placeholderTextColor={Theme.textMuted}
           value={title}
@@ -207,7 +221,7 @@ export default function NewMemoryScreen() {
         {/* A quest's memory takes the quest's category; only a free-standing one gets to choose. */}
         {!quest ? (
           <>
-            <Text style={styles.label}>Category (optional)</Text>
+            <Text style={styles.label}>Place (optional)</Text>
             <MemoryCategoryPicker value={categoryId} onChange={setCategoryId} />
           </>
         ) : null}
@@ -221,9 +235,14 @@ export default function NewMemoryScreen() {
             </Pressable>
           </View>
         ) : (
-          <Pressable onPress={() => void pickImage()} style={styles.pickBtn}>
-            <Text style={styles.pickBtnText}>Choose photo</Text>
-          </Pressable>
+          <Pressable
+              onPress={() => void pickImage()}
+              accessibilityRole="button"
+              accessibilityLabel="Choose a photo"
+              style={({ pressed }) => [styles.pickBtn, pressed && { opacity: 0.8 }]}>
+              <Ionicons name="image-outline" size={20} color={Theme.accent} />
+              <Text style={styles.pickBtnText}>Choose photo</Text>
+            </Pressable>
         )}
 
         {localUri && (saving || memorySaving) ? (
@@ -239,62 +258,39 @@ export default function NewMemoryScreen() {
         />
       </ScrollView>
     </SafeAreaView>
+    </DawnBackground>
   );
 }
 
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: Theme.bg },
-  scroll: { padding: 20, paddingBottom: 40 },
-  label: {
-    fontSize: 13,
-    fontFamily: 'Inter_600SemiBold',
-    fontWeight: '600',
-    color: Theme.textMuted,
-    marginBottom: 8,
-  },
-  input: {
-    minHeight: 140,
-    borderWidth: 1,
-    borderColor: Theme.border,
-    borderRadius: 12,
-    padding: 14,
-    fontSize: 16,
-    fontFamily: 'Inter_400Regular',
-    color: Theme.text,
-    backgroundColor: Theme.surface,
-    marginBottom: 20,
-  },
-  titleInput: {
-    borderWidth: 1,
-    borderColor: Theme.border,
-    borderRadius: 12,
-    paddingHorizontal: 14,
-    paddingVertical: 12,
-    fontSize: 16,
-    fontFamily: 'Inter_400Regular',
-    color: Theme.text,
-    backgroundColor: Theme.surface,
-    marginBottom: 16,
-  },
-  pickBtn: {
+  safeClear: { flex: 1 },
+  fromQuestion: {
     alignSelf: 'flex-start',
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    borderRadius: 10,
-    backgroundColor: Theme.surface,
-    borderWidth: 1,
-    borderColor: Theme.border,
-    marginBottom: 28,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    height: 32,
+    paddingHorizontal: 12,
+    borderRadius: 16,
+    backgroundColor: Theme.accentSoft,
+    marginBottom: 18,
   },
-  pickBtnText: { color: Theme.accent, fontFamily: 'Inter_600SemiBold', fontWeight: '600' },
-  previewWrap: { marginBottom: 24 },
+  fromQuestionText: { fontSize: 13, fontFamily: 'Inter_600SemiBold', fontWeight: '600', color: Theme.text },
+  scroll: { padding: 20, paddingBottom: 40 },
+  label: form.label,
+  input: form.input,
+  titleInput: form.titleInput,
+  pickBtn: form.pickBtn,
+  pickBtnText: form.pickBtnText,
+  previewWrap: form.previewWrap,
   preview: {
     width: '100%',
     aspectRatio: 4 / 3,
     borderRadius: 12,
     backgroundColor: Theme.border,
   },
-  removePhoto: { marginTop: 8 },
-  removePhotoText: { color: Theme.danger, fontFamily: 'Inter_600SemiBold', fontWeight: '600' },
+  removePhoto: form.removePhoto,
+  removePhotoText: form.removePhotoText,
   uploadingHint: { color: Theme.textMuted, marginBottom: 10, fontSize: 13, fontFamily: 'Inter_400Regular' },
 });

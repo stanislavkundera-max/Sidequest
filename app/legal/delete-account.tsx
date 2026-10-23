@@ -65,6 +65,7 @@ const SECTIONS: { heading: string; body: string }[] = [
       'through a quest.\n\n' +
       'Every memory you saved, including its notes and any photos you attached. Photos are ' +
       'removed from storage as part of the same operation.\n\n' +
+      'Any feedback you sent from the app.\n\n' +
       'Any future goals you set.',
   },
   {

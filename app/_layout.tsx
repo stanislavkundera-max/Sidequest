@@ -5,13 +5,8 @@ import {
   Inter_600SemiBold,
   Inter_700Bold,
 } from '@expo-google-fonts/inter';
-import {
-  DarkTheme,
-  DefaultTheme,
-  ThemeProvider as NavigationThemeProvider,
-} from '@react-navigation/native';
 import { useFonts } from 'expo-font';
-import { Stack } from 'expo-router';
+import { DarkTheme, Stack, ThemeProvider as NavigationThemeProvider } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { useEffect } from 'react';
 import { AppState, Platform, StyleSheet, View, type AppStateStatus } from 'react-native';
@@ -20,7 +15,7 @@ import { StatusBar } from 'expo-status-bar';
 import { AppDialogHost } from '@/components/ui/AppDialogHost';
 import { HeaderBackButton } from '@/components/ui/HeaderBackButton';
 import 'react-native-reanimated';
-import { MD3DarkTheme, MD3LightTheme, PaperProvider } from 'react-native-paper';
+import { MD3DarkTheme, PaperProvider } from 'react-native-paper';
 
 import { Theme } from '@/constants/Theme';
 import { supabase } from '@/lib/supabase';
@@ -37,7 +32,6 @@ import { useQuestNotificationTaps } from '@/src/features/notifications/useQuestN
 import { useQuestDomainStore } from '@/src/features/quests/questStore';
 import { ensureProfileForUser } from '@/src/repositories/profilesRepository';
 import { useSessionStore } from '@/stores/session';
-import { useColorScheme } from '@/components/useColorScheme';
 
 export { ErrorBoundary } from 'expo-router';
 
@@ -47,26 +41,16 @@ export const unstable_settings = {
 
 SplashScreen.preventAutoHideAsync();
 
-const NavLight = {
-  ...DefaultTheme,
-  colors: {
-    ...DefaultTheme.colors,
-    background: Theme.bg,
-    card: Theme.surface,
-    text: Theme.text,
-    border: Theme.border,
-    primary: Theme.accent,
-  },
-};
-
-const NavDark = {
+// Dawn is one look, dark ground in both system modes: following the phone's light/dark setting
+// used to pair a dark navigation chrome with light screens. The ground is the theme's `bg`.
+const NavDawn = {
   ...DarkTheme,
   colors: {
     ...DarkTheme.colors,
-    background: '#1a1816',
-    card: '#242120',
-    text: '#f4f1ec',
-    border: '#3d3835',
+    background: Theme.bg,
+    card: Theme.bg,
+    text: Theme.text,
+    border: Theme.border,
     primary: Theme.accent,
   },
 };
@@ -112,7 +96,6 @@ export default function RootLayout() {
 }
 
 function RootLayoutNav() {
-  const colorScheme = useColorScheme();
   const setSession = useSessionStore((s) => s.setSession);
   const setInitialized = useSessionStore((s) => s.setInitialized);
   const clearQuestDomain = useQuestDomainStore((s) => s.resetDomainState);
@@ -192,7 +175,8 @@ function RootLayoutNav() {
   // keeps an app in memory for days. The same moment retries a catalogue that failed to load
   // (no signal when the app started) and picks up an account e-mail confirmed in the browser.
   useEffect(() => {
-    let previous: AppStateStatus = AppState.currentState;
+    // RN 0.88 types `currentState` as `string | null | undefined` (unknown before the first event).
+    let previous: AppStateStatus | string | null | undefined = AppState.currentState;
     const sub = AppState.addEventListener('change', (next) => {
       // From the background only: iOS passes through 'inactive' for a pulled-down control centre.
       const cameBack = previous === 'background' && next === 'active';
@@ -206,13 +190,10 @@ function RootLayoutNav() {
     return () => sub.remove();
   }, []);
 
-  const navTheme = colorScheme === 'dark' ? NavDark : NavLight;
-  const paperTheme = colorScheme === 'dark' ? MD3DarkTheme : MD3LightTheme;
-
   const inner = (
-    <PaperProvider theme={paperTheme}>
-      <NavigationThemeProvider value={navTheme}>
-        <StatusBar style={colorScheme === 'dark' ? 'light' : 'dark'} />
+    <PaperProvider theme={MD3DarkTheme}>
+      <NavigationThemeProvider value={NavDawn}>
+        <StatusBar style="light" />
         {/* Every screen with a header gets a back control that works even when
             the stack is empty behind it — see HeaderBackButton for why the
             default one is not enough. Screens whose natural home is not the
@@ -225,6 +206,8 @@ function RootLayoutNav() {
             // system font — Roboto on Android — next to Inter everywhere else.
             // One family throughout (R2-20).
             headerTitleStyle: { fontFamily: 'Inter_600SemiBold', fontWeight: '600' },
+            // Dawn: the header is part of the ground, no rule under it.
+            headerShadowVisible: false,
           }}>
           <Stack.Screen name="index" options={{ headerShown: false }} />
           <Stack.Screen

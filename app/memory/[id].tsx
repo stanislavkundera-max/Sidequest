@@ -14,10 +14,13 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { MemoryCategoryPicker } from '@/components/memory/MemoryCategoryPicker';
+import { memoryFormStyles as form } from '@/components/memory/memoryFormStyles';
+import { CategoryTag, categoryKeyForId } from '@/components/ui/CategoryTag';
+import { DawnBackground } from '@/components/ui/DawnBackground';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { LoadingState } from '@/components/ui/LoadingState';
 import { PrimaryButton } from '@/components/ui/PrimaryButton';
-import { Theme } from '@/constants/Theme';
+import { Dawn, Theme } from '@/constants/Theme';
 import { alertCompat, alertTwoChoice } from '@/lib/alertCompat';
 import { plainErrorMessage } from '@/lib/userFacingError';
 import { categoryAccentForCategoryId } from '@/lib/categoryAccent';
@@ -217,11 +220,13 @@ export default function MemoryDetailScreen() {
 
   if (editing) {
     return (
-      <SafeAreaView style={styles.safe} edges={['bottom']}>
+      <DawnBackground>
+      <SafeAreaView style={styles.safeClear} edges={['bottom']}>
         <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
           <Text style={styles.label}>Title</Text>
           <TextInput
             style={styles.titleInput}
+            multiline
             placeholder="Memory title"
             placeholderTextColor={Theme.textMuted}
             value={title}
@@ -241,7 +246,7 @@ export default function MemoryDetailScreen() {
 
           {!memory.questId ? (
             <>
-              <Text style={styles.label}>Category (optional)</Text>
+              <Text style={styles.label}>Place (optional)</Text>
               <MemoryCategoryPicker value={categoryId} onChange={setCategoryId} />
             </>
           ) : null}
@@ -255,7 +260,12 @@ export default function MemoryDetailScreen() {
               </Pressable>
             </View>
           ) : (
-            <Pressable onPress={() => void pickImage()} style={styles.pickBtn}>
+            <Pressable
+              onPress={() => void pickImage()}
+              accessibilityRole="button"
+              accessibilityLabel="Choose a photo"
+              style={({ pressed }) => [styles.pickBtn, pressed && { opacity: 0.8 }]}>
+              <Ionicons name="image-outline" size={20} color={Theme.accent} />
               <Text style={styles.pickBtnText}>Choose photo</Text>
             </Pressable>
           )}
@@ -270,12 +280,19 @@ export default function MemoryDetailScreen() {
           </Pressable>
         </ScrollView>
       </SafeAreaView>
+      </DawnBackground>
     );
   }
 
+  const ownKey = !quest && ownCategory ? categoryKeyForId(ownCategory.id) : null;
   return (
-    <SafeAreaView style={styles.safe} edges={['bottom']}>
+    <DawnBackground>
+    <SafeAreaView style={styles.safeClear} edges={['bottom']}>
       <ScrollView contentContainerStyle={styles.scroll}>
+        {/* Dawn (screen 32): your photo leads, then when, the title, where it came from. */}
+        {memory.photoUri ? (
+          <Image source={{ uri: memory.photoUri }} style={styles.image} resizeMode="cover" />
+        ) : null}
         {isJustSaved ? (
           <View style={styles.savedBanner}>
             <Ionicons name="checkmark-circle" size={20} color={Theme.accent} />
@@ -291,15 +308,24 @@ export default function MemoryDetailScreen() {
         </Text>
         {memory.title ? <Text style={styles.title}>{memory.title}</Text> : null}
         {quest ? (
-          <Text style={styles.questContext}>From quest: {quest.title}</Text>
-        ) : ownCategory ? (
-          <Text
-            style={[styles.questContext, { color: categoryAccentForCategoryId(ownCategory.id) }]}>
-            {ownCategory.name}
-          </Text>
-        ) : null}
-        {memory.photoUri ? (
-          <Image source={{ uri: memory.photoUri }} style={styles.image} resizeMode="contain" />
+          <Pressable
+            accessibilityRole="link"
+            accessibilityLabel={`From quest: ${quest.title}. Open the quest`}
+            onPress={() => router.push(`/quest/${quest.id}`)}
+            style={({ pressed }) => [
+              styles.questChip,
+              { backgroundColor: categoryAccentForCategoryId(quest.categoryId) },
+              pressed && styles.pressed,
+            ]}>
+            <Ionicons name="leaf-outline" size={13} color="#ffffff" />
+            <Text style={styles.questChipText} numberOfLines={1}>
+              From quest: {quest.title}
+            </Text>
+          </Pressable>
+        ) : ownKey ? (
+          <View style={styles.ownTag}>
+            <CategoryTag category={ownKey} />
+          </View>
         ) : null}
         <Text style={styles.body}>{memory.body}</Text>
 
@@ -313,6 +339,7 @@ export default function MemoryDetailScreen() {
             accessibilityLabel="Edit memory"
             onPress={startEditing}
             style={({ pressed }) => [styles.editBtn, pressed && styles.pressed]}>
+            <Ionicons name="create-outline" size={18} color={Theme.text} />
             <Text style={styles.editBtnText}>Edit</Text>
           </Pressable>
           <Pressable
@@ -325,16 +352,19 @@ export default function MemoryDetailScreen() {
               deleting && styles.disabled,
               pressed && !deleting && styles.pressed,
             ]}>
+            <Ionicons name="trash-outline" size={18} color={Theme.danger} />
             <Text style={styles.deleteBtnText}>{deleting ? 'Deleting…' : 'Delete'}</Text>
           </Pressable>
         </View>
       </ScrollView>
     </SafeAreaView>
+    </DawnBackground>
   );
 }
 
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: Theme.bg },
+  safeClear: { flex: 1 },
   scroll: { padding: 20, paddingBottom: 40 },
   savedBanner: {
     flexDirection: 'row',
@@ -346,29 +376,46 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
     marginBottom: 18,
   },
-  savedBannerText: { fontSize: 15, fontFamily: 'Inter_700Bold', fontWeight: '700', color: Theme.accent },
-  date: { fontSize: 13, fontFamily: 'Inter_400Regular', color: Theme.textMuted, marginBottom: 16 },
+  savedBannerText: { fontSize: 15, fontFamily: 'Inter_700Bold', fontWeight: '700', color: Theme.text },
+  date: { fontSize: 13, fontFamily: 'Inter_400Regular', color: Theme.textMuted, marginBottom: 8 },
   title: {
-    fontSize: 20,
+    fontSize: 28,
+    lineHeight: 33,
     fontFamily: 'Inter_700Bold',
     fontWeight: '700',
+    letterSpacing: -0.4,
     color: Theme.text,
-    marginBottom: 16,
+    marginBottom: 12,
   },
   image: {
     width: '100%',
     aspectRatio: 4 / 3,
-    borderRadius: 12,
+    borderRadius: 20,
     marginBottom: 20,
-    backgroundColor: Theme.border,
+    backgroundColor: Theme.surface,
   },
+  questChip: {
+    alignSelf: 'flex-start',
+    maxWidth: '100%',
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    minHeight: 32,
+    paddingHorizontal: 12,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: 'rgba(246, 234, 214, 0.55)',
+    marginBottom: 16,
+  },
+  questChipText: { flexShrink: 1, fontSize: 13, fontFamily: 'Inter_600SemiBold', fontWeight: '600', color: '#ffffff' },
+  ownTag: { marginBottom: 16 },
   questContext: {
     marginBottom: 14,
     color: Theme.textMuted,
     fontSize: 14,
     fontFamily: 'Inter_400Regular',
   },
-  body: { fontSize: 18, fontFamily: 'Inter_400Regular', lineHeight: 28, color: Theme.text },
+  body: { fontSize: 17, fontFamily: 'Inter_400Regular', lineHeight: 27, color: '#e8e1cc', marginBottom: 24 },
   actionsRow: {
     flexDirection: 'row',
     gap: 10,
@@ -377,70 +424,31 @@ const styles = StyleSheet.create({
   editBtn: {
     flex: 1,
     alignItems: 'center',
+    gap: 4,
     paddingVertical: 14,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: Theme.border,
-    backgroundColor: Theme.surface,
+    borderRadius: 18,
+    backgroundColor: Dawn.card,
   },
   editBtnText: { fontSize: 15, fontFamily: 'Inter_600SemiBold', fontWeight: '600', color: Theme.text },
   deleteBtn: {
     flex: 1,
     alignItems: 'center',
+    gap: 4,
     paddingVertical: 14,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: Theme.danger,
-    backgroundColor: Theme.dangerSoft,
+    borderRadius: 18,
+    backgroundColor: Dawn.card,
   },
   deleteBtnText: { fontSize: 15, fontFamily: 'Inter_600SemiBold', fontWeight: '600', color: Theme.danger },
   pressed: { opacity: 0.85 },
   disabled: { opacity: 0.55 },
-  label: {
-    fontSize: 13,
-    fontFamily: 'Inter_600SemiBold',
-    fontWeight: '600',
-    color: Theme.textMuted,
-    marginBottom: 8,
-  },
-  input: {
-    minHeight: 140,
-    borderWidth: 1,
-    borderColor: Theme.border,
-    borderRadius: 12,
-    padding: 14,
-    fontSize: 16,
-    fontFamily: 'Inter_400Regular',
-    color: Theme.text,
-    backgroundColor: Theme.surface,
-    marginBottom: 20,
-  },
-  titleInput: {
-    borderWidth: 1,
-    borderColor: Theme.border,
-    borderRadius: 12,
-    paddingHorizontal: 14,
-    paddingVertical: 12,
-    fontSize: 16,
-    fontFamily: 'Inter_400Regular',
-    color: Theme.text,
-    backgroundColor: Theme.surface,
-    marginBottom: 16,
-  },
-  pickBtn: {
-    alignSelf: 'flex-start',
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    borderRadius: 10,
-    backgroundColor: Theme.surface,
-    borderWidth: 1,
-    borderColor: Theme.border,
-    marginBottom: 28,
-  },
-  pickBtnText: { color: Theme.accent, fontFamily: 'Inter_600SemiBold', fontWeight: '600' },
-  previewWrap: { marginBottom: 24 },
-  removePhoto: { marginTop: 8 },
-  removePhotoText: { color: Theme.danger, fontFamily: 'Inter_600SemiBold', fontWeight: '600' },
+  label: form.label,
+  input: form.input,
+  titleInput: form.titleInput,
+  pickBtn: form.pickBtn,
+  pickBtnText: form.pickBtnText,
+  previewWrap: form.previewWrap,
+  removePhoto: form.removePhoto,
+  removePhotoText: form.removePhotoText,
   cancelLink: { alignSelf: 'center', paddingVertical: 14 },
   cancelLinkText: { fontSize: 15, fontFamily: 'Inter_600SemiBold', fontWeight: '600', color: Theme.textMuted },
 });

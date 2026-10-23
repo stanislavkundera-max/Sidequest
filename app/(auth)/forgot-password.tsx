@@ -1,5 +1,6 @@
 import { useRouter } from 'expo-router';
 import { useRef, useState } from 'react';
+import { Ionicons } from '@expo/vector-icons';
 import {
   KeyboardAvoidingView,
   Platform,
@@ -8,12 +9,14 @@ import {
   StyleSheet,
   Text,
   TextInput,
+  View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { AUTH_PLACEHOLDER, authStyles } from '@/components/auth/authStyles';
+import { DawnBackground } from '@/components/ui/DawnBackground';
 import { PrimaryButton } from '@/components/ui/PrimaryButton';
-import { Theme } from '@/constants/Theme';
-import { MIN_TOUCH_TARGET } from '@/constants/touchTargets';
+import { Dawn, Theme } from '@/constants/Theme';
 import { alertCompat } from '@/lib/alertCompat';
 import { formatAuthErrorForUi } from '@/lib/authErrors';
 import {
@@ -212,176 +215,192 @@ export default function ForgotPasswordScreen() {
     router.replace('/(auth)/sign-in');
   }
 
+  // 13 · Reset your password (canvas screen 13).
   return (
-    <SafeAreaView style={styles.safe} edges={['top', 'bottom']}>
-      <KeyboardAvoidingView
-        style={styles.flex}
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-        <ScrollView
-          contentContainerStyle={styles.inner}
-          keyboardShouldPersistTaps="handled">
-          <Text style={styles.title}>Reset your password</Text>
-          <Text style={styles.sub}>
-            {phase === 'request'
-              ? 'We will email you a short code to confirm it is you.'
-              : 'Enter the code we emailed you, then pick a new password.'}
-          </Text>
-
-          {formError ? <Text style={styles.bannerError}>{formError}</Text> : null}
-          {formInfo ? <Text style={styles.bannerInfo}>{formInfo}</Text> : null}
-
-          <Text style={styles.label}>Email</Text>
-          <TextInput
-            style={[styles.input, phase === 'verify' && styles.inputLocked]}
-            autoCapitalize="none"
-            keyboardType="email-address"
-            autoComplete="email"
-            editable={phase === 'request' && !loading}
-            value={email}
-            onChangeText={setEmail}
-            placeholder="you@example.com"
-            placeholderTextColor={Theme.textMuted}
-          />
-
-          {phase === 'verify' ? (
-            <>
-              <Text style={styles.label}>Code from the email</Text>
-              <TextInput
-                style={styles.input}
-                keyboardType="number-pad"
-                autoComplete="one-time-code"
-                textContentType="oneTimeCode"
-                maxLength={10}
-                value={code}
-                onChangeText={setCode}
-                placeholder="123456"
-                placeholderTextColor={Theme.textMuted}
-              />
-
-              <Text style={styles.label}>New password</Text>
-              <TextInput
-                style={styles.input}
-                secureTextEntry
-                autoComplete="new-password"
-                value={password}
-                onChangeText={setPassword}
-                placeholder={'At least ' + MIN_PASSWORD_LENGTH + ' characters'}
-                placeholderTextColor={Theme.textMuted}
-              />
-
-              <Text style={styles.label}>Repeat new password</Text>
-              <TextInput
-                style={styles.input}
-                secureTextEntry
-                autoComplete="new-password"
-                value={confirmPassword}
-                onChangeText={setConfirmPassword}
-                placeholder="••••••••"
-                placeholderTextColor={Theme.textMuted}
-              />
-            </>
-          ) : null}
-
-          <PrimaryButton
-            label={phase === 'request' ? 'Send me a code' : 'Set new password'}
-            loading={loading}
-            disabled={!configured}
-            onPress={phase === 'request' ? () => sendCode(false) : submitNewPassword}
-          />
-
-          {phase === 'verify' ? (
-            <>
-              <Pressable
-                accessibilityRole="button"
-                accessibilityLabel="Send a new code"
-                onPress={() => sendCode(true)}
-                disabled={loading}
-                style={styles.linkWrap}>
-                <Text style={styles.link}>Didn&apos;t get a code? Send another</Text>
-              </Pressable>
-
-              <Pressable
-                accessibilityRole="button"
-                accessibilityLabel="Start over with a different email address"
-                onPress={useDifferentEmail}
-                disabled={loading}
-                style={styles.linkWrap}>
-                <Text style={styles.link}>Use a different email</Text>
-              </Pressable>
-            </>
-          ) : null}
-
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel="Back to sign in"
-            onPress={backToSignIn}
-            disabled={loading}
-            style={styles.linkWrap}>
-            <Text style={styles.link}>Back to sign in</Text>
-          </Pressable>
-
-          {!configured ? (
-            <Text style={styles.hint}>
-              Configure Supabase env vars to enable this.
+    <DawnBackground>
+      <SafeAreaView style={styles.safe} edges={['top', 'bottom']}>
+        <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+          <ScrollView contentContainerStyle={styles.inner} keyboardShouldPersistTaps="handled">
+            <Pressable
+              onPress={backToSignIn}
+              disabled={loading}
+              accessibilityRole="button"
+              accessibilityLabel="Back to sign in"
+              style={styles.round}>
+              <Ionicons name="chevron-back" size={20} color={Theme.text} />
+            </Pressable>
+            <Text style={[styles.title, styles.titleGap]} accessibilityRole="header">
+              Reset your password
             </Text>
-          ) : null}
-        </ScrollView>
-      </KeyboardAvoidingView>
-    </SafeAreaView>
+            <Text style={styles.sub}>
+              {phase === 'request'
+                ? 'We will email you a short code to confirm it is you.'
+                : 'Enter the code we emailed you, then pick a new password.'}
+            </Text>
+
+            {/* Two steps: the e-mail, then the code and the new password. */}
+            <View style={styles.steps} accessibilityLabel={`Step ${phase === 'request' ? 1 : 2} of 2`}>
+              <View style={styles.step}>
+                <View style={[styles.stepDot, phase === 'verify' ? styles.stepDotDone : styles.stepDotOn]}>
+                  {phase === 'verify' ? (
+                    <Ionicons name="checkmark" size={13} color={Dawn.primaryText} />
+                  ) : (
+                    <Text style={styles.stepNum}>1</Text>
+                  )}
+                </View>
+                <Text style={[styles.stepLabel, phase === 'request' && styles.stepLabelOn]}>Email</Text>
+              </View>
+              <View style={[styles.stepLine, phase === 'verify' && styles.stepLineOn]} />
+              <View style={styles.step}>
+                <View style={[styles.stepDot, phase === 'verify' && styles.stepDotOn]}>
+                  <Text style={styles.stepNum}>2</Text>
+                </View>
+                <Text style={[styles.stepLabel, phase === 'verify' && styles.stepLabelOn]}>New password</Text>
+              </View>
+            </View>
+
+            {formError ? <Text style={styles.bannerError}>{formError}</Text> : null}
+            {formInfo ? <Text style={styles.bannerInfo}>{formInfo}</Text> : null}
+
+            {phase === 'request' ? (
+              <>
+                <Text style={styles.label}>Email</Text>
+                <TextInput
+                  style={styles.input}
+                  autoCapitalize="none"
+                  keyboardType="email-address"
+                  autoComplete="email"
+                  editable={!loading}
+                  value={email}
+                  onChangeText={setEmail}
+                  placeholder="you@example.com"
+                  placeholderTextColor={AUTH_PLACEHOLDER}
+                />
+              </>
+            ) : (
+              <>
+                <View style={styles.sentTo}>
+                  <Ionicons name="mail-outline" size={18} color={Theme.textMuted} />
+                  <Text style={styles.sentToText} numberOfLines={1}>
+                    {email.trim()}
+                  </Text>
+                  <Pressable
+                    accessibilityRole="button"
+                    accessibilityLabel="Start over with a different email address"
+                    onPress={useDifferentEmail}
+                    disabled={loading}
+                    hitSlop={12}>
+                    <Text style={styles.link}>Change</Text>
+                  </Pressable>
+                </View>
+
+                <Text style={styles.label}>Code from the email</Text>
+                <TextInput
+                  style={[styles.input, styles.inputCode]}
+                  keyboardType="number-pad"
+                  autoComplete="one-time-code"
+                  textContentType="oneTimeCode"
+                  maxLength={10}
+                  value={code}
+                  onChangeText={setCode}
+                  placeholder="6-digit code"
+                  placeholderTextColor={AUTH_PLACEHOLDER}
+                />
+
+                <Text style={styles.label}>New password</Text>
+                <TextInput
+                  style={styles.input}
+                  secureTextEntry
+                  autoComplete="new-password"
+                  value={password}
+                  onChangeText={setPassword}
+                  placeholder={'At least ' + MIN_PASSWORD_LENGTH + ' characters'}
+                  placeholderTextColor={AUTH_PLACEHOLDER}
+                />
+
+                <Text style={styles.label}>Repeat new password</Text>
+                <TextInput
+                  style={styles.input}
+                  secureTextEntry
+                  autoComplete="new-password"
+                  value={confirmPassword}
+                  onChangeText={setConfirmPassword}
+                  placeholder="••••••••"
+                  placeholderTextColor={AUTH_PLACEHOLDER}
+                />
+              </>
+            )}
+
+            <View style={styles.actions}>
+              <PrimaryButton
+                label={phase === 'request' ? 'Send me a code' : 'Set new password'}
+                loading={loading}
+                disabled={!configured}
+                onPress={phase === 'request' ? () => sendCode(false) : submitNewPassword}
+              />
+            </View>
+
+            <View style={styles.links}>
+              {phase === 'verify' ? (
+                <Pressable
+                  accessibilityRole="button"
+                  accessibilityLabel="Send a new code"
+                  onPress={() => sendCode(true)}
+                  disabled={loading}
+                  style={styles.linkWrap}>
+                  <Text style={styles.link}>Didn&apos;t get a code? Send another</Text>
+                </Pressable>
+              ) : null}
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel="Back to sign in"
+                onPress={backToSignIn}
+                disabled={loading}
+                style={styles.linkWrap}>
+                <Text style={styles.linkBack}>Back to sign in</Text>
+              </Pressable>
+            </View>
+
+            {!configured ? <Text style={styles.hint}>Configure Supabase env vars to enable this.</Text> : null}
+          </ScrollView>
+        </KeyboardAvoidingView>
+      </SafeAreaView>
+    </DawnBackground>
   );
 }
 
-const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: Theme.bg },
-  flex: { flex: 1 },
-  inner: {
-    flexGrow: 1,
-    paddingHorizontal: 24,
-    paddingVertical: 24,
-    justifyContent: 'center',
-  },
-  title: { fontSize: 26, fontFamily: 'Inter_700Bold', fontWeight: '700', color: Theme.text, marginBottom: 8 },
-  sub: { fontSize: 16, fontFamily: 'Inter_400Regular', lineHeight: 24, color: Theme.textMuted, marginBottom: 16 },
-  bannerError: {
-    backgroundColor: Theme.dangerSoft,
-    color: Theme.danger,
-    padding: 12,
-    borderRadius: 10,
-    marginBottom: 16,
-    fontSize: 14,
-    fontFamily: 'Inter_400Regular',
-    lineHeight: 20,
-  },
-  bannerInfo: {
-    backgroundColor: Theme.accentSoft,
-    color: Theme.accent,
-    padding: 12,
-    borderRadius: 10,
-    marginBottom: 16,
-    fontSize: 14,
-    fontFamily: 'Inter_400Regular',
-    lineHeight: 20,
-  },
-  label: { fontSize: 13, fontFamily: 'Inter_600SemiBold', fontWeight: '600', color: Theme.textMuted, marginBottom: 6 },
-  input: {
-    borderWidth: 1,
-    borderColor: Theme.border,
-    borderRadius: 10,
-    paddingHorizontal: 14,
-    paddingVertical: 12,
-    fontSize: 16,
-    fontFamily: 'Inter_400Regular',
-    color: Theme.text,
-    backgroundColor: Theme.surface,
-    marginBottom: 16,
-  },
-  inputLocked: { opacity: 0.6 },
-  linkWrap: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    minHeight: MIN_TOUCH_TARGET,
-    marginTop: 8,
-  },
-  link: { color: Theme.accent, fontSize: 15, fontFamily: 'Inter_400Regular' },
-  hint: { marginTop: 24, textAlign: 'center', color: Theme.danger, fontSize: 14, fontFamily: 'Inter_400Regular' },
-});
+const styles = {
+  ...authStyles,
+  ...StyleSheet.create({
+    titleGap: { marginTop: 20 },
+    steps: { flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 20 },
+    step: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+    stepDot: {
+      width: 22,
+      height: 22,
+      borderRadius: 11,
+      borderWidth: 2,
+      borderColor: 'rgba(246, 234, 214, 0.4)',
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    stepDotOn: { borderColor: '#e0823d' },
+    stepDotDone: { borderColor: '#e0823d', backgroundColor: '#e0823d' },
+    stepNum: { fontSize: 11, fontFamily: 'Inter_700Bold', fontWeight: '700', color: Theme.text },
+    stepLabel: { fontSize: 13, fontFamily: 'Inter_600SemiBold', fontWeight: '600', color: '#d9d1ba' },
+    stepLabelOn: { color: Theme.text },
+    stepLine: { flex: 1, height: 2, borderRadius: 1, backgroundColor: 'rgba(246, 234, 214, 0.25)' },
+    stepLineOn: { backgroundColor: '#e0823d' },
+    sentTo: {
+      height: 52,
+      borderRadius: 16,
+      backgroundColor: 'rgba(243, 242, 236, 0.05)',
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 10,
+      paddingHorizontal: 16,
+      marginBottom: 14,
+    },
+    sentToText: { flex: 1, fontSize: 15, fontFamily: 'Inter_400Regular', color: '#e6dfca' },
+  }),
+};

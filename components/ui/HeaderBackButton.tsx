@@ -42,12 +42,23 @@ export function HeaderBackButton({
         else router.replace(fallback as never);
       }}
       style={({ pressed }) => [styles.btn, pressed && styles.pressed]}>
-      <Ionicons name="chevron-back" size={24} color={Theme.text} />
+      <Ionicons name="chevron-back" size={22} color={Theme.text} />
     </Pressable>
   );
 }
 
 const styles = StyleSheet.create({
-  btn: { paddingHorizontal: 4, paddingVertical: 4 },
+  // Dawn: a round dark button with a faint rim, so it reads on a sky header as well as on the
+  // ground (canvas screens 19–21, 23–28).
+  btn: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'rgba(27, 25, 16, 0.55)',
+    borderWidth: 1,
+    borderColor: 'rgba(243, 242, 236, 0.22)',
+  },
   pressed: { opacity: 0.6 },
 });
