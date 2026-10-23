@@ -13,7 +13,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   // depend on whichever account happens to be logged in — the CLI offers both
   // `sidequestlife` and the auto-created `sidequestlifes-team` organization.
   owner: 'sidequestlife',
-  version: '1.0.0',
+  version: '1.1.0',
   // Over-the-air updates (R2-30). JavaScript-only changes — copy, screens,
   // logic — reach testers in minutes through `eas update`, instead of a full
   // build plus a Play review that Google states can take up to 7 days.
