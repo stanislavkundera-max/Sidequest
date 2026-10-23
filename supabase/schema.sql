@@ -126,6 +126,19 @@ create table if not exists public.analytics_events (
   occurred_at timestamptz not null default now()
 );
 
+-- Feedback sent from the app (task 60). Insert-only for the person; read in the dashboard.
+-- Deleted with the account. Standalone migration: app_feedback.sql.
+create table if not exists public.app_feedback (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null default auth.uid() references auth.users (id) on delete cascade,
+  message text not null check (char_length(btrim(message)) between 1 and 4000),
+  source text not null check (source in ('settings', 'prompt')),
+  app_version text,
+  platform text,
+  os_version text,
+  created_at timestamptz not null default now()
+);
+
 create index if not exists user_quests_user_status_idx
   on public.user_quests (user_id, status);
 create index if not exists user_quests_user_started_idx
@@ -148,6 +161,7 @@ alter table public.user_quests enable row level security;
 alter table public.memory_entries enable row level security;
 alter table public.future_goals enable row level security;
 alter table public.analytics_events enable row level security;
+alter table public.app_feedback enable row level security;
 
 drop policy if exists "profiles_select_own" on public.profiles;
 create policy "profiles_select_own"
@@ -213,6 +227,12 @@ create policy "analytics_events_select_own"
   on public.analytics_events for select
   to authenticated
   using (auth.uid() = user_id);
+
+drop policy if exists "app_feedback_insert_own" on public.app_feedback;
+create policy "app_feedback_insert_own"
+  on public.app_feedback for insert
+  to authenticated
+  with check (auth.uid() = user_id);
 
 create or replace function public.handle_new_user_profile()
 returns trigger

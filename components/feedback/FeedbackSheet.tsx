@@ -1,14 +1,15 @@
 import { Ionicons } from '@expo/vector-icons';
-import Constants from 'expo-constants';
-import { useState } from 'react';
-import { Linking, Modal, Platform, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+import { useEffect, useState } from 'react';
+import { ActivityIndicator, Modal, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 
 import { gradientStyle } from '@/components/ui/DawnBackground';
-import { LEGAL_CONTACT_EMAIL } from '@/constants/legal';
 import { Dawn, Theme } from '@/constants/Theme';
-import { alertCompat } from '@/lib/alertCompat';
+import { plainErrorMessage } from '@/lib/userFacingError';
 import { recordFeedbackSent } from '@/src/features/feedback/feedbackPrompt';
 import { trackEvent } from '@/src/lib/analytics';
+import { logError } from '@/src/lib/monitoring/errorLogger';
+import { sendAppFeedback } from '@/src/repositories/feedbackRepository';
+import { useSessionStore } from '@/stores/session';
 
 type Props = {
   visible: boolean;
@@ -25,32 +26,50 @@ const CARD_BG = `radial-gradient(90% 60% at 100% 100%, rgba(240, 150, 120, 0.22)
  * front, in his own voice, so it reads as an invitation, not a nag. Sending from either place
  * stops the pop-up from asking again.
  *
- * Send hands the text to the phone's mail app, addressed to the app's inbox with the version and
- * platform added — no server needed, so it ships over the air. If no mail app opens, the address
- * is shown so the words are not lost.
+ * Send stores the message straight away (`app_feedback`, read in the Supabase dashboard) with the
+ * app version and platform. It used to open the phone's mail app, so people had to send it from
+ * their own address (Standa, 1.1.0 phone test). Offline, the text stays and the sheet says so.
  */
 export function FeedbackSheet({ visible, onClose, source }: Props) {
+  const userId = useSessionStore((s) => s.user?.id ?? null);
   const [text, setText] = useState('');
+  const [status, setStatus] = useState<'idle' | 'sending' | 'sent'>('idle');
+  const [failure, setFailure] = useState<string | null>(null);
+
+  // Each opening starts fresh; an unsent text is kept.
+  useEffect(() => {
+    if (!visible) return;
+    setStatus('idle');
+    setFailure(null);
+  }, [visible]);
 
   async function send() {
-    const version = Constants.expoConfig?.version ?? 'unknown';
-    const body = `${text.trim()}\n\n—\nSide Quest Life ${version} · ${Platform.OS} ${String(Platform.Version)}`;
-    const url = `mailto:${LEGAL_CONTACT_EMAIL}?subject=${encodeURIComponent('Side Quest Life feedback')}&body=${encodeURIComponent(body)}`;
-    trackEvent('feedback_sent', { sourceScreen: source }).catch(() => undefined);
+    if (!userId || !text.trim() || status === 'sending') return;
+    setStatus('sending');
+    setFailure(null);
     try {
-      await Linking.openURL(url);
-      setText('');
+      await sendAppFeedback({ userId, message: text, source });
+      trackEvent('feedback_sent', { sourceScreen: source }).catch(() => undefined);
       void recordFeedbackSent();
-      onClose('sent');
-    } catch {
-      alertCompat('No mail app opened', `Write to ${LEGAL_CONTACT_EMAIL} — your text is still here.`);
+      setText('');
+      setStatus('sent');
+    } catch (e: unknown) {
+      logError('feedback.send', e, { source });
+      setFailure(plainErrorMessage(e, "That didn't go through. Try again in a moment."));
+      setStatus('idle');
     }
   }
 
   function dismiss() {
+    if (status === 'sent') {
+      onClose('sent');
+      return;
+    }
     trackEvent('feedback_dismissed', { sourceScreen: source }).catch(() => undefined);
     onClose('dismissed');
   }
+
+  const canSend = !!userId && !!text.trim() && status !== 'sending';
 
   return (
     <Modal transparent visible={visible} animationType="fade" onRequestClose={dismiss}>
@@ -60,34 +79,62 @@ export function FeedbackSheet({ visible, onClose, source }: Props) {
             <Ionicons name="chatbox-ellipses-outline" size={24} color={Dawn.primaryText} />
           </View>
           <Text style={styles.title} accessibilityRole="header">
-            Help me make this better for you
+            {status === 'sent' ? 'Thank you' : 'Help me make this better for you'}
           </Text>
-          <Text style={styles.body}>
-            What would make your side quests better? An idea, something that got in your way, a quest
-            that missed. I read every message, and the next updates are built from them.
-          </Text>
-          <Text style={styles.signature}>— Standa, who makes Side Quest Life</Text>
-          <TextInput
-            value={text}
-            onChangeText={setText}
-            multiline
-            textAlignVertical="top"
-            placeholder="What would make it better for you?"
-            placeholderTextColor={Theme.textMuted}
-            style={styles.input}
-            accessibilityLabel="Your feedback"
-          />
-          <Pressable
-            onPress={() => void send()}
-            disabled={!text.trim()}
-            accessibilityRole="button"
-            accessibilityState={{ disabled: !text.trim() }}
-            style={({ pressed }) => [styles.send, !text.trim() && styles.disabled, pressed && styles.pressed]}>
-            <Text style={styles.sendText}>Send</Text>
-          </Pressable>
-          <Pressable onPress={dismiss} accessibilityRole="button" style={({ pressed }) => [styles.notNow, pressed && styles.pressed]}>
-            <Text style={styles.notNowText}>Not now</Text>
-          </Pressable>
+          {status === 'sent' ? (
+            <>
+              <Text style={styles.body} accessibilityLiveRegion="polite">
+                It reached me. I read every message, and the next updates are built from them.
+              </Text>
+              <Text style={styles.signature}>— Standa</Text>
+              <Pressable
+                onPress={dismiss}
+                accessibilityRole="button"
+                style={({ pressed }) => [styles.send, pressed && styles.pressed]}>
+                <Text style={styles.sendText}>Done</Text>
+              </Pressable>
+            </>
+          ) : (
+            <>
+              <Text style={styles.body}>
+                What would make your side quests better? An idea, something that got in your way, a
+                quest that missed. I read every message, and the next updates are built from them.
+              </Text>
+              <Text style={styles.signature}>— Standa, who makes Side Quest Life</Text>
+              <TextInput
+                value={text}
+                onChangeText={setText}
+                multiline
+                maxLength={4000}
+                editable={status !== 'sending'}
+                textAlignVertical="top"
+                placeholder="What would make it better for you?"
+                placeholderTextColor={Theme.textMuted}
+                style={styles.input}
+                accessibilityLabel="Your feedback"
+              />
+              {failure ? (
+                <Text style={styles.failure} accessibilityLiveRegion="polite">
+                  {failure} Your text is still here.
+                </Text>
+              ) : null}
+              <Pressable
+                onPress={() => void send()}
+                disabled={!canSend}
+                accessibilityRole="button"
+                accessibilityState={{ disabled: !canSend, busy: status === 'sending' }}
+                style={({ pressed }) => [styles.send, !canSend && styles.disabled, pressed && styles.pressed]}>
+                {status === 'sending' ? (
+                  <ActivityIndicator color={Dawn.primaryText} />
+                ) : (
+                  <Text style={styles.sendText}>Send</Text>
+                )}
+              </Pressable>
+              <Pressable onPress={dismiss} accessibilityRole="button" style={({ pressed }) => [styles.notNow, pressed && styles.pressed]}>
+                <Text style={styles.notNowText}>Not now</Text>
+              </Pressable>
+            </>
+          )}
           <View style={styles.footer}>
             <Ionicons name="information-circle-outline" size={16} color={Theme.accent} />
             <Text style={styles.footerText}>
@@ -129,6 +176,7 @@ const styles = StyleSheet.create({
   },
   send: { marginTop: 14, minHeight: 52, borderRadius: 26, backgroundColor: Dawn.primaryFill, alignItems: 'center', justifyContent: 'center' },
   sendText: { fontSize: 16, fontFamily: 'Inter_700Bold', fontWeight: '700', color: Dawn.primaryText },
+  failure: { marginTop: 10, fontSize: 14, lineHeight: 20, fontFamily: 'Inter_400Regular', color: Theme.text },
   notNow: { marginTop: 4, minHeight: 44, alignItems: 'center', justifyContent: 'center' },
   notNowText: { fontSize: 15, fontFamily: 'Inter_600SemiBold', fontWeight: '600', color: '#e6dfca' },
   footer: {
