@@ -25,7 +25,7 @@ A–D, the forest and Dawn-draft rows, the tab-bar options) stay on the canvas a
 | 6 | Two quick questions | 26 | Step — find N things |
 | 7 | How it works (animated) | 27 | Step — pick a day |
 | 8 | A week from now | 28 | Every step is done |
-| 9 | Green notes | 29 | Quest done — a new stone |
+| 9 | What the research says | 29 | Quest done — a new stone |
 | 10 | Almost set | 30 | Memories |
 | 11 | Sign in / sign up | 31 | New memory |
 | 12 | Confirm your e-mail | 32 | A memory |
@@ -115,7 +115,7 @@ Today: 6 steps with progress dashes, Back / Next.
 5. Two quick questions.
 6. How it works, animated (#64).
 7. A week from now: today → in a week (#63).
-8. Green notes: real quotes (#62; meaning of "green notes" still to confirm).
+8. What the research says: three study cards, swipeable (#62). Replaced the planned tester quotes (Standa, 2026-10-23, canvas v139). Each card: big number, short label, one sentence of what people reported, source. Same three studies as ScienceNote. Findings, never promises; no quotation marks.
 9. Almost set: picks plus the notifications note.
 
 Edit mode reuses 3–5 + 9.
@@ -247,7 +247,7 @@ Privacy Policy, Terms of Service, Delete Account (how to delete in the app or by
 
 Six "Ember ·" pages on the canvas, 38 artboards:
 
-- **Onboarding** (10): loading, welcome, why this exists, what brings you here, how bold, two quick questions, how it works (animated, clickable dots), a week from now, green notes (placeholders), almost set.
+- **Onboarding** (10): loading, welcome, why this exists, what brings you here, how bold, two quick questions, how it works (animated, clickable dots), a week from now, what the research says (three study cards, from v139), almost set.
 - **Sign in & account** (4): sign in / sign up, confirm your e-mail, reset your password, keep everything (guest → account).
 - **Explore & Journey** (4): the map, a place opened (sheet), Journey full scroll, your path is full.
 - **Quest** (11): quest before you start, in motion with your plan, completed (memory prompt and feedback), not for you sheet. Runner: your journey, timer, photo, find N things, pick a day with the reminder sheet, every step is done, quest done.
@@ -256,7 +256,7 @@ Six "Ember ·" pages on the canvas, 38 artboards:
 
 **Not drawn, because they reuse a drawn pattern:** the input step (the memory form's text box inside a step card), the iOS "Is it in your calendar?" check (the dialog style), onboarding edit mode (steps 3–5 + 9 with "Save changes"), memory edit (the new-memory form), Terms and Delete Account (the legal page layout), the time-range sheet (the "Not for you?" sheet), filtered-empty memories (the empty state with "Clear filters"), the map's info card.
 
-**Placeholders to fill before code:** green notes quotes and what "green notes" means, the app version in Settings, the legal page date.
+**Placeholders to fill before code:** the app version in Settings, the legal page date.
 
 ---
 

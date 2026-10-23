@@ -51,12 +51,11 @@ const BOLD_ART: Record<OnboardingIntensity, number> = {
 
 /**
  * The frozen order (redesign screens 2–10): the promise, why it exists, then the questions, then
- * how it works and what a week could hold, then where to start. "Green notes" (screen 9) waits for
- * real testers' words used with their OK (task 62) — never invented quotes. Editing your answers
- * skips straight to the questions.
+ * how it works, what a week could hold and what research found, then where to start. Editing your
+ * answers skips straight to the questions.
  */
-type StepId = 'welcome' | 'story' | 'goal' | 'bold' | 'questions' | 'how' | 'week' | 'ready';
-const FULL_STEPS: StepId[] = ['welcome', 'story', 'goal', 'bold', 'questions', 'how', 'week', 'ready'];
+type StepId = 'welcome' | 'story' | 'goal' | 'bold' | 'questions' | 'how' | 'week' | 'research' | 'ready';
+const FULL_STEPS: StepId[] = ['welcome', 'story', 'goal', 'bold', 'questions', 'how', 'week', 'research', 'ready'];
 const EDIT_STEPS: StepId[] = ['goal', 'bold', 'questions', 'ready'];
 
 /**
@@ -560,6 +559,9 @@ export default function OnboardingScreen() {
             </View>
           ) : null}
 
+          {/* 9 · What the research says (canvas screen 9, task 62). */}
+          {stepId === 'research' ? <ResearchNotes /> : null}
+
           {/* 10 · Almost set (canvas screen 10). */}
           {stepId === 'ready' ? (
             <View>
@@ -681,6 +683,102 @@ function ScaleQuestion({
         <Text style={styles.scaleEdgeLabel}>{lowLabel}</Text>
         <Text style={styles.scaleEdgeLabel}>{highLabel}</Text>
       </View>
+    </View>
+  );
+}
+
+/**
+ * Proof for the first screens without testimonials (task 62, Standa 2026-10-23): what three
+ * studies found, each paraphrased with its source — the same three as ScienceNote on Progress.
+ * Findings people reported, never a promise of what the app will do for you (no health claims),
+ * and never in quotation marks, so nothing reads like a review someone wrote.
+ */
+const RESEARCH_CARDS = [
+  {
+    big: '2 hours',
+    label: 'a week in nature',
+    body: 'People who got that reported better health and wellbeing. Short visits count too.',
+    source: 'White et al., 2019 · Scientific Reports',
+  },
+  {
+    big: '90 min',
+    label: 'walking in nature',
+    body: 'Afterwards, people dwelt less on negative thoughts. A city walk did not do that.',
+    source: 'Bratman et al., 2015 · PNAS',
+  },
+  {
+    big: '47%',
+    label: 'of the time, our minds wander',
+    body: 'And people felt less happy then than when they were into what they were doing.',
+    source: 'Killingsworth & Gilbert, 2010 · Science',
+  },
+];
+const RESEARCH_CARD_GAP = 14;
+
+/** Three cards you swipe through, the next one peeking at the edge. */
+function ResearchNotes() {
+  const { width } = useWindowDimensions();
+  const cardWidth = Math.min(300, width - 76);
+  const side = (width - cardWidth) / 2;
+  const [index, setIndex] = useState(0);
+  return (
+    <View>
+      <View style={styles.researchHead}>
+        <View style={styles.researchCairn} accessible={false}>
+          <View style={[styles.stone, { width: 16, height: 11 }]} />
+          <View style={[styles.stone, { width: 25, height: 13, marginLeft: -3 }]} />
+          <View style={[styles.stone, { width: 34, height: 14, marginLeft: 3 }]} />
+          <View style={[styles.stone, { width: 44, height: 16 }]} />
+        </View>
+        <Text style={[styles.kickerOrange, styles.centered]}>WHAT THE RESEARCH SAYS</Text>
+        <Text style={[styles.headline, styles.centered]} accessibilityRole="header">
+          Why small real things work
+        </Text>
+      </View>
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        decelerationRate="fast"
+        snapToInterval={cardWidth + RESEARCH_CARD_GAP}
+        snapToAlignment="start"
+        style={styles.researchRow}
+        contentContainerStyle={{ paddingHorizontal: side, gap: RESEARCH_CARD_GAP }}
+        onScroll={(e) =>
+          setIndex(
+            Math.max(
+              0,
+              Math.min(
+                RESEARCH_CARDS.length - 1,
+                Math.round(e.nativeEvent.contentOffset.x / (cardWidth + RESEARCH_CARD_GAP))
+              )
+            )
+          )
+        }
+        scrollEventThrottle={32}>
+        {RESEARCH_CARDS.map((card, i) => (
+          <View
+            key={card.source}
+            style={[styles.researchCard, { width: cardWidth }, i !== index && styles.researchCardAside]}
+            accessible
+            accessibilityLabel={`${card.big} ${card.label}. ${card.body} Source: ${card.source}.`}>
+            <Text style={styles.researchBig} numberOfLines={1}>
+              {card.big}
+            </Text>
+            <Text style={styles.researchLabel}>{card.label}</Text>
+            <Text style={styles.researchBody}>{card.body}</Text>
+            <View style={styles.flexFill} />
+            <Text style={styles.researchSource}>{card.source}</Text>
+          </View>
+        ))}
+      </ScrollView>
+      <View style={styles.howDots}>
+        {RESEARCH_CARDS.map((card, i) => (
+          <View key={card.source} style={[styles.howDot, i === index && styles.howDotOn]} />
+        ))}
+      </View>
+      <Text style={styles.researchNote}>
+        What studies found, not a promise. The sources are in Progress → Why this works.
+      </Text>
     </View>
   );
 }
@@ -948,6 +1046,27 @@ const styles = StyleSheet.create({
   howDot: { width: 8, height: 8, borderRadius: 4, backgroundColor: 'rgba(243, 242, 236, 0.25)' },
   howDotOn: { width: 22, backgroundColor: '#e0823d' },
   howTitle: { marginTop: 18, fontSize: 22, fontFamily: 'Inter_700Bold', fontWeight: '700', color: Theme.text },
+
+  researchHead: { alignItems: 'center', marginTop: 12 },
+  researchCairn: { alignItems: 'center', gap: 1, marginBottom: 14 },
+  researchRow: { marginTop: 28, marginHorizontal: -24 },
+  researchCard: {
+    minHeight: 246,
+    borderRadius: 24,
+    borderWidth: 1,
+    borderColor: 'rgba(240, 178, 122, 0.3)',
+    backgroundColor: Dawn.card,
+    paddingTop: 24,
+    paddingHorizontal: 22,
+    paddingBottom: 18,
+  },
+  researchCardAside: { opacity: 0.45, borderColor: 'rgba(246, 234, 214, 0.16)' },
+  researchBig: { fontSize: 48, lineHeight: 52, fontFamily: 'Inter_700Bold', fontWeight: '700', letterSpacing: -1.4, color: Dawn.cairn },
+  researchLabel: { marginTop: 4, fontSize: 19, lineHeight: 24, fontFamily: 'Inter_700Bold', fontWeight: '700', color: Theme.text },
+  researchBody: { marginTop: 12, fontSize: 15, lineHeight: 22, fontFamily: 'Inter_400Regular', color: '#e6dfca' },
+  researchSource: { marginTop: 14, fontSize: 12, fontFamily: 'Inter_400Regular', color: '#bfb69c' },
+  researchNote: { marginTop: 14, fontSize: 13, lineHeight: 19, fontFamily: 'Inter_400Regular', color: '#bfb69c', textAlign: 'center', paddingHorizontal: 8 },
+  flexFill: { flex: 1 },
 
   weekStage: { marginTop: 26, height: 380 },
   weekBefore: {
