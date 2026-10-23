@@ -29,6 +29,8 @@ export const VALIDATION_EVENT_NAMES = [
   'quest_step_completed',
   /** "Write it here" under today's question in Memories — answered in the app, not on paper (task 57). */
   'daily_prompt_write_tapped',
+  /** Feedback sent from the feedback sheet — Settings or, later, the occasional prompt (task 60). */
+  'feedback_sent',
 ] as const;
 
 export type ValidationEventName = (typeof VALIDATION_EVENT_NAMES)[number];
