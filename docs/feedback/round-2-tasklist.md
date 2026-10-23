@@ -799,6 +799,27 @@ it ships via OTA, SQL, the web deploy, or is not code at all.
 OTA caveat: with `runtimeVersion: fingerprint`, an update reaches build 11 only if nothing native
 changed. If any "No — OTA" item ends up touching native code, it needs a build.
 
+### Next build — scope picked by Standa 2026-10-23
+
+The Dawn redesign (`redesign-dawn`) together with `next-build`, plus:
+
+1. Merge `redesign-dawn` + `next-build` into `main` right before `eas build`
+2. Version bump (1.0.0 → 1.1.0 proposed)
+3. Preview APK on Standa's phone before the production build
+4. Fingerprint check after the build, before any later `eas update`
+5. Phone check of the screens not verified in the web build: 12, password reset step 2, save-account step 2, 18, 21/28/29, photo memory cards, stone rows
+6. Native look of gradients and `boxShadow` on Android
+7. R8 smoke test (#41): sign-in, memory photo, notifications, calendar
+8. Exact alarm for the timer (#9 / CR-8): a 5-minute timer with the phone locked
+9. Feedback pop-up (#60) on a phone
+10. #65 quest-day notification that did not arrive
+11. Play screenshots in Dawn (#26 / #45b)
+12. NEW badge on live data (#12)
+13. Play Console, build 11 (Standa's screenshot 2026-10-23): "DEX optimisation below our limit — obfuscation 1 %", fix by February 2027 → R8 on `next-build` (#41); then the **deobfuscation file** (R8 mapping) must reach Play with the build
+14. **#42 Expo SDK 54 → 58** (Standa, 2026-10-23: "ok to přidáme taky") — for Play's "app uses deprecated edge-to-edge APIs or parameters" recommendation. One major at a time, on its own branch, before the preview APK, since every phone check above has to run on the upgraded app
+
+Not now (Standa): `userInterfaceStyle: 'dark'`; the "Your plan" card (needs the calendar day stored); #43 orientation on large screens (Play's other recommendation).
+
 ---
 
 ## Round 2b — Standa's list, 2026-09-27
@@ -814,7 +835,7 @@ events) with a throwaway anonymous account; 23 unit tests pass.
 | 2b-3 | Turn everything down → empty category | ✅ Rule loosened: turned-down quests return as soon as nothing un-rejected is left to *offer* (in motion, liked, recently finished all count as taken). Was: only once everything else was *completed*, so three quests in motion blocked it. Unit tests updated + two new |
 | 2b-4 | Memories "Pick a quest" goes somewhere other than Journey | ✅ It went to the old `/quest/select` picker. It and the three "Browse quests" fallbacks now lead to Journey |
 | 2b-5 | "Let it wait" does nothing and throws an error | ✅ It worked, slowly: four round trips with no feedback, while the paused row vanished from the still-open modal — so people tapped again and paused a second quest or hit "Could not update". Now one tap at a time, the row says "Pausing…", the list holds still, and a network failure says so instead of failing silently |
-| 2b-6 | Does Explore add anything beyond Journey? | **Parked 2026-09-27** — decided together with the redesign (R2-14), see below |
+| 2b-6 | Does Explore add anything beyond Journey? | ✅ **Decided 2026-10-23 (Standa):** *"explore je pro zobrazení nových a pozastavených questů"* — Explore shows the quests you have going and the paused ones (as built in #46 and the Dawn screens 15–17); Journey stays the offer. Was: **Parked 2026-09-27** — decided together with the redesign (R2-14), see below |
 
 **Found on the way, not fixed — for Standa:**
 - **A paused quest with no finished step shows as "Liked".** Pausing and liking both write
