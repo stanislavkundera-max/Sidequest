@@ -175,7 +175,8 @@ function RootLayoutNav() {
   // keeps an app in memory for days. The same moment retries a catalogue that failed to load
   // (no signal when the app started) and picks up an account e-mail confirmed in the browser.
   useEffect(() => {
-    let previous: AppStateStatus = AppState.currentState;
+    // RN 0.88 types `currentState` as `string | null | undefined` (unknown before the first event).
+    let previous: AppStateStatus | string | null | undefined = AppState.currentState;
     const sub = AppState.addEventListener('change', (next) => {
       // From the background only: iOS passes through 'inactive' for a pulled-down control centre.
       const cameBack = previous === 'background' && next === 'active';

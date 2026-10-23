@@ -13,6 +13,11 @@ import { useQuestDomainStore } from '@/src/features/quests/questStore';
 import { runSupabasePilotHealthCheck } from '@/src/lib/supabaseHealth';
 import { useSessionStore } from '@/stores/session';
 
+// Explore is the first tab. Since SDK 58 the navigator no longer takes `initialRouteName` as a prop.
+export const unstable_settings = {
+  initialRouteName: 'explore',
+};
+
 export default function TabLayout() {
   const user = useSessionStore((s) => s.user);
   const initialized = useSessionStore((s) => s.initialized);
@@ -44,7 +49,6 @@ export default function TabLayout() {
   return (
     <>
       <Tabs
-        initialRouteName="explore"
         // The Dawn floating pill (redesign, 2026-10-22): icons, labels and the active state live in
         // DawnTabBar, so the tabBar* options that styled the old full-width bar are gone.
         tabBar={(props) => <DawnTabBar {...props} />}

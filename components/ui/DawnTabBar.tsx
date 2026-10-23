@@ -29,7 +29,7 @@ function CairnIcon({ color }: { color: string }) {
   );
 }
 
-export function DawnTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
+export function DawnTabBar({ state, descriptors, emitter, navigateToTab }: BottomTabBarProps) {
   const insets = useSafeAreaInsets();
   const routes = state.routes.filter((route) => {
     // Expo Router hides `href: null` routes with display: none.
@@ -47,16 +47,18 @@ export function DawnTabBar({ state, descriptors, navigation }: BottomTabBarProps
           const color = focused ? Theme.onAccent : Dawn.navInactive;
           const icon = ICONS[route.name];
 
+          // Since SDK 58 the tab bar gets an emitter and `navigateToTab` instead of `navigation`;
+          // this mirrors expo-router's own BottomTabBar.
           const onPress = () => {
-            const event = navigation.emit({ type: 'tabPress', target: route.key, canPreventDefault: true });
-            if (!focused && !event.defaultPrevented) navigation.navigate(route.name, route.params);
+            const event = emitter.emit({ type: 'tabPress', target: route.key, canPreventDefault: true });
+            if (!focused && !event.defaultPrevented) navigateToTab(route.key);
           };
 
           return (
             <Pressable
               key={route.key}
               onPress={onPress}
-              onLongPress={() => navigation.emit({ type: 'tabLongPress', target: route.key })}
+              onLongPress={() => emitter.emit({ type: 'tabLongPress', target: route.key })}
               accessibilityRole="tab"
               accessibilityState={{ selected: focused }}
               // react-native-web drops `accessibilityState.selected` on a tab; the ARIA prop carries it.

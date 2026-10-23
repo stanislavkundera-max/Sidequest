@@ -4,7 +4,7 @@
 
 **One-line pitch:** *An app that gently pulls you out of routine and turns it into a map of a life you actually lived.*
 
-**Stack:** Expo SDK ~54, TypeScript, Expo Router, Zustand, Supabase (Auth, Postgres, Storage). See `package.json` for exact dependencies.
+**Stack:** Expo SDK ~58, TypeScript, Expo Router, Zustand, Supabase (Auth, Postgres, Storage). See `package.json` for exact dependencies.
 
 **AI / Cursor context:** If you use an AI assistant in this repo, point it at [`AGENTS.md`](./AGENTS.md) for product boundaries and architecture rules.
 
