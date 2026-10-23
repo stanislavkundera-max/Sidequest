@@ -818,6 +818,8 @@ The Dawn redesign (`redesign-dawn`) together with `next-build`, plus:
 13. Play Console, build 11 (Standa's screenshot 2026-10-23): "DEX optimisation below our limit — obfuscation 1 %", fix by February 2027 → R8 on `next-build` (#41); then the **deobfuscation file** (R8 mapping) must reach Play with the build
 14. **#42 Expo SDK 54 → 58** (Standa, 2026-10-23: "ok to přidáme taky") — for Play's "app uses deprecated edge-to-edge APIs or parameters" recommendation. One major at a time, on its own branch, before the preview APK, since every phone check above has to run on the upgraded app
 
+**Build 12 (1.1.0) built 2026-10-23** from `020ca5b` on `main` (release merge of `expo-sdk-58`), EAS build `ec991692`, AAB https://expo.dev/artifacts/eas/AlAvxYnG9V1SjjN9bi6ddmPSoph8UWvOgubzAv1edkI.aab. It carries the R8 mapping (`BUNDLE-METADATA/…/proguard.map`) and native debug symbols, so Play needs no manual upload. Not yet uploaded to Play; `main` not yet pushed. Before any later `eas update`: `NODE_ENV=production npx eas-cli fingerprint:compare --build-id ec991692-2cda-460a-baf8-50d9fc52d42b`.
+
 Not now (Standa): `userInterfaceStyle: 'dark'`; the "Your plan" card (needs the calendar day stored); #43 orientation on large screens (Play's other recommendation).
 
 ---
