@@ -1,20 +1,26 @@
 import { isAuthError } from '@supabase/supabase-js';
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
+import { Ionicons } from '@expo/vector-icons';
 import {
+  Image,
   KeyboardAvoidingView,
   Platform,
   Pressable,
+  ScrollView,
   StyleSheet,
   Text,
   TextInput,
   View,
+  useWindowDimensions,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { AUTH_PLACEHOLDER, authStyles } from '@/components/auth/authStyles';
+import { DawnBackground } from '@/components/ui/DawnBackground';
 import { PrimaryButton } from '@/components/ui/PrimaryButton';
-import { Theme } from '@/constants/Theme';
-import { MIN_TOUCH_TARGET } from '@/constants/touchTargets';
+import { SecondaryButton } from '@/components/ui/SecondaryButton';
+import { Dawn, Theme } from '@/constants/Theme';
 import { alertCompat } from '@/lib/alertCompat';
 import { formatAuthErrorForUi } from '@/lib/authErrors';
 import {
@@ -25,6 +31,8 @@ import {
 import { UserFacingError } from '@/lib/userFacingError';
 import { logError } from '@/src/lib/monitoring/errorLogger';
 import { useSessionStore } from '@/stores/session';
+
+const SKY = require('@/assets/images/dawn/signin-header.png');
 
 export default function SignInScreen() {
   const router = useRouter();
@@ -37,6 +45,9 @@ export default function SignInScreen() {
   const [formInfo, setFormInfo] = useState<string | null>(null);
 
   const [guestLoading, setGuestLoading] = useState(false);
+  const [focused, setFocused] = useState<'email' | 'password' | null>(null);
+  const { width } = useWindowDimensions();
+  const skyHeight = Math.round((width * 250) / 390);
 
   // A new account is confirmed with the code from the e-mail, typed here (task 39). The e-mail's
   // link went through the browser to the project's Site URL, which was never set — Supabase's
@@ -207,169 +218,208 @@ export default function SignInScreen() {
     setMode('signin');
   }
 
+  // 12 · Confirm your e-mail (canvas screen 12).
   if (verifyEmail) {
     return (
-      <SafeAreaView style={styles.safe} edges={['top', 'bottom']}>
-        <KeyboardAvoidingView
-          style={styles.flex}
-          behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-          <View style={styles.inner}>
-            <Text style={styles.title}>Confirm your e-mail</Text>
-            <Text style={styles.sub}>One last step: type the code we sent you.</Text>
+      <DawnBackground>
+        <SafeAreaView style={styles.safe} edges={['top', 'bottom']}>
+          <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+            <ScrollView contentContainerStyle={styles.inner} keyboardShouldPersistTaps="handled">
+              <Pressable
+                onPress={useDifferentEmail}
+                disabled={loading}
+                accessibilityRole="button"
+                accessibilityLabel="Back"
+                style={styles.round}>
+                <Ionicons name="chevron-back" size={20} color={Theme.text} />
+              </Pressable>
+              <View style={styles.mailIcon}>
+                <Ionicons name="mail-open-outline" size={42} color="#e0823d" />
+              </View>
+              <Text style={[styles.title, styles.centered]} accessibilityRole="header">
+                Confirm your e-mail
+              </Text>
+              <Text style={[styles.sub, styles.centered]}>
+                One last step: type the code we sent to <Text style={styles.strong}>{verifyEmail}</Text>.
+              </Text>
+
+              {formError ? <Text style={styles.bannerError}>{formError}</Text> : null}
+              {formInfo ? <Text style={styles.bannerInfo}>{formInfo}</Text> : null}
+
+              <Text style={styles.label}>Code from the e-mail</Text>
+              <TextInput
+                style={[styles.input, styles.inputCode, styles.codeBig]}
+                keyboardType="number-pad"
+                autoComplete="one-time-code"
+                textContentType="oneTimeCode"
+                maxLength={10}
+                value={code}
+                onChangeText={setCode}
+                placeholder="123456"
+                placeholderTextColor={AUTH_PLACEHOLDER}
+              />
+
+              <View style={styles.actions}>
+                <PrimaryButton label="Confirm" loading={loading} onPress={() => void confirmCode()} />
+              </View>
+
+              <View style={styles.links}>
+                <Pressable
+                  accessibilityRole="button"
+                  accessibilityLabel="Send a new code"
+                  onPress={() => void resendCode()}
+                  disabled={loading}
+                  style={styles.linkWrap}>
+                  <Text style={styles.link}>No e-mail? Send a new code</Text>
+                </Pressable>
+                <Pressable
+                  accessibilityRole="button"
+                  accessibilityLabel="Use a different e-mail address"
+                  onPress={useDifferentEmail}
+                  disabled={loading}
+                  style={styles.linkWrap}>
+                  <Text style={styles.linkBack}>Use a different e-mail</Text>
+                </Pressable>
+                <Pressable
+                  accessibilityRole="button"
+                  accessibilityLabel="The e-mail has a link instead of a code"
+                  onPress={signInAfterLink}
+                  disabled={loading}
+                  style={styles.linkWrap}>
+                  <Text style={styles.linkQuiet}>The e-mail has a link, no code?</Text>
+                </Pressable>
+              </View>
+            </ScrollView>
+          </KeyboardAvoidingView>
+        </SafeAreaView>
+      </DawnBackground>
+    );
+  }
+
+  function switchMode(next: 'signin' | 'signup') {
+    if (next === mode) return;
+    setFormError(null);
+    setFormInfo(null);
+    setMode(next);
+  }
+
+  // 11 · Sign in / create account (canvas screen 11): the dawn sky over the form.
+  return (
+    <DawnBackground>
+      <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+        <ScrollView contentContainerStyle={styles.signInScroll} keyboardShouldPersistTaps="handled">
+          <View style={[styles.sky, { height: skyHeight }]}>
+            <Image source={SKY} style={[styles.skyArt, { width, height: skyHeight }]} resizeMode="cover" accessible={false} />
+            <SafeAreaView edges={['top']} style={styles.skyText}>
+              <Text style={styles.wordmark}>SIDE QUEST LIFE</Text>
+              <Text style={[styles.title, styles.skyTitle]} accessibilityRole="header">
+                {mode === 'signin' ? 'Welcome back' : 'Create account'}
+              </Text>
+              <Text style={styles.skySub}>
+                {mode === 'signin'
+                  ? 'Sign in to continue your quests.'
+                  : 'Create an account to save memories and progress.'}
+              </Text>
+            </SafeAreaView>
+          </View>
+
+          <View style={styles.form}>
+            <View style={styles.segment} accessibilityRole="tablist">
+              {(['signin', 'signup'] as const).map((m) => (
+                <Pressable
+                  key={m}
+                  onPress={() => switchMode(m)}
+                  disabled={loading}
+                  accessibilityRole="tab"
+                  accessibilityState={{ selected: mode === m }}
+                  style={[styles.segmentItem, mode === m && styles.segmentItemOn]}>
+                  <Text style={[styles.segmentText, mode === m && styles.segmentTextOn]}>
+                    {m === 'signin' ? 'Sign in' : 'Create account'}
+                  </Text>
+                </Pressable>
+              ))}
+            </View>
 
             {formError ? <Text style={styles.bannerError}>{formError}</Text> : null}
             {formInfo ? <Text style={styles.bannerInfo}>{formInfo}</Text> : null}
 
-            <Text style={styles.label}>Code from the e-mail</Text>
+            {mode === 'signup' && formInfo ? (
+              <Pressable onPress={() => switchMode('signin')} accessibilityRole="button" style={[styles.linkWrap, styles.alignStart]}>
+                <Text style={styles.link}>Go to sign in</Text>
+              </Pressable>
+            ) : null}
+
+            <Text style={styles.label}>Email</Text>
             <TextInput
-              style={styles.input}
-              keyboardType="number-pad"
-              autoComplete="one-time-code"
-              textContentType="oneTimeCode"
-              maxLength={10}
-              value={code}
-              onChangeText={setCode}
-              placeholder="123456"
-              placeholderTextColor={Theme.textMuted}
+              style={[styles.input, focused === 'email' && styles.inputFocused]}
+              autoCapitalize="none"
+              keyboardType="email-address"
+              autoComplete="email"
+              value={email}
+              onChangeText={setEmail}
+              onFocus={() => setFocused('email')}
+              onBlur={() => setFocused(null)}
+              placeholder="you@example.com"
+              placeholderTextColor={AUTH_PLACEHOLDER}
             />
 
-            <PrimaryButton label="Confirm" loading={loading} onPress={() => void confirmCode()} />
+            <Text style={styles.label}>Password</Text>
+            <TextInput
+              style={[styles.input, focused === 'password' && styles.inputFocused]}
+              secureTextEntry
+              value={password}
+              onChangeText={setPassword}
+              onFocus={() => setFocused('password')}
+              onBlur={() => setFocused(null)}
+              placeholder="••••••••"
+              placeholderTextColor={AUTH_PLACEHOLDER}
+            />
 
-            <Pressable
-              accessibilityRole="button"
-              accessibilityLabel="Send a new code"
-              onPress={() => void resendCode()}
-              disabled={loading}
-              style={styles.linkWrap}>
-              <Text style={styles.switch}>No e-mail? Send a new code</Text>
-            </Pressable>
-            <Pressable
-              accessibilityRole="button"
-              accessibilityLabel="Use a different e-mail address"
-              onPress={useDifferentEmail}
-              disabled={loading}
-              style={styles.linkWrap}>
-              <Text style={styles.switch}>Use a different e-mail</Text>
-            </Pressable>
-            <Pressable
-              accessibilityRole="button"
-              accessibilityLabel="The e-mail has a link instead of a code"
-              onPress={signInAfterLink}
-              disabled={loading}
-              style={styles.linkWrap}>
-              <Text style={styles.guest}>The e-mail has a link, no code?</Text>
-            </Pressable>
+            {mode === 'signin' ? (
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel="Reset your password"
+                onPress={() => router.push('/(auth)/forgot-password')}
+                disabled={loading}
+                style={[styles.linkWrap, styles.forgotWrap]}>
+                <Text style={styles.link}>Forgot your password?</Text>
+              </Pressable>
+            ) : null}
+
+            <View style={styles.actions}>
+              <PrimaryButton
+                label={mode === 'signin' ? 'Sign in' : 'Create account'}
+                loading={loading}
+                disabled={!configured}
+                onPress={submit}
+              />
+            </View>
+
+            {mode === 'signin' ? (
+              <>
+                <View style={styles.or}>
+                  <View style={styles.orLine} />
+                  <Text style={styles.orText}>or</Text>
+                  <View style={styles.orLine} />
+                </View>
+                <SecondaryButton
+                  icon="walk-outline"
+                  chevron
+                  label={guestLoading ? 'Starting…' : 'Continue without an account'}
+                  onPress={() => void continueAsGuest()}
+                  disabled={loading || guestLoading || !configured}
+                />
+                <Text style={[styles.footnote, styles.guestNote]}>
+                  Without an account everything stays on this phone. You can create one later in Progress.
+                </Text>
+              </>
+            ) : null}
+
+            {!configured ? <Text style={styles.hint}>Configure Supabase env vars to enable sign-in.</Text> : null}
           </View>
-        </KeyboardAvoidingView>
-      </SafeAreaView>
-    );
-  }
-
-  return (
-    <SafeAreaView style={styles.safe} edges={['top', 'bottom']}>
-      <KeyboardAvoidingView
-        style={styles.flex}
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-        <View style={styles.inner}>
-          <Text style={styles.title}>
-            {mode === 'signin' ? 'Welcome back' : 'Create account'}
-          </Text>
-          <Text style={styles.sub}>
-            {mode === 'signin'
-              ? 'Sign in to continue your quests.'
-              : 'Create an account to save memories and progress.'}
-          </Text>
-
-          {formError ? <Text style={styles.bannerError}>{formError}</Text> : null}
-          {formInfo ? <Text style={styles.bannerInfo}>{formInfo}</Text> : null}
-
-          {mode === 'signup' && formInfo ? (
-            <Pressable
-              onPress={() => {
-                setFormInfo(null);
-                setMode('signin');
-              }}
-              style={styles.secondaryBtn}>
-              <Text style={styles.secondaryBtnText}>Go to sign in</Text>
-            </Pressable>
-          ) : null}
-
-          <Text style={styles.label}>Email</Text>
-          <TextInput
-            style={styles.input}
-            autoCapitalize="none"
-            keyboardType="email-address"
-            autoComplete="email"
-            value={email}
-            onChangeText={setEmail}
-            placeholder="you@example.com"
-            placeholderTextColor={Theme.textMuted}
-          />
-
-          <Text style={styles.label}>Password</Text>
-          <TextInput
-            style={styles.input}
-            secureTextEntry
-            value={password}
-            onChangeText={setPassword}
-            placeholder="••••••••"
-            placeholderTextColor={Theme.textMuted}
-          />
-
-          {mode === 'signin' ? (
-            <Pressable
-              accessibilityRole="button"
-              accessibilityLabel="Reset your password"
-              onPress={() => router.push('/(auth)/forgot-password')}
-              disabled={loading}
-              style={styles.forgotWrap}>
-              <Text style={styles.forgot}>Forgot your password?</Text>
-            </Pressable>
-          ) : null}
-
-          <PrimaryButton
-            label={mode === 'signin' ? 'Sign in' : 'Sign up'}
-            loading={loading}
-            disabled={!configured}
-            onPress={submit}
-          />
-
-          <Pressable
-            onPress={() => {
-              setFormError(null);
-              setFormInfo(null);
-              setMode(mode === 'signin' ? 'signup' : 'signin');
-            }}
-            disabled={loading}
-            style={styles.switchWrap}>
-            <Text style={styles.switch}>
-              {mode === 'signin'
-                ? 'Need an account? Sign up'
-                : 'Have an account? Sign in'}
-            </Text>
-          </Pressable>
-
-          {mode === 'signin' ? (
-            <Pressable
-              accessibilityRole="button"
-              accessibilityLabel="Continue without an account"
-              onPress={continueAsGuest}
-              disabled={loading || guestLoading || !configured}
-              style={styles.guestWrap}>
-              <Text style={styles.guest}>
-                {guestLoading ? 'Starting…' : 'Continue without an account'}
-              </Text>
-            </Pressable>
-          ) : null}
-
-          {!configured ? (
-            <Text style={styles.hint}>
-              Configure Supabase env vars to enable sign-in.
-            </Text>
-          ) : null}
-        </View>
+        </ScrollView>
       </KeyboardAvoidingView>
-    </SafeAreaView>
+    </DawnBackground>
   );
 }
 
@@ -390,103 +440,58 @@ function describeCodeError(e: unknown): string {
   return formatAuthErrorForUi(e);
 }
 
-const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: Theme.bg },
-  flex: { flex: 1 },
-  inner: { flex: 1, paddingHorizontal: 24, paddingTop: 24, justifyContent: 'center' },
-  title: {
-    fontSize: 26,
-    fontFamily: 'Inter_700Bold',
-    fontWeight: '700',
-    color: Theme.text,
-    marginBottom: 8,
-  },
-  sub: {
-    fontSize: 16,
-    fontFamily: 'Inter_400Regular',
-    lineHeight: 24,
-    color: Theme.textMuted,
-    marginBottom: 16,
-  },
-  bannerError: {
-    backgroundColor: Theme.dangerSoft,
-    color: Theme.danger,
-    padding: 12,
-    borderRadius: 10,
-    marginBottom: 16,
-    fontSize: 14,
-    fontFamily: 'Inter_400Regular',
-    lineHeight: 20,
-  },
-  bannerInfo: {
-    backgroundColor: Theme.accentSoft,
-    color: Theme.accent,
-    padding: 12,
-    borderRadius: 10,
-    marginBottom: 16,
-    fontSize: 14,
-    fontFamily: 'Inter_400Regular',
-    lineHeight: 20,
-  },
-  label: {
-    fontSize: 13,
-    fontFamily: 'Inter_600SemiBold',
-    fontWeight: '600',
-    color: Theme.textMuted,
-    marginBottom: 6,
-  },
-  input: {
-    borderWidth: 1,
-    borderColor: Theme.border,
-    borderRadius: 10,
-    paddingHorizontal: 14,
-    paddingVertical: 12,
-    fontSize: 16,
-    fontFamily: 'Inter_400Regular',
-    color: Theme.text,
-    backgroundColor: Theme.surface,
-    marginBottom: 16,
-  },
-  secondaryBtn: {
-    alignSelf: 'flex-start',
-    marginBottom: 16,
-    paddingVertical: 10,
-    paddingHorizontal: 14,
-    borderRadius: 10,
-    backgroundColor: Theme.surface,
-    borderWidth: 1,
-    borderColor: Theme.border,
-  },
-  secondaryBtnText: { color: Theme.accent, fontWeight: '600', fontSize: 15, fontFamily: 'Inter_600SemiBold' },
-  forgotWrap: {
-    alignSelf: 'flex-end',
-    justifyContent: 'center',
-    minHeight: MIN_TOUCH_TARGET,
-    marginTop: -8,
-    marginBottom: 8,
-    paddingHorizontal: 4,
-  },
-  forgot: { color: Theme.accent, fontSize: 14, fontFamily: 'Inter_400Regular' },
-  switchWrap: { marginTop: 20, alignItems: 'center' },
-  linkWrap: {
-    marginTop: 8,
-    alignItems: 'center',
-    justifyContent: 'center',
-    minHeight: MIN_TOUCH_TARGET,
-  },
-  switch: { color: Theme.accent, fontSize: 15, fontFamily: 'Inter_400Regular' },
-  guestWrap: {
-    marginTop: 12,
-    alignItems: 'center',
-    justifyContent: 'center',
-    minHeight: MIN_TOUCH_TARGET,
-  },
-  guest: { color: Theme.textMuted, fontSize: 14, fontFamily: 'Inter_400Regular' },
-  hint: {
-    marginTop: 24,
-    textAlign: 'center',
-    color: Theme.danger,
-    fontSize: 14,
-    fontFamily: 'Inter_400Regular',
-  },
-});
+const styles = {
+  ...authStyles,
+  ...StyleSheet.create({
+    centered: { textAlign: 'center' },
+    strong: { fontFamily: 'Inter_700Bold', fontWeight: '700', color: Theme.text },
+    alignStart: { alignSelf: 'flex-start', marginTop: -6, marginBottom: 6 },
+    mailIcon: {
+      alignSelf: 'center',
+      width: 96,
+      height: 96,
+      borderRadius: 48,
+      backgroundColor: 'rgba(224, 130, 61, 0.14)',
+      alignItems: 'center',
+      justifyContent: 'center',
+      marginTop: 28,
+      marginBottom: 24,
+    },
+    codeBig: { height: 60, fontSize: 24, letterSpacing: 10, textAlign: 'center' },
+
+    signInScroll: { flexGrow: 1, paddingBottom: 28 },
+    sky: { width: '100%', overflow: 'hidden' },
+    skyArt: { position: 'absolute', top: 0, left: 0 },
+    skyText: { paddingHorizontal: 24 },
+    wordmark: {
+      marginTop: 20,
+      fontSize: 12,
+      fontFamily: 'Inter_600SemiBold',
+      fontWeight: '600',
+      letterSpacing: 2.6,
+      color: 'rgba(243, 242, 236, 0.85)',
+    },
+    skyTitle: { marginTop: 36, fontSize: 30, lineHeight: 36 },
+    skySub: { marginTop: 6, fontSize: 15, fontFamily: 'Inter_400Regular', color: 'rgba(243, 242, 236, 0.88)' },
+    form: { paddingHorizontal: 20, paddingTop: 22 },
+    segment: {
+      height: 48,
+      borderRadius: 24,
+      backgroundColor: Dawn.card,
+      padding: 4,
+      flexDirection: 'row',
+      gap: 4,
+      marginBottom: 22,
+    },
+    segmentItem: { flex: 1, borderRadius: 20, alignItems: 'center', justifyContent: 'center' },
+    segmentItemOn: { backgroundColor: Dawn.cream },
+    segmentText: { fontSize: 15, fontFamily: 'Inter_600SemiBold', fontWeight: '600', color: '#e6dfca' },
+    segmentTextOn: { fontFamily: 'Inter_700Bold', fontWeight: '700', color: Dawn.primaryText },
+    inputFocused: { borderColor: '#e0823d' },
+    forgotWrap: { alignSelf: 'flex-end', marginTop: -6, paddingHorizontal: 0 },
+    or: { marginTop: 22, marginBottom: 16, flexDirection: 'row', alignItems: 'center', gap: 12 },
+    orLine: { flex: 1, height: 1, backgroundColor: 'rgba(246, 234, 214, 0.3)' },
+    orText: { fontSize: 13, fontFamily: 'Inter_400Regular', color: '#bfb69c' },
+    guestNote: { marginTop: 16, paddingHorizontal: 4 },
+  }),
+};
