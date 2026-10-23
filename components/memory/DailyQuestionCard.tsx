@@ -1,6 +1,5 @@
 import { Ionicons } from '@expo/vector-icons';
-import { useFocusEffect } from '@react-navigation/native';
-import { useRouter } from 'expo-router';
+import { useFocusEffect, useRouter } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
 import { AppState, Image, Pressable, StyleSheet, Text, View } from 'react-native';
 
@@ -125,7 +124,7 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   veil: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
     backgroundColor: VEIL,
   },
   headRow: {

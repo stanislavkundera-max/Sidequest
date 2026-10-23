@@ -41,17 +41,8 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   // 'light' is what the app actually does. Revisit when a dark palette exists.
   userInterfaceStyle: 'light',
   // `newArchEnabled` is gone since SDK 55: the New Architecture is the only one.
-  splash: {
-    image: './assets/images/splash-icon.png',
-    resizeMode: 'contain',
-    // The amber cairn on the Dawn ground (the top colour of Dawn.ground in
-    // constants/Theme.ts), the redesign every screen stands on. It was the brand
-    // green until the Dawn redesign; before 2026-09-05 beige (R2-07).
-    // app/index.tsx's loading gate shows the same image on the same ground, so
-    // the hand-off from native splash to JS doesn't flash: build only with
-    // redesign-dawn merged, or the old green loading screen follows this.
-    backgroundColor: '#3b3628',
-  },
+  // The splash moved into the expo-splash-screen plugin below (top-level `splash` is gone
+  // since SDK 56).
   ios: {
     supportsTablet: true,
     bundleIdentifier: 'com.sidequestlife.app',
@@ -110,6 +101,24 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     // Asked for by `expo install` from SDK 55 on; a dynamic config has to list them by hand.
     'expo-font',
     'expo-web-browser',
+    [
+      'expo-splash-screen',
+      {
+        image: './assets/images/splash-icon.png',
+        resizeMode: 'contain',
+        // 200dp on the 288dp splash canvas: the size the old top-level `splash` drew it at
+        // (measured at the SDK 56 upgrade). The plugin's default, 100, halves the cairn, and
+        // app/index.tsx's loading screen is sized to match this one (753dc8a).
+        imageWidth: 200,
+        // The amber cairn on the Dawn ground (the top colour of Dawn.ground in
+        // constants/Theme.ts), the redesign every screen stands on. It was the brand
+        // green until the Dawn redesign; before 2026-09-05 beige (R2-07).
+        // app/index.tsx's loading gate shows the same image on the same ground, so
+        // the hand-off from native splash to JS doesn't flash: build only with
+        // redesign-dawn merged, or the old green loading screen follows this.
+        backgroundColor: '#3b3628',
+      },
+    ],
     [
       'expo-notifications',
       {

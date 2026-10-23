@@ -1011,7 +1011,7 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(246, 234, 214, 0.3)',
     boxShadow: '0 24px 60px rgba(0, 0, 0, 0.45)',
   },
-  howFill: { ...StyleSheet.absoluteFillObject },
+  howFill: { ...StyleSheet.absoluteFill },
   howMap: { position: 'absolute', width: 640, height: 857, left: -330, top: -150 },
   howMarker: { position: 'absolute', left: 150, top: 120, alignItems: 'center', gap: 6 },
   howMarkerDisc: {

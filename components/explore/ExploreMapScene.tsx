@@ -142,7 +142,7 @@ const styles = StyleSheet.create({
   skyTint: { position: 'absolute', top: 0, left: 0, right: 0, height: 130 },
   groundTint: { position: 'absolute', left: 0, right: 0, bottom: 0, height: 300 },
   root: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
     overflow: 'hidden',
     backgroundColor: Theme.bg,
   },

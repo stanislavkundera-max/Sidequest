@@ -82,7 +82,7 @@ const styles = StyleSheet.create({
   map: { position: 'absolute', width: MAP_W, height: MAP_H },
   faded: { opacity: 0.3 },
   shade: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
     backgroundColor: 'rgba(20, 22, 12, 0.35)',
   },
   label: { position: 'absolute', left: 8, right: 6, bottom: 7 },

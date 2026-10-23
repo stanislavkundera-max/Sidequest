@@ -156,7 +156,7 @@ export const journeyHubStyles = StyleSheet.create({
     minHeight: 200,
   },
   timeframeImageLabels: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
     justifyContent: 'center',
     paddingHorizontal: 10,
     paddingVertical: 12,
@@ -233,9 +233,9 @@ export const journeyHubStyles = StyleSheet.create({
   likedCompactBody: { flex: 1, padding: 12, gap: 6, justifyContent: 'center', minWidth: 0 },
   panel: { width: '100%', overflow: 'hidden' },
   card: { position: 'relative', overflow: 'hidden' },
-  fill: { ...StyleSheet.absoluteFillObject },
+  fill: { ...StyleSheet.absoluteFill },
   bgImage: { width: '100%', height: '100%' },
-  scrim: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(44,40,37,0.24)' },
+  scrim: { ...StyleSheet.absoluteFill, backgroundColor: 'rgba(44,40,37,0.24)' },
   scrimStrong: { backgroundColor: 'rgba(44,40,37,0.52)' },
   footerMeta: {
     fontSize: 11,
