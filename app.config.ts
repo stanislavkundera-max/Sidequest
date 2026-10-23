@@ -40,7 +40,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   // prebuild` warns the setting is inert on Android without `expo-system-ui`.
   // 'light' is what the app actually does. Revisit when a dark palette exists.
   userInterfaceStyle: 'light',
-  newArchEnabled: true,
+  // `newArchEnabled` is gone since SDK 55: the New Architecture is the only one.
   splash: {
     image: './assets/images/splash-icon.png',
     resizeMode: 'contain',
@@ -64,7 +64,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
       // old beige here would have rendered beige stones on a beige ground.
       backgroundColor: '#33471f',
     },
-    edgeToEdgeEnabled: true,
+    // `edgeToEdgeEnabled` is gone since SDK 55: edge-to-edge is always on.
     package: 'com.sidequestlife.app',
     /**
      * Permissions Expo's prebuild template adds by default and this app does
@@ -107,6 +107,9 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   },
   plugins: [
     'expo-router',
+    // Asked for by `expo install` from SDK 55 on; a dynamic config has to list them by hand.
+    'expo-font',
+    'expo-web-browser',
     [
       'expo-notifications',
       {
