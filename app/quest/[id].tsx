@@ -4,7 +4,9 @@ import { Ionicons } from '@expo/vector-icons';
 import { Image, Pressable, ScrollView, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { PathFullModal } from '@/components/quests/PathFullModal';
 import { QuestJourneyChecklist } from '@/components/quests/QuestJourneyChecklist';
+import { useQuestActions } from '@/components/quests/useQuestActions';
 import { CategoryTag, categoryKeyForId } from '@/components/ui/CategoryTag';
 import { DawnBackground, gradientStyle } from '@/components/ui/DawnBackground';
 import { EmptyState } from '@/components/ui/EmptyState';
@@ -28,8 +30,10 @@ import {
 } from '@/src/features/quests/questCopy';
 import {
   canUserBeginQuest,
+  countActiveQuestsGlobally,
   countCompletedJourneySteps,
   incompleteJourneyStepsCount,
+  MAX_ACTIVE_QUESTS,
 } from '@/src/features/quests/questHelpers';
 import { useQuestDomainStore } from '@/src/features/quests/questStore';
 import { markQuestSeen } from '@/src/features/quests/seenQuests';
@@ -73,6 +77,11 @@ export default function QuestDetailScreen() {
   const assignQuestToUser = useQuestDomainStore((s) => s.assignQuestToUser);
   const deactivateQuest = useQuestDomainStore((s) => s.deactivateQuest);
   const dismissSuggestedQuest = useQuestDomainStore((s) => s.dismissSuggestedQuest);
+  // With three quests going, the page offers to start this one in place of another — the same
+  // "path is full" dialog as Journey's Start now (Standa, 1.1.0 phone test: the page only showed
+  // a padlock, so the swap was reachable from the list but not from the quest itself).
+  const pathActions = useQuestActions(user?.id ?? '', 'quest_detail');
+  const pathFull = countActiveQuestsGlobally(userQuests) >= MAX_ACTIVE_QUESTS;
   const bootstrap = useQuestDomainStore((s) => s.bootstrap);
   const memories = useMemoryStore((s) => s.memories);
 
@@ -564,16 +573,35 @@ export default function QuestDetailScreen() {
                 })();
               }}
             />
+          ) : pathFull ? (
+            <>
+              <PrimaryButton
+                label="Start this one instead"
+                loading={acting || pending || pathActions.primaryBusy}
+                onPress={() => void pathActions.onStartNow(quest.id)}
+              />
+              <Text style={styles.pathFullNote}>
+                You have three quests going. Pick one to pause — what you have done on it stays.
+              </Text>
+            </>
           ) : (
             <View style={styles.notOpen}>
               <Ionicons name="lock-closed-outline" size={16} color={Theme.textMuted} />
               <Text style={styles.notOpenText}>
-                {/* Per-level limits were retired (see questHelpers.ts); the real reasons are these two. */}
-                Not open to you right now — either you already have three quests going, or this one is
-                still waiting behind others in {categoryName(quest.categoryId)}.
+                {/* Per-level limits were retired (see questHelpers.ts); a full path is handled above. */}
+                Not open to you right now — this one is still waiting behind others in{' '}
+                {categoryName(quest.categoryId)}.
               </Text>
             </View>
           )}
+          <PathFullModal
+            visible={pathActions.pathFullOpen}
+            activeForModal={pathActions.activeForModal}
+            waitingUserQuestId={pathActions.waitingUserQuestId}
+            getQuestById={pathActions.getQuestById}
+            onLetWait={(uqId) => void pathActions.onLetWait(uqId)}
+            onClose={pathActions.closePathFull}
+          />
           <OptionSheet
             visible={turnDownOpen}
             title="Not for you?"
@@ -688,6 +716,14 @@ const styles = StyleSheet.create({
     letterSpacing: 1.4,
   },
   reflectionBody: { fontSize: 15, fontFamily: 'Inter_400Regular', lineHeight: 22, color: Theme.text },
+  pathFullNote: {
+    marginTop: 10,
+    textAlign: 'center',
+    fontSize: 13,
+    lineHeight: 19,
+    fontFamily: 'Inter_400Regular',
+    color: Theme.textMuted,
+  },
   assignFeedback: {
     marginBottom: 14,
     color: Theme.text,
