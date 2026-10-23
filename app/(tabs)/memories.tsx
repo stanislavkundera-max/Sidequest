@@ -46,6 +46,10 @@ export default function MemoriesScreen() {
   const refresh = useMemoryStore((s) => s.refresh);
   const categories = useQuestDomainStore((s) => s.categories);
   const getQuestById = useQuestDomainStore((s) => s.getQuestById);
+  // getQuestById is a stable store function, so it cannot tell the memos below that the catalogue
+  // arrived: without `quests` as a dependency, memories loaded before the quests never got their
+  // category chips (found in the 1.1.0 screenshots — only "All" showed).
+  const quests = useQuestDomainStore((s) => s.quests);
 
   const [categoryFilter, setCategoryFilter] = useState<string | null>(null);
   const [dateFilter, setDateFilter] = useState<DateRange>('all');
@@ -75,7 +79,7 @@ export default function MemoriesScreen() {
       if (cid) ids.add(cid);
     }
     return ids;
-  }, [ordered, getQuestById]);
+  }, [ordered, getQuestById, quests]);
   const filterableCategories = useMemo(
     () => categories.filter((c) => usedCategoryIds.has(c.id)),
     [categories, usedCategoryIds]
@@ -89,7 +93,7 @@ export default function MemoriesScreen() {
       if (cutoff != null && new Date(m.createdAt).getTime() < cutoff) return false;
       return true;
     });
-  }, [ordered, categoryFilter, dateFilter, getQuestById]);
+  }, [ordered, categoryFilter, dateFilter, getQuestById, quests]);
 
   // The list in month groups, newest first: a heading row, then that month's memories.
   type Row = { kind: 'month'; key: string; label: string; count: number } | { kind: 'memory'; key: string; id: string };
@@ -392,7 +396,9 @@ const styles = StyleSheet.create({
     borderRadius: 20,
   },
   addBtnText: { color: Theme.onAccent, fontWeight: '700', fontSize: 15, fontFamily: 'Inter_700Bold' },
-  filterScroll: { flexGrow: 0 },
+  // flexShrink 0 too: react-native-web gives ScrollView flexShrink 1, so the list below squeezed the
+  // row to a sliver of the first chip (seen in the 1.1.0 web screenshots).
+  filterScroll: { flexGrow: 0, flexShrink: 0 },
   filterRow: {
     gap: 8,
     alignItems: 'center',
