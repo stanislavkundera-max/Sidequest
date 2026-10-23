@@ -44,11 +44,13 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   splash: {
     image: './assets/images/splash-icon.png',
     resizeMode: 'contain',
-    // The brand green, with the all-amber cairn on it — the same mark as the
-    // app icon. It was beige with a green-stoned cairn, the logo from before
-    // 2026-09-05 (round 2, R2-07). app/index.tsx's loading gate matches this so
-    // the hand-off from native splash to JS doesn't flash.
-    backgroundColor: '#33471f',
+    // The amber cairn on the Dawn ground (the top colour of Dawn.ground in
+    // constants/Theme.ts), the redesign every screen stands on. It was the brand
+    // green until the Dawn redesign; before 2026-09-05 beige (R2-07).
+    // app/index.tsx's loading gate shows the same image on the same ground, so
+    // the hand-off from native splash to JS doesn't flash: build only with
+    // redesign-dawn merged, or the old green loading screen follows this.
+    backgroundColor: '#3b3628',
   },
   ios: {
     supportsTablet: true,
@@ -84,6 +86,19 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
      * selection on Android 12 and below (minSdk is 24).
      */
     blockedPermissions: ['android.permission.SYSTEM_ALERT_WINDOW'],
+    /**
+     * On-time "Time is up" notifications (code review 2026-09-27).
+     *
+     * Without this, expo-notifications can only set an inexact alarm on Android 12+, which the
+     * system may deliver well after the timer ends — up to three quarters of the timer's length
+     * late with the phone locked in a pocket, the exact situation the timer is for. Declared,
+     * it is granted by default on Android 12 and 13. On Android 14+ it starts off and the person
+     * can turn it on under App info → Alarms & reminders; the app does not ask (a design call —
+     * one more prompt), so there the alert stays as timely as before.
+     *
+     * Not USE_EXACT_ALARM: Play restricts that one to alarm-clock and calendar apps.
+     */
+    permissions: ['android.permission.SCHEDULE_EXACT_ALARM'],
   },
   web: {
     bundler: 'metro',
@@ -120,6 +135,25 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
         // and a reason for a reviewer to look harder. `false` is the plugin's
         // own supported way to block it.
         microphonePermission: false,
+      },
+    ],
+    [
+      'expo-build-properties',
+      {
+        android: {
+          // R8 in release builds (Play Console, 2026-10-12: "DEX optimisation
+          // below our limit — obfuscation 1 %", fix by February 2027; under 25 %
+          // can cost visibility). Expo leaves it off by default, so build 11
+          // shipped unshrunk. R8 can strip classes a library loads by
+          // reflection, which crashes only in a release build — smoke-test
+          // sign-in, a memory photo, notifications and the calendar on the
+          // first build with this. Play then asks for the build's mapping.txt
+          // to read native crashes; JS errors are unaffected.
+          //
+          // Not `enableShrinkResourcesInReleaseBuilds`: Play did not ask for
+          // it, and it can drop resources looked up by name at runtime.
+          enableMinifyInReleaseBuilds: true,
+        },
       },
     ],
   ],
