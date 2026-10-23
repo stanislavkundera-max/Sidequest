@@ -719,7 +719,7 @@ it ships via OTA, SQL, the web deploy, or is not code at all.
 
 | # | Task | Needs a build? |
 |---|---|---|
-| 4 | ⏸ **Left for now (Standa, 2026-10-17)** — the test accounts harm nothing and more will come; clean up in one go later with the two-step SQL (list first, then delete chosen ids — real users are anonymous too). Includes the guest accounts Claude created testing the web build 2026-10-12 and 2026-10-15. Was: Delete throwaway test accounts (`supabase/cleanup_test_accounts.sql`, R2-29 account included) — step 1 run 2026-09-27; **deleting deferred until after the test** (Standa) | No — SQL |
+| 4 | ⏸ **Left for now (Standa, 2026-10-17)** — the test accounts harm nothing and more will come; clean up in one go later with the two-step SQL (list first, then delete chosen ids — real users are anonymous too). Includes the guest accounts Claude created testing the web build 2026-10-12 and 2026-10-15. Also guest `3c7f56b0-fdad-4c3f-bd55-e75d949ddfc7` (2026-10-23, Standa OK): six finished quests and memories behind the Play screenshots — keep it until the screenshots are final. Was: Delete throwaway test accounts (`supabase/cleanup_test_accounts.sql`, R2-29 account included) — step 1 run 2026-09-27; **deleting deferred until after the test** (Standa) | No — SQL |
 | 5 | ✅ **Reworked 2026-10-15, not yet on a phone** (Standa: "maybe there is no need to return to the app at all — communicate it in the app and through notifications"). Android: "Add to calendar" opens the calendar as its own app again and **finishes the step right there**; the note under the button says so ("Pick a day and save it — that finishes this step, no need to come back here"). No more "Is it in your calendar?" dialog. The day picked is read back the next time the app opens or comes back to the foreground, and the day-before reminder is scheduled then (`resolvePendingCalendarLookups`, `src/features/quests/questRunnerPending.ts`); calendar and notification access are asked at the tap, not at that later moment. iOS unchanged (its editor reports the save). Was: ⚠️ Phone 2026-09-27: saving in the calendar does **not** return to the app; tapping back does, and the step continues. Hint added under the button (OTA) | No |
 | 6 | ✅ Phone 2026-09-27: memory photo upload works (R2-04) | — |
 | 7 | ✅ Phone 2026-09-27: new splash (R2-07) | — |
@@ -813,7 +813,7 @@ The Dawn redesign (`redesign-dawn`) together with `next-build`, plus:
 8. Exact alarm for the timer (#9 / CR-8): a 5-minute timer with the phone locked
 9. Feedback pop-up (#60) on a phone
 10. #65 quest-day notification that did not arrive
-11. Play screenshots in Dawn (#26 / #45b)
+11. Play screenshots in Dawn (#26 / #45b) — ✅ made 2026-10-23: `store-assets/play/screenshots/01–06` by `scripts/make-play-screenshots.cjs`, new description in `docs/store-listing-copy.md`; Standa uploads both
 12. NEW badge on live data (#12)
 13. Play Console, build 11 (Standa's screenshot 2026-10-23): "DEX optimisation below our limit — obfuscation 1 %", fix by February 2027 → R8 on `next-build` (#41); then the **deobfuscation file** (R8 mapping) must reach Play with the build
 14. **#42 Expo SDK 54 → 58** (Standa, 2026-10-23: "ok to přidáme taky") — for Play's "app uses deprecated edge-to-edge APIs or parameters" recommendation. One major at a time, on its own branch, before the preview APK, since every phone check above has to run on the upgraded app
