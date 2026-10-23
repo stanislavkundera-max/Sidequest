@@ -1,7 +1,7 @@
 import { clamp01 } from '@/src/features/journey/journeyPathGeometry';
 
 /**
- * Pixel size of `journey-valley-background.png` (file is JPEG data; SOF0 in asset).
+ * Pixel size of `journey-valley-background.jpg` (JPEG; it was named .png until the SDK 58 build, where AAPT refused it).
  * Update if the hero image is replaced.
  */
 export const JOURNEY_BACKGROUND_SOURCE_SIZE = { width: 571, height: 1024 };

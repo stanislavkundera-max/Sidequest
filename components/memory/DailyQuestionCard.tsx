@@ -24,7 +24,7 @@ import { trackEvent } from '@/src/lib/analytics';
  */
 
 /** 571×1024, a sunrise valley with a path into the mountains (also used by Journey). */
-const VALLEY = require('@/assets/images/journey-valley-background.png');
+const VALLEY = require('@/assets/images/journey-valley-background.jpg');
 const VALLEY_ASPECT = 1024 / 571;
 /** Where the card's window starts, as a share of the painting's height: the sunrise sky and peaks. */
 const WINDOW_FROM = 0.16;

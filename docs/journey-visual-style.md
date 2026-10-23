@@ -20,7 +20,7 @@
 >
 > Three things must be solved before it ships, and none of them is a code defect:
 >
-> 1. **The art does not belong to this app yet.** `journey-valley-background.png` is soft hazy
+> 1. **The art does not belong to this app yet.** `journey-valley-background.jpg` is soft hazy
 >    concept art; the live Explore map (`explore-map-background.png`) is a detailed, saturated,
 >    top-down illustration; the rest of the UI is flat and minimal. That is three visual languages.
 >    Of the two paintings the Explore map has the stronger identity — if one becomes the house
@@ -116,7 +116,7 @@
 
 When approaching painterly reference boards:
 
-1. **Background** — Hero bitmap (`assets/images/journey-valley-background.png`, `cover` in `JourneyAtmosphere`) and/or future parallax layers (exported @1x/@2x/@3x); keep file size budget in mind.
+1. **Background** — Hero bitmap (`assets/images/journey-valley-background.jpg`, `cover` in `JourneyAtmosphere`) and/or future parallax layers (exported @1x/@2x/@3x); keep file size budget in mind.
 2. **Path glow** — Prefer **Skia** (gradient along curve, soft outer glow) if Views are insufficient; document the dependency in `README.md` / `AGENTS.md` when added.
 3. **Artifact icons** — Consistent **sprite size** + one art style bible (weekly / monthly / yearly × category); code maps `JourneyArtifactVisual` → asset.
 4. **Avatar / “you”** — Simple silhouette + soft ring at current `t`; keep accessible target size.

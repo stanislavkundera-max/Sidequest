@@ -2,7 +2,7 @@ import type { ImageSourcePropType } from 'react-native';
 
 import type { QuestTimeframe } from '@/src/types/quest';
 
-const JOURNEY_VALLEY = require('@/assets/images/journey-valley-background.png');
+const JOURNEY_VALLEY = require('@/assets/images/journey-valley-background.jpg');
 const WEEKLY = require('@/assets/images/journey-timeframe-weekly.png');
 const MONTHLY = require('@/assets/images/journey-timeframe-monthly.png');
 const YEARLY = require('@/assets/images/journey-timeframe-yearly.png');
