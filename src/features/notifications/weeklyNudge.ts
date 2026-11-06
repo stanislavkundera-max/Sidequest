@@ -156,12 +156,16 @@ export async function cancelWeeklyNudges(): Promise<void> {
   );
 }
 
-/** Due times of quest-day and timer notifications already scheduled. */
+/** Due times of quest-day, quest-start and timer notifications already scheduled. */
 async function otherNotificationTimes(): Promise<number[]> {
   const all = await Notifications.getAllScheduledNotificationsAsync();
   return all
     .map((n) => n.content.data as { kind?: unknown; at?: unknown } | undefined)
-    .filter((d) => (d?.kind === 'quest-day' || d?.kind === 'timer') && typeof d.at === 'number')
+    .filter(
+      (d) =>
+        (d?.kind === 'quest-day' || d?.kind === 'quest-start' || d?.kind === 'timer') &&
+        typeof d.at === 'number'
+    )
     .map((d) => d!.at as number);
 }
 

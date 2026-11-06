@@ -401,7 +401,7 @@ export function AccountCard() {
             <Text style={styles.notificationHint}>
               {notificationIntensity === 'quiet'
                 ? 'Only when a step timer ends.'
-                : "When a step timer ends, the day before a quest you planned, and an idea for a quest if you haven't opened the app for a week."}
+                : "When a step timer ends, the day before a quest you planned and when it starts, and an idea for a quest if you haven't opened the app for a week."}
             </Text>
             {notificationAccess === 'ask' || notificationAccess === 'blocked' ? (
               <View style={styles.allowRow}>

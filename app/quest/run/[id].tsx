@@ -12,6 +12,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { CalendarStartPicker } from '@/components/quest-run/CalendarStartPicker';
 import { ConfirmStepAction } from '@/components/quest-run/ConfirmStepAction';
 import { CounterStepAction } from '@/components/quest-run/CounterStepAction';
 import { InputStepAction } from '@/components/quest-run/InputStepAction';
@@ -31,7 +32,7 @@ import { plainErrorMessage } from '@/lib/userFacingError';
 import { composeMemoryDraftFromRun, NO_EVIDENCE_NOTE } from '@/src/features/memories/memoryDraft';
 import { useMemoryStore } from '@/src/features/memories/memoryStore';
 import {
-  askNotificationAccess,
+  cancelPlannedQuestNotifications,
   notificationAccessState,
   questDayRemindersOn,
   scheduleQuestDay,
@@ -150,6 +151,13 @@ export default function QuestRunScreen() {
 
   // The calendar step promises the day-before reminder only when the account setting sends one.
   const [questDayReminders, setQuestDayReminders] = useState(false);
+  // The day and time picked on a calendar step (CalendarStartPicker); null keeps the suggestion.
+  const [plannedStart, setPlannedStart] = useState<Date | null>(null);
+  const timeframe = quest?.timeframe;
+  const suggestedStart = useMemo(
+    () => (timeframe ? suggestedQuestStart(timeframe) : null),
+    [timeframe]
+  );
 
   useEffect(() => {
     let alive = true;
@@ -398,31 +406,44 @@ export default function QuestRunScreen() {
   }
 
   /**
-   * Android with day-before reminders on: the phone is about to ask for calendar access and for
-   * notifications, two system prompts in a row. Say why once, first (code review 2026-10-15) — or
-   * skip the reminder and just open the calendar.
+   * The start picked on the step (CalendarStartPicker), or the suggestion — never one already past,
+   * which a screen left open overnight could hold.
+   */
+  function chosenStart(): Date {
+    const picked = plannedStart ?? suggestedStart;
+    if (picked && picked.getTime() > Date.now() + 60_000) return picked;
+    return suggestedQuestStart(quest?.timeframe ?? 'weekly');
+  }
+
+  /**
+   * With quest reminders on, the phone is about to ask for notifications (and on Android for
+   * calendar access): system prompts in a row. Say why once, first (code review 2026-10-15) — or
+   * skip the reminders and just open the calendar.
    */
   async function addCalendarReminder(step: QuestActionStep) {
     if (!user || !quest || !activeUq) return;
-    const wantsReminder = Platform.OS === 'android' && questDayReminders;
+    const start = chosenStart();
+    const android = Platform.OS === 'android';
     if (
-      wantsReminder &&
-      ((await calendarAccessNeedsAsking()) || (await notificationAccessState()) === 'ask')
+      questDayReminders &&
+      ((await notificationAccessState()) === 'ask' || (android && (await calendarAccessNeedsAsking())))
     ) {
       alertTwoChoice(
-        'A reminder the day before',
-        'Your phone will ask to let Side Quest Life see your calendar and send notifications. It only looks up the day you pick, so it can remind you the day before.',
+        'Reminders for this quest',
+        android
+          ? 'Your phone will ask to let Side Quest Life send notifications and see your calendar. You get a reminder the day before, and at the start a tap opens the quest. Calendar access only lets the app notice if you move the day there.'
+          : 'Your phone will ask to let Side Quest Life send notifications. You get a reminder the day before, and at the start a tap opens the quest.',
         {
-          cancel: { text: 'Skip the reminder', onPress: () => void openCalendarForStep(step, false) },
-          confirm: { text: 'Continue', onPress: () => void openCalendarForStep(step, true) },
+          cancel: { text: 'Skip reminders', onPress: () => void openCalendarForStep(step, start, false) },
+          confirm: { text: 'Continue', onPress: () => void openCalendarForStep(step, start, true) },
         }
       );
       return;
     }
-    await openCalendarForStep(step, wantsReminder);
+    await openCalendarForStep(step, start, questDayReminders);
   }
 
-  async function openCalendarForStep(step: QuestActionStep, wantsReminder: boolean) {
+  async function openCalendarForStep(step: QuestActionStep, start: Date, wantsReminder: boolean) {
     if (!user || !quest || !activeUq) return;
     const tpl = step.action?.kind === 'calendar' ? step.action.template : undefined;
     const duration =
@@ -430,23 +451,20 @@ export default function QuestRunScreen() {
     const title = calendarEventTitle(step);
     const notes = [tpl?.notes, step.detail].filter(Boolean).join('\n\n').trim() || undefined;
 
-    const suggestedStart = suggestedQuestStart(quest.timeframe);
     const android = Platform.OS === 'android';
     let finishedBeforeOpening = false;
     setActing(true);
     try {
-      // Android reads the saved day back later, which needs calendar access — asked here, once,
-      // right after the dialog above said why. Not asked when no reminder is sent.
-      const readBackLater =
-        android && wantsReminder && (await askCalendarReadAccess()) && (await askNotificationAccess());
-      await markCalendarOpened(activeUq.id, step.id);
-      if (android) {
-        // Android: the calendar opens as its own app and says nothing back, so opening it is the
-        // step — pick a day and save, no need to come back (task 5). Saved *before* it opens: once
-        // the calendar is in front, the app is in the background, where Android may stop it before
-        // a save finishes (code review 2026-10-15). The day is read back the next time the app
-        // opens, and the reminder scheduled then.
-        if (readBackLater) {
+      if (wantsReminder) {
+        // The day was picked on the step, so the reminders are set now, before the calendar opens
+        // — they arrive even if nobody comes back to the app afterwards. Until 2026-11-06 Android
+        // waited for the next app open to read the day back, and someone who saved and never came
+        // back got nothing (Standa). Asks for notification access if it still has to.
+        await remindOnQuestDay(start);
+        // Android: the editor still lets them change the day and never says so. With calendar
+        // access, the next app open reads the saved event back and moves the reminders to it
+        // (resolvePendingCalendarLookups; same notification ids, so they are replaced, not doubled).
+        if (android && (await askCalendarReadAccess())) {
           await addPendingCalendarLookup({
             userQuestId: activeUq.id,
             questId: quest.id,
@@ -455,6 +473,13 @@ export default function QuestRunScreen() {
             openedAt: Date.now(),
           });
         }
+      }
+      await markCalendarOpened(activeUq.id, step.id);
+      if (android) {
+        // Android: the calendar opens as its own app and says nothing back, so opening it is the
+        // step — save it there, no need to come back (task 5). Saved *before* it opens: once the
+        // calendar is in front, the app is in the background, where Android may stop it before a
+        // save finishes (code review 2026-10-15).
         await finishStep(step.id, { kind: 'self_attest' });
         finishedBeforeOpening = true;
       }
@@ -462,14 +487,21 @@ export default function QuestRunScreen() {
         title,
         notes,
         durationMinutes: duration,
-        suggestedStart,
+        suggestedStart: start,
       });
       if (result.outcome === 'saved') {
-        // iOS tells us it was saved and gives the id — no need to ask.
+        // iOS tells us it was saved and gives the id — no need to ask. A start changed in the
+        // editor moves the reminders to it.
         await finishStep(step.id, { kind: 'calendar', eventId: result.eventId });
-        remindOnQuestDay((await calendarEventStart(result.eventId)) ?? suggestedStart);
+        const saved = await calendarEventStart(result.eventId);
+        if (wantsReminder && saved && saved.getTime() !== start.getTime()) {
+          await remindOnQuestDay(saved);
+        }
+      } else if (result.outcome === 'canceled' && wantsReminder) {
+        // iOS: they backed out — no event, so no reminders for it either. The step stays as it was.
+        await cancelPlannedQuestNotifications(activeUq.id);
       }
-      // Android ('unknown'): done above. 'canceled' (iOS): they backed out; leave the step as it was.
+      // Android ('unknown'): done above.
     } catch (e: unknown) {
       logError('quest.runner.calendarEditor', e, { questId: quest.id, stepId: step.id });
       // The calendar did not open after all: undo the early finish, then fall back to asking.
@@ -485,12 +517,13 @@ export default function QuestRunScreen() {
   }
 
   /**
-   * The quest-day notification, for the day actually in the calendar: iOS hands back the saved
-   * event, Android is read back by title (findSavedQuestEventStart). Your calendar reminds you too.
+   * The day-before and start notifications for this quest: for the start picked on the step, then
+   * for the one actually saved if it differs (iOS hands back the saved event, Android is read back
+   * by title — findSavedQuestEventStart). Scheduling again replaces them. Your calendar reminds you too.
    */
-  function remindOnQuestDay(at: Date) {
+  async function remindOnQuestDay(at: Date): Promise<void> {
     if (!quest || !activeUq) return;
-    void scheduleQuestDay({
+    await scheduleQuestDay({
       userQuestId: activeUq.id,
       questId: quest.id,
       questTitle: quest.title,
@@ -505,7 +538,7 @@ export default function QuestRunScreen() {
     // the prefilled day, and the reminder then said "It's tomorrow" for whatever day that was.
     const title = calendarEventTitle(step);
     void findSavedQuestEventStart(title).then((start) => {
-      if (start) remindOnQuestDay(start);
+      if (start) void remindOnQuestDay(start);
     });
   }
 
@@ -632,6 +665,13 @@ export default function QuestRunScreen() {
     if (step.action?.kind === 'calendar') {
       return (
         <View key={step.id} style={styles.calendarBlock}>
+          {calendarDeviceOk && suggestedStart ? (
+            <CalendarStartPicker
+              value={plannedStart ?? suggestedStart}
+              onChange={setPlannedStart}
+              suggested={suggestedStart}
+            />
+          ) : null}
           <PrimaryButton
             label={calendarDeviceOk ? 'Add to calendar' : "Let's schedule it"}
             loading={primaryBusy}
@@ -641,9 +681,11 @@ export default function QuestRunScreen() {
             <Text style={styles.calendarNote}>
               {[
                 Platform.OS === 'android'
-                  ? 'Your calendar opens with the quest filled in. Pick a day and save it — that finishes this step, no need to come back here.'
+                  ? 'Your calendar opens with this day and time filled in. Save it there — that finishes this step, no need to come back here.'
                   : null,
-                questDayReminders ? "We'll remind you the day before." : null,
+                questDayReminders
+                  ? "We'll remind you the day before, and at the start a tap opens the quest."
+                  : null,
               ]
                 .filter(Boolean)
                 .join(' ')}

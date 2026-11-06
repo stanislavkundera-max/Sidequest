@@ -6,13 +6,20 @@ import type { NotificationIntensity } from '@/src/repositories/profilesRepositor
 
 /**
  * Local notifications for quests (round 2, R2-13 / R2-21). No server: everything is scheduled on the
- * phone. Two kinds only, chosen with Standa 2026-09-26:
+ * phone. Chosen with Standa 2026-09-26, the quest start added 2026-11-06:
  *   • quest day — a day before the time you put the quest in your calendar
+ *   • quest start — at that time itself, so on the day the quest is one tap away (Standa: on the
+ *     day only the calendar's own reminder came, and it does not open the quest)
  *   • timer done — when a step timer ends while you are out doing it
- * Tapping either opens the quest runner, which lands on the step you are on.
+ * Tapping any of them opens the quest runner, which lands on the step you are on.
  */
 
-type Kind = 'quest-day' | 'timer';
+type Kind = 'quest-day' | 'quest-start' | 'timer';
+
+/** The kinds a planned quest brings — off in "Timers only", held back while a timer runs. */
+function isPlanned(kind: Kind): boolean {
+  return kind === 'quest-day' || kind === 'quest-start';
+}
 
 type QuestNotificationData = {
   kind: Kind;
@@ -108,7 +115,6 @@ async function schedule(data: QuestNotificationData): Promise<void> {
   });
 }
 
-/** Whether quest-day reminders are on ("Timers and quest days"), for copy that promises one. */
 /**
  * Whether the app may notify, without asking. `ask`: the phone will still show its prompt;
  * `blocked`: refused for good — only the phone's settings can change it (task 53, follow-up).
@@ -137,17 +143,21 @@ export async function askNotificationAccess(): Promise<boolean> {
   }
 }
 
+/** Whether quest-day reminders are on ("Timers and quest days"), for copy that promises one. */
 export async function questDayRemindersOn(): Promise<boolean> {
   return supported && (await readIntensity()) !== 'quiet';
 }
 
 const DAY_MS = 24 * 60 * 60 * 1000;
-const SHORT_NOTICE_MS = 2 * 60 * 60 * 1000;
+const SOON_MS = 60_000;
 
 /**
- * A day before the quest's calendar slot — time to get ready, and a different moment from the
- * calendar's own reminder at the slot itself, so the two never arrive together (Standa,
- * 2026-09-27). Planned less than a day ahead: two hours before instead. Off in "Quiet".
+ * Two notifications for the quest's calendar slot. Off in "Quiet".
+ *   • A day before — time to get ready (Standa, 2026-09-27). Skipped when the slot is less than a
+ *     day away: the one at the start covers it (the old "two hours before" made three pings
+ *     together with the calendar's).
+ *   • At the start — the quest one tap away (2026-11-06). The calendar's own reminder comes
+ *     earlier (minutes before, by default), so the two still do not arrive together.
  */
 export async function scheduleQuestDay(params: {
   userQuestId: string;
@@ -159,22 +169,34 @@ export async function scheduleQuestDay(params: {
   try {
     if ((await readIntensity()) === 'quiet') return;
     const start = params.at.getTime();
-    const dayBefore = start - DAY_MS > Date.now() + 60_000;
-    let at = dayBefore ? start - DAY_MS : start - SHORT_NOTICE_MS;
-    if (at <= Date.now() + 60_000) return;
+    const now = Date.now();
+    if (start <= now + SOON_MS) return;
     if (!(await ensurePermission())) return;
     // Never land inside a running timer (R2-21).
     const timerEnd = await runningTimerEnd();
-    if (timerEnd != null && at < timerEnd) at = timerEnd + 60_000;
-    await schedule({
-      kind: 'quest-day',
+    const clear = (at: number) => (timerEnd != null && at < timerEnd ? timerEnd + SOON_MS : at);
+    const base = {
       url: runnerUrl(params.questId),
-      at,
       userQuestId: params.userQuestId,
       title: params.questTitle,
-      body: dayBefore
-        ? "It's tomorrow. Tap to see what's next and get ready."
-        : "It's in two hours. Tap to see what's next.",
+    };
+    // Planned again for a nearer day: an earlier "It's tomorrow" must not stay behind.
+    await Notifications.cancelScheduledNotificationAsync(
+      idFor('quest-day', params.userQuestId)
+    ).catch(() => undefined);
+    if (start - DAY_MS > now + SOON_MS) {
+      await schedule({
+        ...base,
+        kind: 'quest-day',
+        at: clear(start - DAY_MS),
+        body: "It's tomorrow. Tap to see what's next and get ready.",
+      });
+    }
+    await schedule({
+      ...base,
+      kind: 'quest-start',
+      at: clear(start),
+      body: "It's time. Tap to start.",
     });
   } catch {
     // A missing reminder must never break the quest itself.
@@ -213,11 +235,21 @@ export async function cancelTimerDone(userQuestId: string): Promise<void> {
   );
 }
 
+/** The calendar editor was closed without saving (iOS): the day-before and start reminders go too. */
+export async function cancelPlannedQuestNotifications(userQuestId: string): Promise<void> {
+  if (!supported) return;
+  await Promise.all(
+    (['quest-day', 'quest-start'] as const).map((k) =>
+      Notifications.cancelScheduledNotificationAsync(idFor(k, userQuestId)).catch(() => undefined)
+    )
+  );
+}
+
 /** When a quest is finished or set aside, nothing about it should still arrive. */
 export async function cancelQuestNotifications(userQuestId: string): Promise<void> {
   if (!supported) return;
   await Promise.all(
-    (['quest-day', 'timer'] as const).map((k) =>
+    (['quest-day', 'quest-start', 'timer'] as const).map((k) =>
       Notifications.cancelScheduledNotificationAsync(idFor(k, userQuestId)).catch(() => undefined)
     )
   );
@@ -227,7 +259,10 @@ async function scheduledQuestNotifications(): Promise<QuestNotificationData[]> {
   const all = await Notifications.getAllScheduledNotificationsAsync();
   return all
     .map((n) => n.content.data as Partial<QuestNotificationData> | undefined)
-    .filter((d): d is QuestNotificationData => !!d && (d.kind === 'quest-day' || d.kind === 'timer'));
+    .filter(
+      (d): d is QuestNotificationData =>
+        !!d && (d.kind === 'quest-day' || d.kind === 'quest-start' || d.kind === 'timer')
+    );
 }
 
 async function runningTimerEnd(): Promise<number | null> {
@@ -240,18 +275,18 @@ async function runningTimerEnd(): Promise<number | null> {
 /** R2-21: nothing else interrupts while a timer runs — anything due before it ends waits until after. */
 async function holdOthersUntil(endsAt: number): Promise<void> {
   const due = (await scheduledQuestNotifications()).filter(
-    (d) => d.kind === 'quest-day' && d.at < endsAt
+    (d) => isPlanned(d.kind) && d.at < endsAt
   );
   for (const d of due) await schedule({ ...d, at: endsAt + 60_000 });
 }
 
-/** Switching to "Timers only": quest-day notifications already scheduled must not still arrive. */
+/** Switching to "Timers only": quest-day and quest-start notifications already scheduled must not still arrive. */
 export async function cancelQuestDayNotifications(): Promise<void> {
   if (!supported) return;
-  const due = (await scheduledQuestNotifications()).filter((d) => d.kind === 'quest-day');
+  const due = (await scheduledQuestNotifications()).filter((d) => isPlanned(d.kind));
   await Promise.all(
     due.map((d) =>
-      Notifications.cancelScheduledNotificationAsync(idFor('quest-day', d.userQuestId)).catch(
+      Notifications.cancelScheduledNotificationAsync(idFor(d.kind, d.userQuestId)).catch(
         () => undefined
       )
     )

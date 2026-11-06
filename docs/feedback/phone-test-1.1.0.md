@@ -72,8 +72,11 @@ The first start after a fresh install makes a new guest and runs onboarding — 
 - [ ] **27.** **Feedback pop-up**: after opening the app on **three different days**, with a step or a
   memory done, switching to Explore, Memories or Progress shows "Help me make this better for you".
   Never right at start, never during a timer. Tap **Not now** → it does not come back for 30 days.
-- [ ] **28.** A quest-day reminder (#65): plan a quest via its calendar step for **tomorrow**, open the
-  app once afterwards → the reminder arrives a day before (two hours before if it is sooner).
+- [ ] **28.** A quest-day reminder (#65): on a calendar step pick **tomorrow** and a time in the app,
+  save it in the calendar that opens, and do *not* come back to the app → a reminder arrives a day
+  before (skipped if it is sooner than that), and another at the picked time; tapping it opens the
+  quest on its current step. Move the day in the calendar editor instead → the next app open moves
+  the reminders to it, without doubling them (2026-11-06).
 
 ## Screenshots for Play (#26 / #45b)
 
