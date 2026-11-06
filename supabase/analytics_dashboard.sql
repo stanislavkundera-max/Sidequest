@@ -35,6 +35,9 @@ create table if not exists insights.excluded_users (
   user_id uuid primary key,
   note    text
 );
+-- Belt and braces: with RLS on and no policy, the API could not read it even if the schema were
+-- exposed one day. The SQL editor runs as postgres and is not affected.
+alter table insights.excluded_users enable row level security;
 
 create or replace view insights.events as
 select e.*
