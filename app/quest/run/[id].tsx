@@ -1,6 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useLocalSearchParams, useNavigation, useRouter } from 'expo-router';
-import { useCallback, useEffect, useLayoutEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import {
   Platform,
   Pressable,
@@ -176,6 +176,32 @@ export default function QuestRunScreen() {
     if (!quest || !activeUq) return null;
     return getFirstIncompleteJourneyStep(quest, activeUq);
   }, [quest, activeUq]);
+
+  // Leaving the runner with the quest still open (#67): which step people stop on, and after how
+  // long. Read from the store at that moment, not from this render, so finishing or leaving the
+  // quest (no active row any more) sends nothing.
+  const questRef = useRef(quest);
+  questRef.current = quest;
+  useEffect(() => {
+    const openedAt = Date.now();
+    return () => {
+      const q = questRef.current;
+      if (!q) return;
+      const uq = useQuestDomainStore
+        .getState()
+        .userQuests.find((u) => u.questId === q.id && u.status === 'active');
+      if (!uq) return;
+      const step = getFirstIncompleteJourneyStep(q, uq);
+      trackEvent('quest_completion_abandoned', {
+        sourceScreen: 'quest_runner',
+        questId: q.id,
+        stepId: step?.id ?? null,
+        stepNumber: step ? ordinalForStep(q.actionSteps, step) + 1 : null,
+        totalSteps: q.actionSteps.length,
+        secondsOnScreen: Math.round((Date.now() - openedAt) / 1000),
+      }).catch(() => undefined);
+    };
+  }, []);
 
   const leaveQuest = useCallback(async () => {
     if (!user || !quest || !activeUq) return;

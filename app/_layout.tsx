@@ -20,6 +20,7 @@ import { MD3DarkTheme, PaperProvider } from 'react-native-paper';
 import { Theme } from '@/constants/Theme';
 import { supabase } from '@/lib/supabase';
 import { identifyUser, resetAnalytics, trackAppOpened } from '@/src/lib/analytics';
+import { useScreenTracking } from '@/src/lib/analytics/useScreenTracking';
 import { logError } from '@/src/lib/monitoring/errorLogger';
 import {
   onAppForeground,
@@ -102,6 +103,7 @@ function RootLayoutNav() {
   const clearMemories = useMemoryStore((s) => s.clearMemories);
   const sessionReady = useSessionStore((s) => s.initialized);
   useQuestNotificationTaps(sessionReady);
+  useScreenTracking();
 
   useEffect(() => {
     let mounted = true;

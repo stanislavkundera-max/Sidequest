@@ -1,4 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import Constants from 'expo-constants';
+import * as Updates from 'expo-updates';
 
 import { isSupabaseConfigured, supabase } from '@/lib/supabase';
 import type { ValidationEventName } from '@/src/constants/validation';
@@ -17,6 +19,24 @@ type AnalyticsProvider = {
   trackEvent: (event: AnalyticsEventInput & { userId?: string }) => Promise<void>;
   resetAnalytics: () => Promise<void>;
 };
+
+/**
+ * Which app every event came from: the store version, and the OTA update running on top of it
+ * (null = the bundle the build shipped with). Without these, a number before and after an OTA
+ * could not be told apart (#67, 2026-11-06). Neither identifies a person.
+ */
+function buildContext(): AnalyticsEventProperties {
+  let otaUpdateId: string | null = null;
+  try {
+    otaUpdateId = Updates.isEmbeddedLaunch ? null : (Updates.updateId ?? null);
+  } catch {
+    otaUpdateId = null;
+  }
+  return {
+    appVersion: Constants.expoConfig?.version ?? null,
+    otaUpdateId,
+  };
+}
 
 const USER_ANALYTICS_STATE_KEY = '@side_quest_life/analytics_state_v1';
 
@@ -91,12 +111,34 @@ class AnalyticsService {
     : [supabaseProvider];
   private userId: string | null = null;
   private lastAppOpenedAtMs: number | null = null;
+  private context: AnalyticsEventProperties | null = null;
+  private lastScreen: string | null = null;
+  /** The screen shown before the account was known: sent once it is, instead of being refused by RLS. */
+  private pendingScreen: AnalyticsEventProperties | null = null;
 
   async identifyUser(userId: string, traits?: AnalyticsEventProperties): Promise<void> {
     this.userId = userId;
     await Promise.allSettled(
       this.providers.map((provider) => provider.identifyUser(userId, traits))
     );
+    const pending = this.pendingScreen;
+    this.pendingScreen = null;
+    if (pending) await this.trackEvent('screen_viewed', pending);
+  }
+
+  /**
+   * One event per screen change. `route` is the route pattern (`/memory/[id]`), never the filled-in
+   * path, so no memory or quest id ends up in it.
+   */
+  async trackScreen(route: string): Promise<void> {
+    if (route === this.lastScreen) return;
+    const properties: AnalyticsEventProperties = { route, previousRoute: this.lastScreen };
+    this.lastScreen = route;
+    if (!this.userId) {
+      this.pendingScreen = properties;
+      return;
+    }
+    await this.trackEvent('screen_viewed', properties);
   }
 
   async resetAnalytics(): Promise<void> {
@@ -111,6 +153,7 @@ class AnalyticsService {
       name,
       userId: this.userId ?? undefined,
       properties: {
+        ...(this.context ??= buildContext()),
         ...(properties ?? {}),
         timestamp: new Date().toISOString(),
       },
@@ -181,6 +224,10 @@ export async function trackEvent(
 
 export async function trackAppOpened(sourceScreen = 'root_layout'): Promise<void> {
   await analytics.trackAppOpened(sourceScreen);
+}
+
+export async function trackScreen(route: string): Promise<void> {
+  await analytics.trackScreen(route);
 }
 
 export async function resetAnalytics(): Promise<void> {

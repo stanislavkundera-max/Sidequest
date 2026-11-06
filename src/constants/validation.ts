@@ -17,6 +17,10 @@ export const VALIDATION_EVENT_NAMES = [
   /** "Can't do this where I live" — a quest nobody in that place can do (R2-27). */
   'quest_unavailable_here',
   'quest_completed',
+  /**
+   * Left the quest runner with the quest still open: not given up (that is `quest_deactivated`),
+   * just walked away from it, with the step they stopped on (#67, 2026-11-06).
+   */
   'quest_completion_abandoned',
   'memory_creation_started',
   'memory_created',
@@ -35,6 +39,8 @@ export const VALIDATION_EVENT_NAMES = [
   'feedback_prompt_shown',
   /** "Not now" (or back) on the feedback sheet. */
   'feedback_dismissed',
+  /** Every screen change, as a route pattern (`/memory/[id]`): where people go and where they stop (#67). */
+  'screen_viewed',
 ] as const;
 
 export type ValidationEventName = (typeof VALIDATION_EVENT_NAMES)[number];
